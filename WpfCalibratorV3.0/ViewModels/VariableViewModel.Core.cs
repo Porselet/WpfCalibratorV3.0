@@ -10,6 +10,7 @@ namespace WpfCalibrator.ViewModels;
 /// </summary>
 public partial class VariableViewModel : INotifyPropertyChanged
 {
+
     // Метаданные из JSON-паспорта
     public int Id { get; init; }
     public string Name { get; init; } = "";
@@ -119,4 +120,6 @@ public partial class VariableViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(MatrixData)); // Уведомляем UI об изменении
         }
     }
-}
+
+
+ }

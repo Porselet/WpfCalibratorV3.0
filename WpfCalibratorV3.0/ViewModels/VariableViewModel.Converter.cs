@@ -6,22 +6,22 @@ public partial class VariableViewModel
 {
 
     private float _currentValue = 0.0f;
-
-    /// <summary>
-    /// Текущее значение переменной (для сигналов) или активное значение в ячейке (для таблиц).
-    /// </summary>
     public float CurrentValue
     {
         get => _currentValue;
         set
         {
-            if (Math.Abs(_currentValue - value) > 0.0001f)
+            if (_currentValue != value)
             {
                 _currentValue = value;
-                OnPropertyChanged();
+                OnPropertyChanged(nameof(CurrentValue)); // Твой родной сишный метод прерывания для UI
+
+                // Саму отправку данных мы сделаем цивилизованно через Сервисы,
+                // а не внутри этой ОЗУ-переменной!
             }
         }
     }
+
     // Сериализация данных в байтовый массив (для отправки на устройство)
     public byte[] SerializeToBytesColumnMajor()
     {
@@ -71,4 +71,6 @@ public partial class VariableViewModel
             }
         }
     }
+
+
 }

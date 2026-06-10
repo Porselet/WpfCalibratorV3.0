@@ -1,114 +1,206 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels;
 
-namespace WpfCalibrator.Views
+namespace WpfCalibrator.Views;
+
+public partial class WorkspaceCanvas : UserControl
 {
-    /// <summary>
-    /// Логика взаимодействия для WorkspaceCanvas.xaml
-    /// </summary>
-    public partial class WorkspaceCanvas : UserControl
+    private bool _isMovingWidget = false;
+    private Point _widgetStartMousePosition;
+    private WidgetViewModel? _draggedWidgetDataContext;
+
+    public WorkspaceCanvas()
     {
-        public WorkspaceCanvas()
+        InitializeComponent();
+    }
+
+    // ==================== ИСПРАВЛЕННАЯ ЛОГИКА ЗАКРЫТИЯ (❌) ====================
+    private void CloseWidget_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button button && DataContext is MainViewModel vm)
         {
-            InitializeComponent();
-        }
-        private void Canvas_Drop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(typeof(VariableConfig)) && sender is Canvas canvas)
+            // ИСПРАВЛЕНИЕ: Так как в ItemTemplate контекстом может быть вложенный объект,
+            // мы надежно поднимаемся по визуальному дереву WPF до контейнера виджета
+            var itemsControlItem = GetParentOfType<ContentPresenter>(button);
+
+            if (itemsControlItem?.Content is WidgetViewModel widgetToDelete)
             {
-                var variable = (VariableConfig)e.Data.GetData(typeof(VariableConfig));
-                if (variable == null || DataContext is not MainViewModel vm) return;
+                vm.ActiveWidgets.Remove(widgetToDelete);
+                e.Handled = true; // Глушим событие, чтобы оно не улетело в шапку окна!
+            }
+        }
+    }
 
-                Point dropPosition = e.GetPosition(canvas);
+    // ==================== ИСПРАВЛЕННАЯ ЛОГИКА ДВИЖЕНИЯ ОКНА МЫШКОЙ ====================
 
-                // Инженерная магнитная сетка с шагом 10 пикселей
-                const double gridStep = 10.0;
-                double snappedX = Math.Round(dropPosition.X / gridStep) * gridStep;
-                double snappedY = Math.Round(dropPosition.Y / gridStep) * gridStep;
+    // Офсеты (смещения) курсора относительно левого верхнего угла самого движимого окна
+    private double _mouseOffsetInWidgetX;
+    private double _mouseOffsetInWidgetY;
 
-                if (variable.IsParam)
-                {
-                    CreateWidgetOnWorkspace(vm, variable, snappedX, snappedY, "Default");
-                }
-                else
-                {
-                    ShowWidgetSelectorMenu(canvas, vm, variable, snappedX, snappedY);
-                }
+    private void WidgetHeader_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        // Если оператор кликнул по кнопке закрытия ❌, игнорируем перемещение
+        if (e.OriginalSource is Button || e.OriginalSource is TextBlock tb && tb.Text == "❌") return;
 
+        if (sender is Border headerBorder)
+        {
+            // Достаем WidgetViewModel через контейнер
+            var container = GetParentOfType<ContentPresenter>(headerBorder);
+            _draggedWidgetDataContext = container?.Content as WidgetViewModel;
+
+            if (_draggedWidgetDataContext != null)
+            {
+                _isMovingWidget = true;
+
+                // 1. Получаем абсолютные координаты мыши на холсте Canvas в момент клика
+                Point mouseOnCanvas = e.GetPosition(this);
+
+                // 2. Вычисляем и запоминаем, в какую точку внутри окна кликнул оператор
+                _mouseOffsetInWidgetX = mouseOnCanvas.X - _draggedWidgetDataContext.Left;
+                _mouseOffsetInWidgetY = mouseOnCanvas.Y - _draggedWidgetDataContext.Top;
+
+                headerBorder.CaptureMouse(); // Жестко захватываем фокус мыши
                 e.Handled = true;
             }
         }
+    }
+    private async void ProcessAndSendWidgetData(TextBox textBox)
+    {
+        // 1. Поднимаемся по визуальному дереву, ищем виджет
+        var container = GetParentOfType<ContentPresenter>(textBox);
+        if (container?.Content is not WidgetViewModel widget || widget.DataSource == null) return;
 
-        private void ShowWidgetSelectorMenu(Canvas canvas, MainViewModel vm, VariableConfig variable, double x, double y)
+        // 2. Достаем нашу MainViewModel из контекста данных
+        if (DataContext is not MainViewModel mainVm) return;
+
+        // 3. Если это многомерная таблица (матрица)
+        if (widget.DataSource.Rows * widget.DataSource.Cols > 1)
         {
-            var menu = new ContextMenu();
-
-            var itemDisplay = new MenuItem { Header = "🔢 Крупные цифры" };
-            itemDisplay.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Digital");
-
-            var itemSlider = new MenuItem { Header = "📊 Линейный индикатор (Слайдер)" };
-            itemSlider.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Slider");
-
-            var itemGauge = new MenuItem { Header = "🧭 Стрелочный прибор (Gauge)" };
-            itemGauge.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Gauge");
-
-            menu.Items.Add(itemDisplay);
-            menu.Items.Add(itemSlider);
-            menu.Items.Add(itemGauge);
-
-            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
-            menu.IsOpen = true;
+            // Вызываем наш новый безопасный метод из MainViewModel!
+            await mainVm.SendTableToUartAsync(widget.DataSource);
         }
-
-        private void CreateWidgetOnWorkspace(MainViewModel vm, VariableConfig variable, double x, double y, string viewType)
+        else // Если это одиночный скаляр float
         {
-            var variableVm = new VariableViewModel(variable, variable.ModelId);
+            // Логику отправки одиночного скаляра мы тоже сможем перенести в MainViewModel чуть позже
+        }
+    }
+    private void WidgetHeader_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isMovingWidget || _draggedWidgetDataContext == null) return;
 
-            var widget = new WidgetViewModel
-            {
-                Left = x,
-                Top = y,
-                ControlView = viewType,
-                DataSource = variableVm
-            };
+        // Получаем текущую абсолютную координату мыши на холсте Canvas
+        Point currentMousePosition = e.GetPosition(this);
 
-            if (variable.IsParam && variable.TotalElements > 1)
-            {
-                widget.Width = 450;
-                widget.Height = 250;
-            }
-            else
-            {
-                widget.Width = 220;
-                widget.Height = 70;
-            }
+        // Рассчитываем новые чистые координаты окна (Позиция мыши минус стартовый офсет клика)
+        double newLeft = currentMousePosition.X - _mouseOffsetInWidgetX;
+        double newTop = currentMousePosition.Y - _mouseOffsetInWidgetY;
 
-            // РАСКОММЕНТИРОВАНО: 
-            // Так как у вас в MainViewModel пока используются списки ParameterVariables/TelemetryVariables,
-            // для отображения на гибком холсте мы временно закидываем созданную переменную в ParameterVariables.
-            // Чуть позже мы заведем для холста отдельную чистую коллекцию WorkspaceWidgets.
+        // Инженерная магнитная сетка: жесткий шаг 10 пикселей для выравнивания окон
+        const double gridStep = 10.0;
+        _draggedWidgetDataContext.Left = Math.Round(newLeft / gridStep) * gridStep;
+        _draggedWidgetDataContext.Top = Math.Round(newTop / gridStep) * gridStep;
+
+        e.Handled = true;
+    }
+
+    private void WidgetHeader_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isMovingWidget && sender is Border headerBorder)
+        {
+            _isMovingWidget = false;
+            headerBorder.ReleaseMouseCapture(); // Освобождаем мышь
+            _draggedWidgetDataContext = null;
+            e.Handled = true;
+        }
+    }
+    // ==================== ВСПОМОГАТЕЛЬНЫЙ МЕТОД (ПОИСК РОДИТЕЛЯ) ====================
+    private T? GetParentOfType<T>(DependencyObject element) where T : DependencyObject
+    {
+        while (element != null)
+        {
+            if (element is T parent) return parent;
+            element = VisualTreeHelper.GetParent(element);
+        }
+        return null;
+    }
+
+    // ==================== ЛОГИКА DROP (СБРОС ИЗ ДЕРЕВА) ====================
+    private void Canvas_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(typeof(VariableConfig)) && sender is Canvas canvas)
+        {
+            var variable = (VariableConfig)e.Data.GetData(typeof(VariableConfig));
+            if (variable == null || DataContext is not MainViewModel vm) return;
+
+            Point dropPosition = e.GetPosition(canvas);
+
+            const double gridStep = 10.0;
+            double snappedX = Math.Round(dropPosition.X / gridStep) * gridStep;
+            double snappedY = Math.Round(dropPosition.Y / gridStep) * gridStep;
+
             if (variable.IsParam)
             {
-                vm.ParameterVariables.Add(variableVm);
+                string viewType = variable.TotalElements > 1 ? "MatrixTable" : "TextBox";
+                CreateWidgetOnWorkspace(vm, variable, snappedX, snappedY, viewType);
             }
             else
             {
-                vm.TelemetryVariables.Add(variableVm);
+                ShowWidgetSelectorMenu(canvas, vm, variable, snappedX, snappedY);
             }
+
+            e.Handled = true;
+        }
+    }
+
+    private void ShowWidgetSelectorMenu(Canvas canvas, MainViewModel vm, VariableConfig variable, double x, double y)
+    {
+        var menu = new ContextMenu();
+
+        var itemDisplay = new MenuItem { Header = "🔢 Крупные цифры" };
+        itemDisplay.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Digital");
+
+        var itemSlider = new MenuItem { Header = "📊 Линейный индикатор (Слайдер)" };
+        itemSlider.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Slider");
+
+        var itemGauge = new MenuItem { Header = "🧭 Стрелочный прибор (Gauge)" };
+        itemGauge.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Gauge");
+
+        menu.Items.Add(itemDisplay);
+        menu.Items.Add(itemSlider);
+        menu.Items.Add(itemGauge);
+
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
+        menu.IsOpen = true;
+    }
+
+    private void CreateWidgetOnWorkspace(MainViewModel vm, VariableConfig variable, double x, double y, string viewType)
+    {
+        var variableVm = new VariableViewModel(variable, variable.ModelId);
+
+        var widget = new WidgetViewModel
+        {
+            Left = x,
+            Top = y,
+            ControlView = viewType,
+            DataSource = variableVm
+        };
+
+        if (variable.IsParam && variable.TotalElements > 1)
+        {
+            widget.Width = 500;
+            widget.Height = 280;
+        }
+        else
+        {
+            widget.Width = 260;
+            widget.Height = 110;
         }
 
-
+        vm.ActiveWidgets.Add(widget);
     }
 }

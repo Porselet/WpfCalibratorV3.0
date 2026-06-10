@@ -14,7 +14,11 @@
         </Grid.ColumnDefinitions>
 
         <!-- Подключаем модуль левого дерева -->
-        <views:TreeViewPanel x:Name="LeftPanel" Grid.Column="0"/>
+        <!-- БЫЛО: <views:TreeViewPanel Grid.Column="0"/> -->
+
+        <!-- СТАЛО (Явно передаем DataContext главного окна внутрь модуля): -->
+        <views:TreeViewPanel Grid.Column="0" x:Name="LeftPanel" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"/>
+
 
         <!-- Подключаем модуль свободного холста -->
         <views:WorkspaceCanvas x:Name="CentralCanvas" Grid.Column="1"/>

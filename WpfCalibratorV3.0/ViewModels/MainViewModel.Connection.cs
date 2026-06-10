@@ -86,4 +86,21 @@ public partial class MainViewModel
         // Предполагается, что данные приходят в Little Endian (стандарт для STM32)
         return BitConverter.ToSingle(bytes, 0);
     }
+
+    // Метод, который вызывается при успешной сборке RX-пакета из UART
+    private void HandleIncomingDataPacket(byte modelId, int varId, float receivedValue)
+    {
+        // Ищем переменную в ParameterVariables или TelemetryVariables
+        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == varId && v.ModelId == modelId)
+                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == varId && v.ModelId == modelId);
+
+        if (targetVariable != null)
+        {
+            // Записываем значение в UI-поток (Dispatcher), чтобы WPF не ругался на мультипоточность
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                targetVariable.CurrentValue = receivedValue;
+            });
+        }
+    }
 }

@@ -6,31 +6,25 @@ namespace WpfCalibrator.ViewModels;
 
 public partial class MainViewModel
 {
-    // Базовый класс для команд
+    // 1. Базовый класс для всех команд приложения
     private abstract class BaseCommand : ICommand
     {
-        // Обязательный метод: доступность команды
         public abstract bool CanExecute(object? parameter);
-
-        // Обязательный метод: выполнение команды
         public abstract void Execute(object? parameter);
-
-        // Обязательное событие: уведомление об изменении доступности
         public event EventHandler? CanExecuteChanged;
 
-        // Вспомогательный метод для вызова события
         protected void RaiseCanExecuteChanged()
         {
             CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
-    // Конкретная команда для подключения/отключения
-    private class ToggleConnectionCommand : BaseCommand
+    // 2. Конкретная реализация команды для подключения/отключения UART
+    private class ToggleConnectionCommandImpl : BaseCommand
     {
         private readonly MainViewModel _parent;
 
-        public ToggleConnectionCommand(MainViewModel parent)
+        public ToggleConnectionCommandImpl(MainViewModel parent)
         {
             _parent = parent;
         }
@@ -40,14 +34,12 @@ public partial class MainViewModel
         public override void Execute(object? parameter)
         {
             _parent.ToggleConnection();
-            
         }
     }
 
-    // Свойство для привязки к кнопке в UI
-    // Свойство для привязки к кнопке в UI
-    //public ICommand ToggleConnectionCommand { get; }
-
-    // Конструктор: создаем команду
-
+    // 3. Свойство для привязки к кнопке в UI.
+    // 🔥 ЧИСТЫЙ СИШНЫЙ ХАК: Инициализируем команду прямо здесь в одну строчку!
+    // Теперь нам не нужно лезть в Core.cs и править там конструктор, всё взлетит само.
+    public ICommand ToggleConnectionCommand => _toggleConnectionCommand ??= new ToggleConnectionCommandImpl(this);
+    private ICommand? _toggleConnectionCommand;
 }

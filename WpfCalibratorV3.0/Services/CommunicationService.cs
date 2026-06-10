@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace WpfCalibrator.Services;
 
-/// <summary>
+/// <summary> 100626
 /// Сервис для управления коммуникацией с устройством через COM-порт.
 /// </summary>
 public sealed class CommunicationService : IDisposable
@@ -37,7 +37,7 @@ public sealed class CommunicationService : IDisposable
             {
                 _serialPort = new SerialPort(portName, baudRate, Parity.None, 8, StopBits.One)
                 {
-                    ReadTimeout = 500,
+                    ReadTimeout = SerialPort.InfiniteTimeout,
                     WriteTimeout = 500,
                     Encoding = System.Text.Encoding.UTF8
                 };
@@ -61,6 +61,28 @@ public sealed class CommunicationService : IDisposable
             _serialPort?.Dispose();
             _serialPort = null;
         }
+    }
+    /// <summary>
+    /// Универсальный полиморфный метод для отправки любых калибровочных массивов (float, int, short, byte) в STM32.
+    /// </summary>
+    public async Task SendPacketAsync<T>(byte modelId, byte cmd, byte varId, T[] payloadArray) where T : struct
+    {
+        if (payloadArray == null || payloadArray.Length == 0) return;
+
+        // 1. elementsCount — это просто длина массива (количество элементов uint8_t)
+        byte elementsCount = (byte)payloadArray.Length;
+
+        // 2. Вычисляем размер одного элемента динамически (4 для float/int, 2 для short, 1 для byte)
+        int elementSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(T));
+
+        // 3. Выделяем буфер под результирующие байты
+        byte[] bytePayload = new byte[payloadArray.Length * elementSize];
+
+        // 4. Быстрое низкоуровневое копирование ОЗУ (прямой системный аналог memcpy)
+        Buffer.BlockCopy(payloadArray, 0, bytePayload, 0, bytePayload.Length);
+
+        // 5. Вызываем твой базовый метод отправки
+        await SendPacketAsync(modelId, cmd, varId, elementsCount, bytePayload);
     }
 
     // 2. Отправка пакетов (синхронная оболочка)

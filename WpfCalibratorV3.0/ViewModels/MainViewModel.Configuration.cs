@@ -84,4 +84,71 @@ public partial class MainViewModel
         // Восстановление настроек интерфейса (привязки осей и виджеты)
         ApplyUserConfig(userConfig);
     }
+
+
+    /// <summary>
+    /// Универсальный метод отправки калибровочной таблицы из MainViewModel
+    /// </summary>
+    public async Task SendTableToUartAsync(VariableViewModel variable)
+    {
+        if (variable == null || _commService == null || !_commService.IsConnected) return;
+
+        try
+        {
+            // 1. Ставим фоновый опрос телеметрии на паузу (теперь доступ прямой!)
+            _isPollingEnabled = false;
+
+            byte cmd = 0x02; // CMD_VAR_WRITE
+            byte modelId = variable.ModelId;
+            byte varId = (byte)variable.Id;
+
+            int rCount = variable.Rows;
+            int cCount = variable.Cols;
+            int totalElements = rCount * cCount;
+
+            // 2. Проверяем тип данных и вызываем твой новый обобщенный метод из CommunicationService
+            if (variable.Type == "single") // float
+            {
+                float[] flatArray = new float[totalElements];
+                int index = 0;
+                for (int c = 0; c < cCount; c++)
+                    for (int r = 0; r < rCount; r++)
+                        flatArray[index++] = (float)variable.MatrixData[r, c];
+
+                await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
+            }
+            else if (variable.Type == "int16" || variable.Type == "int16_t") // short / int16_t
+            {
+                short[] flatArray = new short[totalElements];
+                int index = 0;
+                for (int c = 0; c < cCount; c++)
+                    for (int r = 0; r < rCount; r++)
+                        flatArray[index++] = (short)variable.MatrixData[r, c];
+
+                await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
+            }
+            else if (variable.Type == "int32" || variable.Type == "int32_t") // int / int32_t
+            {
+                int[] flatArray = new int[totalElements];
+                int index = 0;
+                for (int c = 0; c < cCount; c++)
+                    for (int r = 0; r < rCount; r++)
+                        flatArray[index++] = (int)variable.MatrixData[r, c];
+
+                await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
+            }
+
+            // 3. Даем STM32 фору в 50 мс на обработку DMA IDLE и memcpy
+            await Task.Delay(50);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Ошибка отправки матрицы: {ex.Message}");
+        }
+        finally
+        {
+            // 4. Снимаем паузу и возвращаем фоновый опрос сигналов
+            _isPollingEnabled = true;
+        }
+    }
 }

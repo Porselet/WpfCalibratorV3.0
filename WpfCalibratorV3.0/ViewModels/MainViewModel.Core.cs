@@ -34,7 +34,17 @@ public partial class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<VariableViewModel> ParameterVariables { get; } = new();
     public ObservableCollection<VariableViewModel> TelemetryVariables { get; } = new();
 
-
+    // Коллекция активных виджетов на свободном холсте (Flexible Layout)
+    private ObservableCollection<WidgetViewModel> _activeWidgets = new();
+    public ObservableCollection<WidgetViewModel> ActiveWidgets
+    {
+        get => _activeWidgets;
+        set
+        {
+            _activeWidgets = value;
+            OnPropertyChanged();
+        }
+    }
 
 
     // Текущие выбранные элементы
@@ -143,9 +153,78 @@ public partial class MainViewModel : INotifyPropertyChanged
     }
 
     // Вспомогательный метод для опроса следующего сигнала
-    private void PollNextTelemetryVariable()
+    private async void PollNextTelemetryVariable()
     {
-        // Логика опроса (polling) сигналов
-        // TODO: Реализуйте перебор индексов и отправку запросов на чтение
+        // 1. Фильтруем активные виджеты: ищем среди них только сигналы телеметрии (IsParam = false)
+        var activeSignals = ActiveWidgets
+            .Where(w => w.DataSource != null && !w.DataSource.IsParam)
+            .Select(w => w.DataSource)
+            .ToList();
+
+        if (activeSignals.Count == 0) return;
+
+        // 2. Индекс циклического перебора ( Round-Robin )
+        if (_currentPollingIndex >= activeSignals.Count)
+        {
+            _currentPollingIndex = 0;
+        }
+
+        var variableToPoll = activeSignals[_currentPollingIndex];
+        _currentPollingIndex++;
+
+        // 🔥 ИСПРАВЛЕНИЕ: Прямая асинхронная отправка параметров строго по вашей карте байт из app_link.c!
+        try
+        {
+            byte cmd = 0x01; // CMD_VAR_READ (Операция чтения)
+            byte modelId = variableToPoll.ModelId;
+            byte varId = (byte)variableToPoll.Id; // Однобайтовый ID из прошивки
+            byte elementsCount = (byte)(variableToPoll.Rows * variableToPoll.Cols);
+
+            // При чтении Payload (данные) пустой — шлем пустой массив байт
+            byte[] emptyPayload = Array.Empty<byte>();
+
+            if (_commService != null && _commService.IsConnected)
+            {
+                // Раскомментируем и вызываем твой реальный Task-метод!
+                await _commService.SendPacketAsync(modelId, cmd, varId, elementsCount, emptyPayload);
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[UART Polling Error]: {ex.Message}");
+        }
+    }
+
+    // Вспомогательный метод сборки TX-пакета по ТЗ
+    private byte[] FormRequestPacket(int varId, byte modelId)
+    {
+        byte[] packet = new byte[6];
+        packet[0] = 0xAA; // Стартовый байт (Заголовок)
+        packet[1] = 0x01; // Команда: 0x01 - Чтение данных
+        packet[2] = modelId;
+        packet[3] = (byte)(varId >> 8); // Идентификатор переменной (MSB)
+        packet[4] = (byte)(varId & 0xFF); // (LSB)
+
+        // Расчет контрольной суммы CRC-8 (Полином SAE J1850 из вашего ТЗ)
+        packet[5] = CalculateCRC8(packet, 5);
+
+        return packet;
+    }
+
+    private byte CalculateCRC8(byte[] data, int length)
+    {
+        byte crc = 0xFF; // Начальное значение по ТЗ
+        for (int i = 0; i < length; i++)
+        {
+            crc ^= data[i];
+            for (int j = 0; j < 8; j++)
+            {
+                if ((crc & 0x80) != 0)
+                    crc = (byte)((crc << 1) ^ 0x1D); // Полином 0x1D (SAE J1850)
+                else
+                    crc = (byte)(crc << 1);
+            }
+        }
+        return crc;
     }
 }

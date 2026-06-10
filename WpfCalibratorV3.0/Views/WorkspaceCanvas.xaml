@@ -1,7 +1,11 @@
 ﻿<UserControl x:Class="WpfCalibrator.Views.WorkspaceCanvas"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
->
+             xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels"
+             
+
+             >
+
     <Border Background="#111111" Padding="10">
         <Grid>
             <Grid.RowDefinitions>
@@ -12,80 +16,89 @@
             <TextBlock Grid.Row="0" Text="📝 РАБОЧАЯ ОБЛАСТЬ КАЛИБРОВКИ И МОНИТОРИНГА" Style="{StaticResource LocalBlockHeaderStyle}" Margin="10,5,0,10"/>
 
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <!-- Background должен быть ОБЯЗАТЕЛЬНО, иначе Drop не сработает! -->
+                <!-- К Canvas подключено событие приема объектов из дерева Drop="Canvas_Drop" -->
                 <Canvas Background="#050505" Width="2000" Height="2000" AllowDrop="True" Drop="Canvas_Drop">
 
-                    <!-- СЛОЙ ПАРАМЕТРОВ -->
-                    <ItemsControl ItemsSource="{Binding ParameterVariables}">
+                    <!-- Единый ItemsControl для вывода всех окон-виджетов на холст -->
+                    <ItemsControl ItemsSource="{Binding ActiveWidgets}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <Canvas IsItemsHost="True"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
+
+                        <!-- Связываем геометрические параметры контейнера со свойствами WidgetViewModel -->
                         <ItemsControl.ItemContainerStyle>
                             <Style TargetType="ContentPresenter">
                                 <Setter Property="Canvas.Left" Value="{Binding Left, Mode=TwoWay}"/>
                                 <Setter Property="Canvas.Top" Value="{Binding Top, Mode=TwoWay}"/>
+                                <Setter Property="Width" Value="{Binding Width, Mode=TwoWay}"/>
+                                <Setter Property="Height" Value="{Binding Height, Mode=TwoWay}"/>
                             </Style>
                         </ItemsControl.ItemContainerStyle>
+
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="#555555" BorderThickness="1" CornerRadius="4" Background="#1E1E1E" Width="400" Margin="2">
-                                    <StackPanel>
-                                        <Border Background="#2D2D2D" Padding="6,4">
+                            <DataTemplate DataType="{x:Type viewmodels:WidgetViewModel}">
+                                <!-- Внешняя рамка виджета. Цвет рамки меняется триггером (параметр/сигнал) -->
+                                <Border x:Name="WidgetBorder" BorderBrush="#555555" BorderThickness="1" CornerRadius="4" Background="#1E1E1E">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <!-- Шапка перемещения -->
+                                            <RowDefinition Height="*"/>
+                                            <!-- Контент прибора -->
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Шапка окна. За неё мышка хватает прибор (MouseDown/MouseMove/MouseUp) -->
+                                        <Border Grid.Row="0" Background="#2D2D2D" Padding="6,4" Cursor="SizeAll"
+                                                PreviewMouseLeftButtonDown="WidgetHeader_MouseDown"
+                                                MouseMove="WidgetHeader_MouseMove"
+                                                PreviewMouseLeftButtonUp="WidgetHeader_MouseUp">
                                             <Grid>
-                                                <TextBlock Text="{Binding Config.Name}" Foreground="#00E5FF" FontWeight="Bold" FontFamily="Consolas" FontSize="13"/>
-                                                <Button Content="❌" Background="Transparent" Foreground="Red" BorderThickness="0" HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding DataSource.Name}" Foreground="White" FontWeight="Bold" FontFamily="Consolas" FontSize="13"/>
+                                                <!-- Кнопка удаления прибора с холста -->
+                                                <Button Content="❌" Background="Transparent" Foreground="Red" BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="10" Click="CloseWidget_Click"/>
                                             </Grid>
                                         </Border>
-                                        <Border Padding="10">
+
+                                        <!-- Рабочая зона внутри виджета (Контент) -->
+                                        <Border Grid.Row="1" Padding="10">
                                             <ContentControl Content="{Binding}">
                                                 <ContentControl.Style>
                                                     <Style TargetType="ContentControl">
-                                                        <Setter Property="ContentTemplate" Value="{StaticResource MatrixTableTemplate}"/>
+                                                        <!-- По умолчанию (если тип не распознан) показываем крупные цифры -->
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Config.TotalElements}" Value="1">
+                                                            <!-- Триггер 1: Это скалярный параметр (ввод в TextBox) -->
+                                                            <DataTrigger Binding="{Binding ControlView}" Value="TextBox">
                                                                 <Setter Property="ContentTemplate" Value="{StaticResource ScalarTextBoxTemplate}"/>
                                                             </DataTrigger>
+                                                            <!-- Триггер 2: Это многомерная таблица калибровок LUT -->
+                                                            <DataTrigger Binding="{Binding ControlView}" Value="MatrixTable">
+                                                                <Setter Property="ContentTemplate" Value="{StaticResource MatrixTableTemplate}"/>
+                                                            </DataTrigger>
+                                                            <!-- Триггер 3: Сигнал телеметрии в виде Крупных Цифр -->
+                                                            <DataTrigger Binding="{Binding ControlView}" Value="Digital">
+                                                                <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
+                                                            </DataTrigger>
+                                                            <!-- Сюда в будущем добавятся триггеры под Slider и Gauge -->
                                                         </Style.Triggers>
                                                     </Style>
                                                 </ContentControl.Style>
                                             </ContentControl>
                                         </Border>
-                                    </StackPanel>
+                                    </Grid>
                                 </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
 
-                    <!-- СЛОЙ ТЕЛЕМЕТРИИ -->
-                    <ItemsControl ItemsSource="{Binding TelemetryVariables}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas IsItemsHost="True"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemContainerStyle>
-                            <Style TargetType="ContentPresenter">
-                                <Setter Property="Canvas.Left" Value="{Binding Left, Mode=TwoWay}"/>
-                                <Setter Property="Canvas.Top" Value="{Binding Top, Mode=TwoWay}"/>
-                            </Style>
-                        </ItemsControl.ItemContainerStyle>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="#007ACC" BorderThickness="1" CornerRadius="4" Background="#111A24" Width="250" Margin="2">
-                                    <StackPanel>
-                                        <Border Background="#1C2A38" Padding="6,4">
-                                            <Grid>
-                                                <TextBlock Text="{Binding Config.Name}" Foreground="#00FF00" FontWeight="Bold" FontFamily="Consolas" FontSize="13"/>
-                                                <Button Content="❌" Background="Transparent" Foreground="Red" BorderThickness="0" HorizontalAlignment="Right"/>
-                                            </Grid>
-                                        </Border>
-                                        <Border Padding="10">
-                                            <ContentControl Content="{Binding}" ContentTemplate="{StaticResource WidgetDigitalTemplate}"/>
-                                        </Border>
-                                    </StackPanel>
-                                </Border>
+                                <!-- Триггеры для визуального разделения: Красим рамки параметров в оранжевый, сигналов в голубой -->
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding DataSource.IsParam}" Value="True">
+                                        <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#FF9100"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding DataSource.IsParam}" Value="False">
+                                        <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#007ACC"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
