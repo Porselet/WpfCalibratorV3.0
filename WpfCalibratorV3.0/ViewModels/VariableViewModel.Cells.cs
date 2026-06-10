@@ -13,7 +13,7 @@ public partial class VariableViewModel
         set
         {
             _cells = value;
-            OnPropertyChanged();
+            OnPropertyChanged(nameof(Cells));
         }
     }
 

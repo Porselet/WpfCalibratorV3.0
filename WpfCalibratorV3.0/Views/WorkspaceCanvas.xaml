@@ -63,25 +63,36 @@
 
                                         <!-- Рабочая зона внутри виджета (Контент) -->
                                         <Border Grid.Row="1" Padding="10">
-                                            <ContentControl Content="{Binding}">
+                                            <ContentControl Content="{Binding}" >
                                                 <ContentControl.Style>
                                                     <Style TargetType="ContentControl">
                                                         <!-- По умолчанию (если тип не распознан) показываем крупные цифры -->
                                                         <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
                                                         <Style.Triggers>
-                                                            <!-- Триггер 1: Это скалярный параметр (ввод в TextBox) -->
+                                                            <!-- Это скалярный параметр -->
                                                             <DataTrigger Binding="{Binding ControlView}" Value="TextBox">
                                                                 <Setter Property="ContentTemplate" Value="{StaticResource ScalarTextBoxTemplate}"/>
                                                             </DataTrigger>
-                                                            <!-- Триггер 2: Это многомерная таблица калибровок LUT -->
+
+                                                            <!-- Это многомерная таблица LUT -->
                                                             <DataTrigger Binding="{Binding ControlView}" Value="MatrixTable">
                                                                 <Setter Property="ContentTemplate" Value="{StaticResource MatrixTableTemplate}"/>
                                                             </DataTrigger>
-                                                            <!-- Триггер 3: Сигнал телеметрии в виде Крупных Цифр -->
+
+                                                            <!-- Вариант 1: Сигнал в виде Крупных Цифр -->
                                                             <DataTrigger Binding="{Binding ControlView}" Value="Digital">
                                                                 <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
                                                             </DataTrigger>
-                                                            <!-- Сюда в будущем добавятся триггеры под Slider и Gauge -->
+
+                                                            <!-- 🔥 Вариант 2: Сигнал в виде Линейного Слайдера (ДОБАВЛЕН) -->
+                                                            <DataTrigger Binding="{Binding ControlView}" Value="Slider">
+                                                                <Setter Property="ContentTemplate" Value="{StaticResource WidgetSliderTemplate}"/>
+                                                            </DataTrigger>
+
+                                                            <!-- 🔥 Вариант 3: Сигнал в виде Круглого Стрелочного прибора (ДОБАВЛЕН) -->
+                                                            <DataTrigger Binding="{Binding ControlView}" Value="Gauge">
+                                                                <Setter Property="ContentTemplate" Value="{StaticResource WidgetGaugeTemplate}"/>
+                                                            </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </ContentControl.Style>

@@ -1,76 +1,96 @@
 {
-    "ModelName": "Test",
-    "ModelId": 0,
-    "Variables": [
-        {
-            "Id": 0,
-            "Name": "TEST_IN_1",
-            "Type": "single",
-            "ElementSize": 4,
-            "IsParam": false,
-            "Rows": 1,
-            "Cols": 1,
-            "Comment": "входной сигнал 1"
-        },
-        {
-            "Id": 1,
-            "Name": "TEST_IN_2",
-            "Type": "single",
-            "ElementSize": 4,
-            "IsParam": false,
-            "Rows": 1,
-            "Cols": 1,
-            "Comment": "входной сигнал 2"
-        },
-        {
-            "Id": 2,
-            "Name": "TEST_OUT",
-            "Type": "single",
-            "ElementSize": 4,
-            "IsParam": false,
-            "Rows": 1,
-            "Cols": 1,
-            "Comment": "выходной сигнал"
-        },
-        {
-            "Id": 3,
-            "Name": "TEST_SIGNAL",
-            "Type": "single",
-            "ElementSize": 4,
-            "IsParam": false,
-            "Rows": 1,
-            "Cols": 1,
-            "Comment": "просто какой то сигнал."
-        },
-        {
-            "Id": 4,
-            "Name": "TEST_Axle1",
-            "Type": "single",
-            "ElementSize": 4,
-            "IsParam": true,
-            "Rows": 1,
-            "Cols": 6,
-            "Comment": "параметр ось 1"
-        },
-        {
-            "Id": 5,
-            "Name": "TEST_Axle2",
-            "Type": "single",
-            "ElementSize": 4,
-            "IsParam": true,
-            "Rows": 1,
-            "Cols": 5,
-            "Comment": "параметр ось 2"
-        },
-        {
-            "Id": 6,
-            "Name": "TEST_Data",
-            "Type": "single",
-            "ElementSize": 4,
-            "IsParam": true,
-            "Rows": 5,
-            "Cols": 6,
-            "Comment": "параметр таблица"
-        }
-    ]
+  "ModelName": "Test",
+  "ModelId": 0,
+  "Variables": [
+    {
+      "Id": 0,
+      "Name": "TEST_IN_1",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": false,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "входной сигнал 1"
+    },
+    {
+      "Id": 1,
+      "Name": "TEST_IN_2",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": false,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "входной сигнал 2"
+    },
+    {
+      "Id": 2,
+      "Name": "TEST_OUT",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": false,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "выходной сигнал"
+    },
+    {
+      "Id": 3,
+      "Name": "TEST_SIGNAL",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": false,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "просто какой то сигнал."
+    },
+    {
+      "Id": 4,
+      "Name": "TEST_IN_1_PARAM",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": true,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "Параметр 1"
+    },
+    {
+      "Id": 5,
+      "Name": "TEST_IN_2_PARAM",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": true,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "входной параметр 2"
+    },
+    {
+      "Id": 6,
+      "Name": "TEST_Axle1",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": true,
+      "Rows": 1,
+      "Cols": 6,
+      "Comment": "параметр ось 1"
+    },
+    {
+      "Id": 7,
+      "Name": "TEST_Axle2",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": true,
+      "Rows": 1,
+      "Cols": 5,
+      "Comment": "параметр ось 2"
+    },
+    {
+      "Id": 8,
+      "Name": "TEST_Data",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": true,
+      "Rows": 5,
+      "Cols": 6,
+      "Comment": "параметр таблица"
+    }
+  ]
 }

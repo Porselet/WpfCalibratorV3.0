@@ -159,48 +159,93 @@ public partial class WorkspaceCanvas : UserControl
 
     private void ShowWidgetSelectorMenu(Canvas canvas, MainViewModel vm, VariableConfig variable, double x, double y)
     {
-        var menu = new ContextMenu();
+        // Создаем меню и сразу красим его подложку в глубокий серый цвет
+        var menu = new ContextMenu
+        {
+            Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1E1E1E")),
+            BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#555555")),
+            BorderThickness = new Thickness(1)
+        };
 
-        var itemDisplay = new MenuItem { Header = "🔢 Крупные цифры" };
-        itemDisplay.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Digital");
+        // Вспомогательная сишная лямбда-функция для быстрой штамповки контрастных пунктов меню
+        MenuItem CreateDarkMenuItem(string header, RoutedEventHandler clickHandler)
+        {
+            var item = new MenuItem
+            {
+                Header = header,
+                Foreground = System.Windows.Media.Brushes.White, // Белый контрастный текст
+                Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1E1E1E")),
+                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
+                FontSize = 13,
+                Padding = new Thickness(10, 6, 20, 6)
+            };
+            item.Click += clickHandler;
+            return item;
+        }
 
-        var itemSlider = new MenuItem { Header = "📊 Линейный индикатор (Слайдер)" };
-        itemSlider.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Slider");
-
-        var itemGauge = new MenuItem { Header = "🧭 Стрелочный прибор (Gauge)" };
-        itemGauge.Click += (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Gauge");
+        // Собираем пункты меню через наш темный шаблон
+        var itemDisplay = CreateDarkMenuItem("🔢 Крупные цифры", (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Digital"));
+        var itemSlider = CreateDarkMenuItem("📊 Линейный индикатор (Слайдер)", (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Slider"));
+        var itemGauge = CreateDarkMenuItem("🧭 Стрелочный прибор (Gauge)", (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Gauge"));
 
         menu.Items.Add(itemDisplay);
         menu.Items.Add(itemSlider);
         menu.Items.Add(itemGauge);
 
+        // Открываем строго под курсором мыши
         menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
         menu.IsOpen = true;
     }
 
-    private void CreateWidgetOnWorkspace(MainViewModel vm, VariableConfig variable, double x, double y, string viewType)
-    {
-        var variableVm = new VariableViewModel(variable, variable.ModelId);
 
+    private async void CreateWidgetOnWorkspace(MainViewModel vm, VariableConfig variable, double x, double y, string viewType)
+    {
+        // ИСПРАВЛЕНИЕ: Ищем уже существующую Вью-Модель переменной в коллекциях ядра, 
+        // вместо того чтобы создавать дубликат через new!
+        var realVariableVm = vm.ParameterVariables.FirstOrDefault(v => v.Id == variable.Id && v.ModelId == variable.ModelId)
+                           ?? vm.TelemetryVariables.FirstOrDefault(v => v.Id == variable.Id && v.ModelId == variable.ModelId);
+
+        // Если вдруг в глобальных коллекциях её нет (например, первый запуск), 
+        // только тогда создаем как резервный вариант
+        if (realVariableVm == null)
+        {
+            realVariableVm = new VariableViewModel(variable, variable.ModelId);
+        }
+
+        // Создаем графический контейнер, который теперь смотрит на ЕДИНСТВЕННЫЙ правильный источник данных
         var widget = new WidgetViewModel
         {
             Left = x,
             Top = y,
             ControlView = viewType,
-            DataSource = variableVm
+            DataSource = realVariableVm
         };
 
-        if (variable.IsParam && variable.TotalElements > 1)
+        if (variable.IsParam && variable.TotalElements > 1) // Карты LUT
         {
             widget.Width = 500;
             widget.Height = 280;
         }
-        else
+        else if (viewType == "Gauge") // Стрелочный круглый прибор требует квадратное окно побольше
+        {
+            widget.Width = 180;
+            widget.Height = 210;
+        }
+        else // Скаляры, Крупные цифры и линейные Слайдеры
         {
             widget.Width = 260;
             widget.Height = 110;
         }
 
+        
         vm.ActiveWidgets.Add(widget);
+
+        // 🔥 ДОБАВЛЕННЫЙ ТРИГГЕР: Если это калибровочный параметр (скаляр или таблица), 
+        // запрашиваем его текущие данные из ОЗУ микроконтроллера СТРОГО ОДИН РАЗ
+        if (variable.IsParam)
+        {
+            // Вызываем наш новый метод из MainViewModel
+            await vm.RequestSingleVariableReadAsync(variable.ModelId, (byte)variable.Id, variable.TotalElements);
+        }
     }
 }

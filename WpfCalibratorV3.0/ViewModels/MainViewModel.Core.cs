@@ -92,6 +92,7 @@ public partial class MainViewModel : INotifyPropertyChanged
 
         // Загрузка доступных портов
         RefreshAvailablePorts();
+        _commService.DataPacketReceived += OnUartPacketReceived;
     }
 
 
@@ -175,7 +176,7 @@ public partial class MainViewModel : INotifyPropertyChanged
         // 🔥 ИСПРАВЛЕНИЕ: Прямая асинхронная отправка параметров строго по вашей карте байт из app_link.c!
         try
         {
-            byte cmd = 0x01; // CMD_VAR_READ (Операция чтения)
+            byte cmd = 0x02; // CMD_VAR_READ (Операция чтения)
             byte modelId = variableToPoll.ModelId;
             byte varId = (byte)variableToPoll.Id; // Однобайтовый ID из прошивки
             byte elementsCount = (byte)(variableToPoll.Rows * variableToPoll.Cols);

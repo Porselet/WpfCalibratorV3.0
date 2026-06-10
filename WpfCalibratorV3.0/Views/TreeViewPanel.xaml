@@ -28,9 +28,31 @@
                         <!-- Для Кнопки -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- Выпадающий список портов (Привязан к вашей коллекции AvailablePorts и SelectedPort) -->
                     <ComboBox Grid.Column="0" ItemsSource="{Binding AvailablePorts}" SelectedItem="{Binding SelectedPort}"
-                              Background="#222222" Foreground="White" BorderBrush="#555555" Padding="6,4" FontSize="13" FontFamily="Consolas" Margin="0,0,8,0"/>
+          Background="#222222" BorderBrush="#555555" Padding="6,4" FontSize="13" FontFamily="Consolas" Margin="0,0,8,0">
+
+                        <!-- Переопределяем шаблон отображения: жестко задаем ЧЕРНЫЙ цвет для текста -->
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" Foreground="Black" FontFamily="Consolas" FontSize="13" FontWeight="Bold"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+
+                        <!-- СТИЛЬ СТРОК В ВЫПАДАЮЩЕМ СПИСКЕ: -->
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem">
+                                <!-- В самом списке подложка пусть будет светло-серой, чтобы черный шрифт читался идеально -->
+                                <Setter Property="Background" Value="#E0E0E0"/>
+                                <Style.Triggers>
+                                    <!-- При наведении мыши подсвечиваем синим, а текст делаем белым -->
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#007ACC"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                    </ComboBox>
+
 
                     <!-- Кнопка "ПОДКЛЮЧИТЬ" (Вызывает твой метод ToggleConnection через ToggleConnectionCommand) -->
                     <Button Grid.Column="1" Content="СОЕДИНИТЬ" Command="{Binding ToggleConnectionCommand}"

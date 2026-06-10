@@ -103,4 +103,53 @@ public partial class MainViewModel
             });
         }
     }
+
+
+
+
+    private void OnUartPacketReceived(byte modelId, byte cmd, byte varId, byte elementsCount, byte[] payload)
+    {
+        // 1. Ищем, какому прибору на холсте принадлежат эти данные (по совпадению ID и ID модели)
+        // Ищем сначала в параметрах, потом в телеметрии
+        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == varId && v.ModelId == modelId)
+                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == varId && v.ModelId == modelId);
+
+        // Если прилетел пакет для переменной, которой нет в текущем конфиге — игнорируем мусор
+        if (targetVariable == null) return;
+
+        // 2. БЕЗОПАСНЫЙ ПРОБРОС В UI-ПОТОК (Dispatcher). 
+        // UART работает в фоновом потоке Windows. Если попытаться записать данные в UI напрямую, 
+        // WPF выдаст ошибку "Поток не имеет доступа к объекту". Dispatcher решает эту проблему.
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            // Если прилетел ответ на чтение телеметрии (CMD_VAR_READ = 2 по твоей прошивке app_link.h)
+            if (cmd == 0x02)
+            {
+                if (elementsCount == 1) // Одиночный скаляр float
+                {
+                    // Конвертируем 4 байта обратно во float (Little Endian для STM32)
+                    targetVariable.CurrentValue = BitConverter.ToSingle(payload, 0);
+                }
+                else // Многомерная таблица LUT
+                {
+                    // Заполняем твой двумерный массив MatrixData в Column-Major порядке (строго по столбцам)
+                    int index = 0;
+                    for (int c = 0; c < targetVariable.Cols; c++)
+                    {
+                        for (int r = 0; r < targetVariable.Rows; r++)
+                        {
+                            if (index + 4 <= payload.Length)
+                            {
+                                targetVariable.MatrixData[r, c] = BitConverter.ToSingle(payload, index);
+                                index += 4;
+                            }
+                        }
+                    }
+                    // Перерисовываем ячейки на экране, чтобы обновить текст в таблице
+                    targetVariable.RebuildMatrixCells();
+                }
+            }
+        });
+    }
+
 }

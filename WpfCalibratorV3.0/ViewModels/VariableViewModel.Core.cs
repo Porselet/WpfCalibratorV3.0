@@ -108,6 +108,15 @@ public partial class VariableViewModel : INotifyPropertyChanged
         Cols = config.Cols;
         Comment = config.Comment;
         ModelId = modelId; // <=== Передаем ID модели
+
+        if (this.Rows > 0 && this.Cols > 0)
+        {
+            this.MatrixData = new float[this.Rows, this.Cols];
+
+            // Сразу вызываем твой метод перестройки ячеек, чтобы в Cells появилось нужное кол-во объектов MatrixCellViewModel
+            // (Убедись, что метод RebuildMatrixCells() в твоем файле Cells.cs доступен для вызова)
+            this.RebuildMatrixCells();
+        }
     }
 
     // Методы для работы с MatrixData

@@ -17,7 +17,21 @@ public class WidgetViewModel : INotifyPropertyChanged
     public VariableViewModel? DataSource { get; set; }
 
     // Тип виджета (TextBox, Graph, Gauge...)
-    public string ControlView { get; set; } = "TextBox";
+    private string _controlView = "TextBox";
+    public string ControlView
+    {
+        get => _controlView;
+        set
+        {
+            if (_controlView != value)
+            {
+                _controlView = value;
+                // Генерируем уведомление для UI. 
+                // Как только оператор кликнет в меню, XAML мгновенно пересчитает триггеры!
+                OnPropertyChanged(nameof(ControlView));
+            }
+        }
+    }
 
     // Координаты и размер (для свободного позиционирования)
     // ИСПРАВЛЕНО: Теперь свойства уведомляют XAML о движении

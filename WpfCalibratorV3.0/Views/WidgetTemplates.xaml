@@ -22,7 +22,7 @@
                 <TextBlock Text="{Binding DataSource.Name}" Foreground="#00E5FF" FontSize="14" FontWeight="Bold" FontFamily="Consolas"/>
                 <TextBlock Text="{Binding DataSource.Comment}" Foreground="#666666" FontSize="11" TextWrapping="Wrap" FontFamily="Consolas"/>
             </StackPanel>
-            <TextBlock Grid.Column="1" Text="{Binding DataSource.CurrentValue}" Foreground="#00E5FF" FontSize="26" FontWeight="Bold" FontFamily="Consolas" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBlock Grid.Column="1" Text="{Binding DataSource.CurrentValue, StringFormat='{}{0:F2}'}" Foreground="#00E5FF" FontSize="26" FontWeight="Bold" FontFamily="Consolas" VerticalAlignment="Center" Margin="10,0,0,0"/>
         </Grid>
     </DataTemplate>
 
@@ -78,6 +78,58 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StackPanel>
+    </DataTemplate>
+    <!-- ==================== ВАРИАНТ 2: ГОРИЗОНТАЛЬНЫЙ ИНДИКАТОР УРОВНЯ (СЛАЙДЕР) ==================== -->
+    <DataTemplate x:Key="WidgetSliderTemplate">
+        <StackPanel VerticalAlignment="Center">
+            <!-- Верхняя строка: Имя сигнала слева, текущее живое значение справа -->
+            <Grid Margin="0,0,0,5">
+                <TextBlock Text="{Binding DataSource.Name}" Foreground="#00E5FF" FontSize="13" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Left"/>
+                <TextBlock Text="{Binding DataSource.CurrentValue, StringFormat='{}{0:F1}'}" Foreground="White" FontSize="14" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Right"/>
+            </Grid>
+
+            <!-- Индикатор уровня (Только для чтения, имитирует горизонтальный слайдер) -->
+            <!-- Примечание: MinValue и MaxValue берутся из твоей VariableViewModel.Core.cs -->
+            <ProgressBar Value="{Binding DataSource.CurrentValue}" 
+                         Minimum="{Binding DataSource.MinValue}" 
+                         Maximum="{Binding DataSource.MaxValue}" 
+                         Height="16" Background="#111111" Foreground="#00E5FF" BorderThickness="1" BorderBrush="#333333"/>
+
+            <TextBlock Text="{Binding DataSource.Comment}" Foreground="#555555" FontSize="10" Margin="0,2,0,0" TextWrapping="Wrap" FontFamily="Consolas"/>
+        </StackPanel>
+    </DataTemplate>
+
+
+    <!-- ==================== ВАРИАНТ 3: КРУГЛЫЙ СТРЕЛОЧНЫЙ ПРИБОР (GAUGE) ==================== -->
+    <DataTemplate x:Key="WidgetGaugeTemplate">
+        <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="140" Height="140">
+            <!-- Корпус прибора -->
+            <Ellipse Stroke="#333333" StrokeThickness="2" Fill="#0D0D0D"/>
+            <Ellipse Stroke="#00E5FF" StrokeThickness="1" Margin="4" StrokeDashArray="2,2"/>
+
+            <!-- Шкала (Дуга фона) -->
+            <Path Stroke="#222222" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                  Data="M 30,120 A 55,55 0 1 1 110,120"/>
+
+            <!-- Живая заполняющаяся дуга (Привязана к значению через ProgressBar-логику или Arc) -->
+            <!-- Для простоты и надежности выводим крупные цифры прямо в центр круга -->
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,15,0,0">
+                <TextBlock Text="{Binding DataSource.CurrentValue, StringFormat='{}{0:F1}'}" Foreground="#00FF00" FontSize="22" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding DataSource.Name}" Foreground="#888888" FontSize="11" FontFamily="Consolas" HorizontalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Физическая стрелка прибора (Вращается вокруг центра) -->
+            <!-- С помощью встроенного в WPF RotateTransform мы превращаем float значение в угол поворота стрелки! -->
+            <Rectangle Width="4" Height="45" Fill="#FF3D00" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,25,0,0" RenderTransformOrigin="0.5,1">
+                <Rectangle.RenderTransform>
+                    <!-- Математика угла: Начинаем с -120 градусов (ноль на приборе) и шагаем в зависимости от значения -->
+                    <RotateTransform Angle="{Binding DataSource.CurrentValue, ConverterParameter=-120, FallbackValue=-120}"/>
+                </Rectangle.RenderTransform>
+            </Rectangle>
+
+            <!-- Центральная заглушка стрелки -->
+            <Ellipse Width="10" Height="10" Fill="#FF3D00" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,15,0,0"/>
+        </Grid>
     </DataTemplate>
 
 </ResourceDictionary>

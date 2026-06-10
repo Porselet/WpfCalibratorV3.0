@@ -98,7 +98,7 @@ public partial class MainViewModel
             // 1. Ставим фоновый опрос телеметрии на паузу (теперь доступ прямой!)
             _isPollingEnabled = false;
 
-            byte cmd = 0x02; // CMD_VAR_WRITE
+            byte cmd = 0x01; // CMD_VAR_WRITE
             byte modelId = variable.ModelId;
             byte varId = (byte)variable.Id;
 
@@ -151,4 +151,37 @@ public partial class MainViewModel
             _isPollingEnabled = true;
         }
     }
+    /// <summary>
+    /// Единовременный принудительный запрос чтения параметра из STM32 при создании виджета
+    /// </summary>
+    public async Task RequestSingleVariableReadAsync(byte modelId, byte varId, int totalElements)
+    {
+        if (_commService == null || !_commService.IsConnected) return;
+
+        try
+        {
+            // Временно притормаживаем фоновую телеметрию, чтобы освободить линию под запрос
+            _isPollingEnabled = false;
+
+            byte cmd = 0x02; // CMD_VAR_READ (код 2 строго по app_link.h)
+            byte elementsCount = (byte)totalElements;
+            byte[] emptyPayload = Array.Empty<byte>();
+
+            // Выстреливаем ОДИН ОДИНОЧНЫЙ пакет запроса в STM32
+            await _commService.SendPacketAsync(modelId, cmd, varId, elementsCount, emptyPayload);
+
+            // Даем МК 20 мс на ответ по DMA, прежде чем вернуть телеметрию
+            await Task.Delay(20);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Single Read Error]: {ex.Message}");
+        }
+        finally
+        {
+            // Возвращаем опрос живых датчиков телеметрии
+            _isPollingEnabled = true;
+        }
+    }
+
 }
