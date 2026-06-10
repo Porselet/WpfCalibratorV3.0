@@ -1,0 +1,31 @@
+{
+  "LastUsedComPort": "COM4",
+  "LastUsedBaudRate": 115200,
+  "VariableViews": {
+    // Настройки для таблицы из модели Test
+    "TEST_TABLE": {
+      "ControlView": "Matrix", // Тип виджета: Matrix (таблица)
+      "MinValue": 0.0,
+      "MaxValue": 100.0,
+      "TableBindings": {
+        "HasBindings": true,
+        "AxisX_VarName": "TEST_Axle1", // Привязка оси X к вектору
+        "AxisY_VarName": "TEST_Axle2", // Привязка оси Y к вектору
+        "InputX_VarName": "TEST_IN_1", // Привязка сигнала для оси X
+        "InputY_VarName": "TEST_IN_2" // Привязка сигнала для оси Y
+      }
+    },
+
+    // Настройки для скалярного параметра Gain
+    "T2_Gain": {
+      "ControlView": "Slider", // Тип виджета: Slider (слайдер)
+      "MinValue": 0.0,
+      "MaxValue": 10.0
+    },
+
+    // Настройки для сигнала OUT (будет показан как график)
+    "T2_OUT": {
+      "ControlView": "Graph"
+    }
+  }
+}
