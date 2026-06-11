@@ -21,6 +21,76 @@
 
 
         <!-- Подключаем модуль свободного холста -->
-        <views:WorkspaceCanvas x:Name="CentralCanvas" Grid.Column="1"/>
+        <!-- Центральная колонка главного окна с динамическими экранами -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- Строка для горизонтальных вкладок -->
+                <RowDefinition Height="*"/>
+                <!-- Строка для холста WorkspaceCanvas -->
+            </Grid.RowDefinitions>
+
+            <!-- ГОРИЗОНТАЛЬНАЯ ПАНЕЛЬ РАБОЧИХ ЭКРАНОВ (ВКЛАДОК) -->
+            <!-- ГОРИЗОНТАЛЬНАЯ ПАНЕЛЬ С УПРАВЛЕНИЕМ ЭКРАНАМИ -->
+            <Grid Grid.Row="0" Background="#151515">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- СПИСОК ВКЛАДОК -->
+                    <ListBox ItemsSource="{Binding LayoutNames}" 
+                 SelectedItem="{Binding CurrentLayoutName}"
+                 Background="Transparent" 
+                 BorderThickness="0"
+                 Padding="5,2">
+
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="5,2">
+                                    <TextBlock Text="{Binding}" 
+                                   Foreground="White" 
+                                   FontSize="14" 
+                                   VerticalAlignment="Center" 
+                                   Margin="0,0,8,0"
+                                   FontFamily="Consolas"/>
+
+                                    <Button Content="×" 
+                                Foreground="#FF5555" 
+                                Background="Transparent" 
+                                BorderThickness="0" 
+                                FontSize="14"
+                                FontWeight="Bold"
+                                VerticalAlignment="Center"
+                                Cursor="Hand"
+                                Command="{Binding DataContext.DeleteLayoutCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <!-- ИНЖЕНЕРНАЯ КНОПКА ДОБАВЛЕНИЯ НОВОГО ЭКРАНА [ + ] -->
+                    <Button Content="+" 
+                Width="30" Height="26"
+                Background="#2E7D32" 
+                Foreground="White" 
+                FontWeight="Bold" 
+                FontSize="16"
+                FontFamily="Consolas"
+                Margin="5,0,0,0"
+                Cursor="Hand"
+                ToolTip="Создать новый рабочий экран"
+                Command="{Binding AddLayoutCommand}"/>
+                </StackPanel>
+            </Grid>
+
+
+            <!-- ХОЛСТ СВОБОДНОГО ПОЗИЦИОНИРОВАНИЯ (сдвинут во вторую строку) -->
+            <views:WorkspaceCanvas x:Name="CentralCanvas" Grid.Row="1"/>
+        </Grid>
+
     </Grid>
 </Window>

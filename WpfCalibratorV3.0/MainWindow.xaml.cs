@@ -14,22 +14,21 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        // Оставляем ОДИН вызов инициализации компонентов интерфейса
         InitializeComponent();
 
-        InitializeComponent();
-
+        // Собираем зависимости вручную (Pure DI)
         var configManager = new ConfigurationManager();
         var commService = new CommunicationService();
+
+        // Инициализируем вьюмодель, передавая ей созданные сервисы
         var viewModel = new MainViewModel(commService, configManager);
 
-        // Привязываем DataContext к самому главному окну
+        // Привязываем DataContext к главному окну. 
+        // Все вложенные элементы (панель и холст) унаследуют его автоматически!
         DataContext = viewModel;
-
-        // СИШНЫЙ ХАК: Явно передаем этот же указатель во внутренние модули,
-        // чтобы они не теряли видимость общих коллекций
-        LeftPanel.DataContext = viewModel;    // Проверьте имена компонентов в вашем XAML
-        CentralCanvas.DataContext = viewModel;
     }
+
 
     private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
     {

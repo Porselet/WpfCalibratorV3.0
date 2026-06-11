@@ -40,63 +40,71 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type viewmodels:WidgetViewModel}">
                                 <!-- Внешняя рамка виджета. Цвет рамки меняется триггером (параметр/сигнал) -->
-                                <Border x:Name="WidgetBorder" BorderBrush="#555555" BorderThickness="1" CornerRadius="4" Background="#1E1E1E">
+                                <Border x:Name="WidgetBorder" 
+        Background="#1E1E1E" 
+        BorderBrush="#007ACC" 
+        BorderThickness="1" 
+        CornerRadius="3">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
                                             <!-- Шапка перемещения -->
                                             <RowDefinition Height="*"/>
-                                            <!-- Контент прибора -->
+                                            <!-- Контент виджета -->
                                         </Grid.RowDefinitions>
 
-                                        <!-- Шапка окна. За неё мышка хватает прибор (MouseDown/MouseMove/MouseUp) -->
+                                        <!-- ШАПКА ВИДЖЕТА (ПЕРЕМЕЩЕНИЕ) -->
                                         <Border Grid.Row="0" Background="#2D2D2D" Padding="6,4" Cursor="SizeAll"
-                                                PreviewMouseLeftButtonDown="WidgetHeader_MouseDown"
-                                                MouseMove="WidgetHeader_MouseMove"
-                                                PreviewMouseLeftButtonUp="WidgetHeader_MouseUp">
+                PreviewMouseLeftButtonDown="WidgetHeader_MouseDown" 
+                MouseMove="WidgetHeader_MouseMove" 
+                PreviewMouseLeftButtonUp="WidgetHeader_MouseUp">
                                             <Grid>
-                                                <TextBlock Text="{Binding DataSource.Name}" Foreground="White" FontWeight="Bold" FontFamily="Consolas" FontSize="13"/>
-                                                <!-- Кнопка удаления прибора с холста -->
-                                                <Button Content="❌" Background="Transparent" Foreground="Red" BorderThickness="0" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="10" Click="CloseWidget_Click"/>
+                                                <TextBlock Text="{Binding DataSource.Name}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                <Button Content="×" Background="Transparent" Foreground="Red" BorderThickness="0" 
+                        HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="10" 
+                        Click="CloseWidget_Click"/>
                                             </Grid>
                                         </Border>
 
-                                        <!-- Рабочая зона внутри виджета (Контент) -->
-                                        <Border Grid.Row="1" Padding="10">
-                                            <ContentControl Content="{Binding}" >
-                                                <ContentControl.Style>
-                                                    <Style TargetType="ContentControl">
-                                                        <!-- По умолчанию (если тип не распознан) показываем крупные цифры -->
-                                                        <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
-                                                        <Style.Triggers>
-                                                            <!-- Это скалярный параметр -->
-                                                            <DataTrigger Binding="{Binding ControlView}" Value="TextBox">
-                                                                <Setter Property="ContentTemplate" Value="{StaticResource ScalarTextBoxTemplate}"/>
-                                                            </DataTrigger>
+                                        <!-- КОНТЕНТНАЯ ЗОНА -->
+                                        <ContentControl Grid.Row="1" Content="{Binding}">
+                                            <ContentControl.Style>
+                                                <Style TargetType="ContentControl">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="TextBox">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource ScalarTextBoxTemplate}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="MatrixTable">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource MatrixTableTemplate}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="Digital">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="Slider">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetSliderTemplate}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="Gauge">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetGaugeTemplate}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </ContentControl.Style>
+                                        </ContentControl>
 
-                                                            <!-- Это многомерная таблица LUT -->
-                                                            <DataTrigger Binding="{Binding ControlView}" Value="MatrixTable">
-                                                                <Setter Property="ContentTemplate" Value="{StaticResource MatrixTableTemplate}"/>
-                                                            </DataTrigger>
-
-                                                            <!-- Вариант 1: Сигнал в виде Крупных Цифр -->
-                                                            <DataTrigger Binding="{Binding ControlView}" Value="Digital">
-                                                                <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
-                                                            </DataTrigger>
-
-                                                            <!-- 🔥 Вариант 2: Сигнал в виде Линейного Слайдера (ДОБАВЛЕН) -->
-                                                            <DataTrigger Binding="{Binding ControlView}" Value="Slider">
-                                                                <Setter Property="ContentTemplate" Value="{StaticResource WidgetSliderTemplate}"/>
-                                                            </DataTrigger>
-
-                                                            <!-- 🔥 Вариант 3: Сигнал в виде Круглого Стрелочного прибора (ДОБАВЛЕН) -->
-                                                            <DataTrigger Binding="{Binding ControlView}" Value="Gauge">
-                                                                <Setter Property="ContentTemplate" Value="{StaticResource WidgetGaugeTemplate}"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </ContentControl.Style>
-                                            </ContentControl>
+                                        <!-- МАРКЕР ИЗМЕНЕНИЯ РАЗМЕРА (RESIZE) В ПРАВОМ НИЖНЕМ УГЛУ -->
+                                        <Border Width="12" Height="12" 
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Bottom" 
+                Cursor="SizeNWSE" 
+                Background="Transparent"
+                PreviewMouseLeftButtonDown="ResizeMarker_MouseDown"
+                MouseMove="ResizeMarker_MouseMove"
+                PreviewMouseLeftButtonUp="ResizeMarker_MouseUp">
+                                            <!-- Рисуем классические три диагональные насечки в углу окна -->
+                                            <Path Data="M 4,12 L 12,4 M 7,12 L 12,7 M 10,12 L 12,10" 
+                  Stroke="#555555" 
+                  StrokeThickness="1.5" 
+                  Margin="0,0,2,2"/>
                                         </Border>
                                     </Grid>
                                 </Border>

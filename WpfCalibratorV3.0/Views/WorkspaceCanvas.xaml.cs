@@ -248,4 +248,90 @@ public partial class WorkspaceCanvas : UserControl
             await vm.RequestSingleVariableReadAsync(variable.ModelId, (byte)variable.Id, variable.TotalElements);
         }
     }
+
+
+    private bool _isResizing = false;
+    private Point _resizeStartPoint;
+    private double _widgetStartWidth;
+    private double _widgetStartHeight;
+    private WidgetViewModel? _resizingWidget;
+
+    // 1. Нажатие на маркер в углу окна
+    private void ResizeMarker_MouseDown(object sender, MouseButtonEventArgs e)
+    {
+        var element = sender as FrameworkElement;
+        if (element == null) return;
+
+        // Ищем вьюмодель виджета, размер которого меняем
+        _resizingWidget = element.DataContext as WidgetViewModel;
+        if (_resizingWidget == null) return;
+
+        _isResizing = true;
+        _resizeStartPoint = e.GetPosition(this); // Позиция относительно всего холста
+        _widgetStartWidth = _resizingWidget.Width;
+        _widgetStartHeight = _resizingWidget.Height;
+
+        // Захватываем мышь, чтобы движения не срывались при быстром перемещении
+        element.CaptureMouse();
+        e.Handled = true;
+    }
+
+    // 2. Движение мыши при изменении размера
+    private void ResizeMarker_MouseMove(object sender, MouseEventArgs e)
+    {
+        if (!_isResizing || _resizingWidget == null) return;
+
+        Point currentPoint = e.GetPosition(this);
+
+        // Вычисляем, насколько далеко сдвинулся курсор от точки старта
+        double deltaX = currentPoint.X - _resizeStartPoint.X;
+        double deltaY = currentPoint.Y - _resizeStartPoint.Y;
+
+        // Магнитная сетка (шаг 10 пикселей)
+        const double gridStep = 10.0;
+
+        double newWidth = _widgetStartWidth + deltaX;
+        double newHeight = _widgetStartHeight + deltaY;
+
+        // Округляем до ближайшего шага сетки
+        newWidth = Math.Round(newWidth / gridStep) * gridStep;
+        newHeight = Math.Round(newHeight / gridStep) * gridStep;
+
+        // Ограничиваем минимальные размеры, чтобы окно не схлопнулось
+        if (newWidth < 100) newWidth = 100;
+        if (newHeight < 40) newHeight = 40;
+
+        // Обновляем размеры во вьюмодели — XAML мгновенно растянет окно!
+        _resizingWidget.Width = newWidth;
+        _resizingWidget.Height = newHeight;
+
+        e.Handled = true;
+    }
+
+    // 3. Отпускание кнопки мыши
+    private void ResizeMarker_MouseUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_isResizing)
+        {
+            var element = sender as FrameworkElement;
+            element?.ReleaseMouseCapture();
+
+            _isResizing = false;
+            _resizingWidget = null;
+
+            // После изменения размеров принудительно сохраняем состояние экрана
+            if (DataContext is MainViewModel vm)
+            {
+                // Вызываем наше внутреннее сохранение, чтобы изменения записались в JSON
+                // Метод приватный, но лежит в этом же классе в partial, так что вызов сработает.
+                // Если компилятор ругнется на приватность, мы можем вызвать команду:
+                if (vm.SaveLayoutCommand.CanExecute(null))
+                {
+                    vm.SaveLayoutCommand.Execute(null);
+                }
+            }
+        }
+        e.Handled = true;
+    }
+
 }

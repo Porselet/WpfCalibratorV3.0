@@ -2,6 +2,8 @@
 using System.IO;
 using WpfCalibrator.Models;
 
+using WpfCalibrator.Models;
+using System.Collections.Generic;
 namespace WpfCalibrator.ViewModels;
 
 public partial class MainViewModel
@@ -24,25 +26,44 @@ public partial class MainViewModel
     // Метод для загрузки настроек интерфейса при выборе устройства
     private void ApplyUserConfig(UserViewConfig config)
     {
-        // 1. Восстановим привязки осей для таблиц
-        foreach (var param in ParameterVariables)
+        // Полностью очищаем старый список вкладок перед загрузкой новых данных
+        LayoutNames.Clear();
+
+        // Если конфигурационный файл пустой или в нем нет ни одного сохраненного экрана
+        if (config == null || config.Layouts == null || config.Layouts.Count == 0)
         {
-            if (param.Rows > 1 && param.Cols > 1) // Только для таблиц
-            {
-                var lutConfig = config.VariableViews.GetValueOrDefault(param.Name);
-                if (lutConfig != null && lutConfig.TableBindings != null)
-                {
-                    param.BoundAxisX = FindVariable(lutConfig.AxisX_VarName);
-                    param.BoundAxisY = FindVariable(lutConfig.AxisY_VarName);
-                    param.BoundInputX = FindVariable(lutConfig.InputX_VarName);
-                    param.BoundInputY = FindVariable(lutConfig.InputY_VarName);
-                }
-            }
+            // Создаем чистый стартовый экран по умолчанию
+            LayoutNames.Add("Главный");
+            CurrentLayoutName = "Главный";
+            return;
         }
 
-        // 2. Восстановим виджеты приборной панели
-        _dashboardManager.RestoreSavedWidgets(config, SelectedDevice);
+        // Восстанавливаем COM-порт, если он сохранен и доступен в системе
+        if (!string.IsNullOrEmpty(config.LastUsedComPort) && AvailablePorts.Contains(config.LastUsedComPort))
+        {
+            SelectedPort = config.LastUsedComPort;
+        }
+
+        // Наполняем коллекцию вкладок именами экранов из JSON
+        foreach (var layoutName in config.Layouts.Keys)
+        {
+            LayoutNames.Add(layoutName);
+        }
+
+        // Проверяем, существует ли еще экран, который был открыт последним
+        if (config.Layouts.ContainsKey(config.ActiveLayoutName))
+        {
+            CurrentLayoutName = config.ActiveLayoutName;
+        }
+        else
+        {
+            // Если имя не найдено, открываем самую первую вкладку в списке
+            CurrentLayoutName = LayoutNames[0];
+        }
     }
+
+
+
 
     // Вспомогательный метод для поиска переменной по имени
     private VariableViewModel? FindVariable(string varName)
@@ -52,6 +73,131 @@ public partial class MainViewModel
     }
 
 
+    // 1. Внутренний метод сохранения текущего состояния активного экрана
+    private void SaveCurrentLayoutInternal()
+    {
+        if (SelectedDevice == null || string.IsNullOrEmpty(CurrentLayoutName)) return;
+
+        // Загружаем актуальный файл конфигурации устройства с диска
+        var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath) ?? new UserViewConfig();
+
+        currentConfig.LastUsedComPort = SelectedPort ?? "COM1";
+        currentConfig.ActiveLayoutName = CurrentLayoutName;
+
+        // Формируем список виджетов, открытых прямо сейчас на холсте
+        var widgetsList = new List<SavedWidgetInfo>();
+        foreach (var widget in ActiveWidgets)
+        {
+            if (widget.DataSource == null) continue;
+
+            widgetsList.Add(new SavedWidgetInfo
+            {
+                VarName = widget.DataSource.Name,
+                ControlView = widget.ControlView,
+                Left = widget.Left,
+                Top = widget.Top,
+                Width = widget.Width,
+                Height = widget.Height,
+                // Фиксируем связи Look-Up осей локально для этой таблицы на этом экране
+                TableBindings = new LutBindings
+                {
+                    HasBindings = widget.DataSource.IsLutLinked,
+                    AxisX_VarName = widget.DataSource.BoundAxisX?.Name ?? "",
+                    AxisY_VarName = widget.DataSource.BoundAxisY?.Name ?? "",
+                    InputX_VarName = widget.DataSource.BoundInputX?.Name ?? "",
+                    InputY_VarName = widget.DataSource.BoundInputY?.Name ?? ""
+                }
+            });
+        }
+
+        // Сохраняем сформированный список в словарь под именем текущей вкладки
+        currentConfig.Layouts[CurrentLayoutName] = widgetsList;
+
+        // Записываем обновленный JSON обратно на диск
+        _configManager.SaveUserConfig(currentConfig, SelectedDevice.DevicePath);
+    }
+
+    // 2. Метод физического переключения экранов на холсте
+    private void SwitchToLayout(string layoutName)
+    {
+        if (SelectedDevice == null) return;
+
+        // Временно выключаем опрос телеметрии, чтобы безопасно перерисовать UI без гонок потоков
+        bool wasPolling = _isPollingEnabled;
+        _isPollingEnabled = false;
+
+        ActiveWidgets.Clear();
+
+        var config = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
+        if (config != null && config.Layouts.TryGetValue(layoutName, out var savedWidgets))
+        {
+            foreach (var info in savedWidgets)
+            {
+                var realVar = FindVariable(info.VarName);
+                if (realVar == null) continue;
+
+                // Восстанавливаем привязки Look-Up осей, если они сохранены внутри виджета
+                if (info.TableBindings != null && info.TableBindings.HasBindings)
+                {
+                    realVar.BoundAxisX = FindVariable(info.TableBindings.AxisX_VarName);
+                    realVar.BoundAxisY = FindVariable(info.TableBindings.AxisY_VarName);
+                    realVar.BoundInputX = FindVariable(info.TableBindings.InputX_VarName);
+                    realVar.BoundInputY = FindVariable(info.TableBindings.InputY_VarName);
+                }
+
+                var widgetVm = new WidgetViewModel
+                {
+                    DataSource = realVar,
+                    ControlView = info.ControlView,
+                    Left = info.Left,
+                    Top = info.Top,
+                    Width = info.Width,
+                    Height = info.Height
+                };
+
+                ActiveWidgets.Add(widgetVm);
+
+                // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
+                if (realVar.IsParam && _commService.IsConnected)
+                {
+                    _ = RequestSingleVariableReadAsync(realVar.ModelId, (byte)realVar.Id, realVar.TotalElements);
+                }
+            }
+        }
+
+        // Возвращаем опрос телеметрии в исходное состояние
+        _isPollingEnabled = wasPolling;
+    }
+
+    // 3. Метод создания нового экрана из кода или UI
+    public void AddNewLayout(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || LayoutNames.Contains(name)) return;
+
+        LayoutNames.Add(name);
+        CurrentLayoutName = name; // Наш сеттер из Шага 2 сам сделает автосейв старого экрана и откроет чистый новый
+    }
+
+    // 4. Метод удаления экрана
+    public void DeleteLayout(string name)
+    {
+        if (LayoutNames.Count <= 1 || !LayoutNames.Contains(name)) return;
+
+        LayoutNames.Remove(name);
+
+        if (SelectedDevice != null)
+        {
+            var config = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
+            if (config != null && config.Layouts.Remove(name))
+            {
+                _configManager.SaveUserConfig(config, SelectedDevice.DevicePath);
+            }
+        }
+
+        // Автоматически переводим калибровщика на первую оставшуюся вкладку
+        CurrentLayoutName = LayoutNames[0];
+    }
+
 
 
     private void OnDeviceChanged()
@@ -59,7 +205,7 @@ public partial class MainViewModel
         if (SelectedDevice == null) return;
 
         // Выбираем первую модель по умолчанию
-        _selectedModelId = SelectedDevice.Models.Keys.FirstOrDefault(); 
+        _selectedModelId = SelectedDevice.Models.Keys.FirstOrDefault();
 
         // Загружаем конфигурации для этого устройства
         var userConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
@@ -183,5 +329,13 @@ public partial class MainViewModel
             _isPollingEnabled = true;
         }
     }
+
+
+
+
+
+
+
+
 
 }

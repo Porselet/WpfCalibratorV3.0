@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using WpfCalibrator.Models;
 using WpfCalibrator.Services;
+using System.Collections.ObjectModel;
+
 
 namespace WpfCalibrator.ViewModels;
 
@@ -43,6 +45,29 @@ public partial class MainViewModel : INotifyPropertyChanged
         {
             _activeWidgets = value;
             OnPropertyChanged();
+        }
+    }
+
+    // Список имён всех доступных рабочих столов (для вывода вкладок на UI)
+    public ObservableCollection<string> LayoutNames { get; set; } = new();
+
+    private string _currentLayoutName = "";
+    public string CurrentLayoutName
+    {
+        get => _currentLayoutName;
+        set
+        {
+            if (_currentLayoutName != value && !string.IsNullOrEmpty(value))
+            {
+                // Сначала незаметно сохраняем старый экран, чтобы не потерять расстановку калибровщика
+                SaveCurrentLayoutInternal();
+
+                _currentLayoutName = value;
+                OnPropertyChanged();
+
+                // Переключаем холст на отображение виджетов новой вкладки
+                SwitchToLayout(value);
+            }
         }
     }
 

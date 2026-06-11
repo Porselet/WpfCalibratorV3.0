@@ -28,6 +28,6 @@ public class DashboardManager : IDashboardManager
     // Метод для восстановления виджетов из настроек
     public void RestoreSavedWidgets(UserViewConfig config, DeviceConfig device)
     {
-        // TODO: Реализуйте логику восстановления виджетов из файла настроек
+        // Очищаем тело метода — вся логика переехала в MainViewModel.Configuration.cs
     }
 }

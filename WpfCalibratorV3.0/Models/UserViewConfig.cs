@@ -1,48 +1,38 @@
 ﻿using System.Collections.Generic;
 
-namespace WpfCalibrator.Models;
-
-/// <summary>
-/// Корневой объект пользовательского конфига.
-/// </summary>
-public class UserViewConfig
+namespace WpfCalibrator.Models
 {
-    public string LastUsedComPort { get; set; } = "COM1";
-    public int LastUsedBaudRate { get; set; } = 115200;
+    public class UserViewConfig
+    {
+        public string LastUsedComPort { get; set; } = "COM1";
+        public int LastUsedBaudRate { get; set; } = 115200;
 
-    // Словарь настроек для каждой переменной
-    public Dictionary<string, VarViewItem> VariableViews { get; set; } = new();
-}
+        // Запоминаем, какой экран MoTeC-style был открыт последним
+        public string ActiveLayoutName { get; set; } = "Главный";
 
-/// <summary>
-/// Настройки отображения для одной переменной.
-/// </summary>
-public class VarViewItem
-{
-    public string VarName { get; set; } = ""; // Имя переменной (например, "TEST_Data")
-    public string ControlView { get; set; } = "TextBox"; // Тип виджета: TextBox, Graph, Gauge...
-    public float MinValue { get; set; } = 0.0f; // Для слайдеров
-    public float MaxValue { get; set; } = 100.0f;
+        // Словарь рабочих экранов. Ключ — имя экрана, значение — список виджетов на нём
+        public Dictionary<string, List<SavedWidgetInfo>> Layouts { get; set; } = new();
+    }
 
-    // Настройки для 2D-текстур (Look-up tables)
-    public LutBindings TableBindings { get; set; } = new();
+    public class SavedWidgetInfo
+    {
+        public string VarName { get; set; } = "";
+        public string ControlView { get; set; } = "TextBox";
+        public double Left { get; set; }
+        public double Top { get; set; }
+        public double Width { get; set; } = 100;
+        public double Height { get; set; } = 30;
 
-    // Добавляем недостающие свойства для привязок осей
-    public string AxisX_VarName { get; set; } = ""; // Имя переменной-оси X
-    public string AxisY_VarName { get; set; } = ""; // Имя переменной-оси Y
-    public string InputX_VarName { get; set; } = ""; // Имя сигнала для оси X
-    public string InputY_VarName { get; set; } = ""; // Имя сигнала для оси Y
+        // Привязки осей Look-Up таблиц живут локально внутри описания виджета экрана
+        public LutBindings TableBindings { get; set; } = new();
+    }
 
-}
-
-/// <summary>
-/// Настройки привязок осей для 2D-матриц.
-/// </summary>
-public class LutBindings
-{
-    public bool HasBindings { get; set; } = false;
-    public string AxisX_VarName { get; set; } = ""; // Имя переменной-оси X
-    public string AxisY_VarName { get; set; } = ""; // Имя переменной-оси Y
-    public string InputX_VarName { get; set; } = ""; // Имя сигнала для оси X
-    public string InputY_VarName { get; set; } = ""; // Имя сигнала для оси Y
+    public class LutBindings
+    {
+        public bool HasBindings { get; set; } = false;
+        public string AxisX_VarName { get; set; } = "";
+        public string AxisY_VarName { get; set; } = "";
+        public string InputX_VarName { get; set; } = "";
+        public string InputY_VarName { get; set; } = "";
+    }
 }
