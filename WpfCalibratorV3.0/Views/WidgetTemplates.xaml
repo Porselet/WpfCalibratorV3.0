@@ -114,6 +114,7 @@
 
                 <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК -->
                 <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК С АВТОФОКУСОМ (MoTeC-Style) -->
+                <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК (Очищен от конфликтов фокуса) -->
                 <Style x:Key="MatrixCellTextBoxStyle" TargetType="TextBox">
                     <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="Foreground" Value="White"/>
@@ -123,22 +124,11 @@
                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
                     <Setter Property="VerticalContentAlignment" Value="Center"/>
                     <Style.Triggers>
-                        <!-- 1. Если ячейка активна по телеметрии (зеленый неон) -->
+                        <!-- Если ячейка активна по телеметрии (зеленый неон) -->
                         <DataTrigger Binding="{Binding IsActive}" Value="True">
                             <Setter Property="Foreground" Value="Black"/>
                             <Setter Property="FontWeight" Value="Bold"/>
                         </DataTrigger>
-
-                        <!-- 2. ИСПРАВЛЕНИЕ АВТОФОКУСА (MoTeC-Style): 
-                             Фокус ввода забирает ТОЛЬКО ТА ячейка, которая одновременно 
-                             и выбрана синей рамкой (IsSelected), и таблица перешла в режим ввода (IsEditing) -->
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding Parent.IsEditing}" Value="True"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
-                        </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>
             </Grid.Resources>

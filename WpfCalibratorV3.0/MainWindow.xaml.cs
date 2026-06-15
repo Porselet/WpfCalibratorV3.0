@@ -98,7 +98,7 @@ public partial class MainWindow : Window
                 handled = true;
                 break;
             // 5. МГНОВЕННЫЙ ВВОД ЦИФР ПО ПЕРВОМУ НАЖАТИЮ (MoTeC-Style)
-            // Проверяем, нажата ли цифра на основной клавиатуре или на NumPad, а также минус или точка
+            // 5. МГНОВЕННЫЙ ВВОД ЦИФР ПО ПЕРВОМУ НАЖАТИЮ (MoTeC-Style с автоочисткой)
             case Key.D0:
             case Key.D1:
             case Key.D2:
@@ -124,15 +124,22 @@ public partial class MainWindow : Window
             case Key.OemPeriod:
             case Key.Decimal:
 
-                // Включаем режим редактирования вьюмодели
-                activeTable.IsEditing = true;
+                // Находим конкретную ячейку, на которой сейчас стоит наш синий маркер
+                if (activeTable.MatrixCells != null)
+                {
+                    var targetCell = activeTable.MatrixCells.FirstOrDefault(c => c.Row == activeTable.SelectedRow && c.Col == activeTable.SelectedCol);
+                    if (targetCell != null)
+                    {
+                        // Включаем режим ввода
+                        activeTable.IsEditing = true;
 
-                // Чтобы не писать сложный поиск элементов по UI-дереву, мы временно 
-                // НЕ гасим это событие (handled остается false). 
-                // Мы даем WPF переключить шаблон ячейки. 
-                // На следующем шаге мы заставим ячейку саму забрать фокус, как только IsEditing станет true!
+                        // ОЧИЩАЕМ СТАРЫЙ МУСОР: Сразу затираем старое значение в ячейке,
+                        // чтобы новая цифра не приписывалась в начало, а замещала текст!
+                        targetCell.ValueText = string.Empty;
+                    }
+                }
+                // Оставляем handled = false, чтобы Windows сама впечатала нажатый символ в очищенное поле
                 break;
-
 
 
         }
