@@ -44,7 +44,7 @@ namespace WpfCalibrator.ViewModels
                 return;
             }
 
-            // 2. РАБОТА ПО ТАЙМЕРУ: Быстро и точечно обновляем неон и данные
+            // 2. ТОЧЕЧНОЕ ОБНОВЛЕНИЕ ПО ТАЙМЕРУ
             int index = 0;
             for (int r = 0; r < Rows; r++)
             {
@@ -52,21 +52,28 @@ namespace WpfCalibrator.ViewModels
                 {
                     var cell = MatrixCells[index++];
 
-                    // Переключаем неоновый прицел
+                    // Переключаем неоновый прицел (это работает всегда)
                     bool shouldBeActive = (r == ActiveRowIndex && c == ActiveColIndex);
                     if (cell.IsActive != shouldBeActive)
                     {
                         cell.IsActive = shouldBeActive;
                     }
 
-                    // ОЖИВЛЯЕМ ДАННЫЕ: Переводим float из MatrixData в строку UI.
-                    string freshText = MatrixData[r, c].ToString("F1");
-                    if (cell.ValueText != freshText)
+                    // ИСПРАВЛЕНИЕ: Обновляем текст из памяти ТОЛЬКО если калибровщик 
+                    // прямо сейчас НЕ редактирует эту конкретную выбранную ячейку!
+                    bool isCurrentCellBeingEdited = IsEditing && (r == SelectedRow && c == SelectedCol);
+
+                    if (!isCurrentCellBeingEdited)
                     {
-                        cell.ValueText = freshText;
+                        string freshText = MatrixData[r, c].ToString("F1");
+                        if (cell.ValueText != freshText)
+                        {
+                            cell.ValueText = freshText;
+                        }
                     }
                 }
             }
+
             UpdateSelectionHighlight();
         }
 

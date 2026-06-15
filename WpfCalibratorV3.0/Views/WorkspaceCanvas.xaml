@@ -125,13 +125,30 @@
                                         </Border>
                                     </Grid>
                                 </Border>
+                                <!-- УМНЫЕ ТРИГГЕРЫ С ТРАДИЦИОННЫМ ОФОРМЛЕНИЕМ И ВЫДЕЛЕНИЕМ ТОЛЩИНОЙ -->
                                 <DataTemplate.Triggers>
+                                    <!-- 1. ПАРАМЕТР БЕЗ ФОКУСА (Выглядит как раньше) -->
                                     <DataTrigger Binding="{Binding DataSource.IsParam}" Value="True">
                                         <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#FF9100"/>
+                                        <Setter TargetName="WidgetBorder" Property="BorderThickness" Value="1"/>
                                     </DataTrigger>
+
+                                    <!-- 2. СИГНАЛ ТЕЛЕМЕТРИИ (Всегда как раньше, так как Tab его обходит) -->
                                     <DataTrigger Binding="{Binding DataSource.IsParam}" Value="False">
                                         <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#007ACC"/>
+                                        <Setter TargetName="WidgetBorder" Property="BorderThickness" Value="1"/>
                                     </DataTrigger>
+
+                                    <!-- 3. АКТИВНЫЙ ПАРАМЕТР В ФОКУСЕ (Становится жирным и ярким) -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsParam}" Value="True"/>
+                                            <Condition Binding="{Binding IsActiveWidget}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#FFB300"/>
+                                        <Setter TargetName="WidgetBorder" Property="BorderThickness" Value="3"/>
+                                        <!-- Утолщенная рамка фокуса -->
+                                    </MultiDataTrigger>
                                 </DataTemplate.Triggers>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

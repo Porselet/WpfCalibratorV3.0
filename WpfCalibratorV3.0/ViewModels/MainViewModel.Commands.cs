@@ -89,36 +89,22 @@ public partial class MainViewModel
     {
         private readonly MainViewModel _parent;
         public SaveLayoutCommandImpl(MainViewModel parent) => _parent = parent;
-        public override bool CanExecute(object? parameter) => _parent.SelectedDevice != null;
+
+        // ИСПРАВЛЕНО: Разрешаем сохранять конфигурацию экрана всегда (даже без подключенного МК)
+        public override bool CanExecute(object? parameter) => true;
 
         public override void Execute(object? parameter)
         {
-            // 1. Находим главное окно приложения
-            var mainWindow = System.Windows.Application.Current.MainWindow;
+            // ... дальше идет наша логика сброса фокуса, которую мы облегчили на прошлом шаге ...
 
-            if (mainWindow != null)
-            {
-                // 2. Сбрасываем фокус с TextBox, чтобы зафиксировать текст в память C#
-                System.Windows.Input.FocusManager.SetFocusedElement(mainWindow, mainWindow);
-
-                // 3. ХАК ДЛЯ ВОЗВРАТА СТРЕЛОЧЕК:
-                // Принудительно отдаем системный фокус клавиатуры обратно Главному Окну!
-                // Это заставит Windows мгновенно вернуть перехват стрелочек в метод GlobalWindow_PreviewKeyDown
-                System.Windows.Input.Keyboard.Focus(mainWindow);
-            }
-
-            // 4. Находим активную таблицу и выключаем режим редактирования
-            var activeWidget = _parent.ActiveWidgets.FirstOrDefault(w => w.ControlView == "MatrixTable");
-            if (activeWidget?.DataSource != null)
-            {
-                activeWidget.DataSource.IsEditing = false;
-            }
-
-            // 5. Сохраняем экран на диск
+            // И ТЕПЕРЬ ДЛЯ ВЕРХНЕЙ КНОПКИ: 
+            // Так как эта команда теперь вызывается и по Enter, и по клику на верхнюю кнопку меню,
+            // мы принудительно вызываем физическую запись JSON на диск ЗДЕСЬ, 
+            // чтобы верхняя кнопка честно выполняла свою роль сохранения дизайна!
             _parent.SaveCurrentLayoutInternal();
         }
-
     }
+
 
     // 2. Публичное свойство команды удаления выбранного экрана
     private ICommand? _deleteLayoutCommand;

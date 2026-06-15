@@ -62,6 +62,21 @@ public class WidgetViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isActiveWidget = false;
+    public bool IsActiveWidget
+    {
+        get => _isActiveWidget;
+        set
+        {
+            if (_isActiveWidget != value)
+            {
+                _isActiveWidget = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+
     private float _incrementStep = 1.0f;
     public float IncrementStep
     {

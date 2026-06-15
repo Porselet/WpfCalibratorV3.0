@@ -115,6 +115,7 @@
                 <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК -->
                 <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК С АВТОФОКУСОМ (MoTeC-Style) -->
                 <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК (Очищен от конфликтов фокуса) -->
+                <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК С АВТОФОКУСОМ (Полная версия) -->
                 <Style x:Key="MatrixCellTextBoxStyle" TargetType="TextBox">
                     <Setter Property="Background" Value="Transparent"/>
                     <Setter Property="Foreground" Value="White"/>
@@ -124,13 +125,24 @@
                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
                     <Setter Property="VerticalContentAlignment" Value="Center"/>
                     <Style.Triggers>
-                        <!-- Если ячейка активна по телеметрии (зеленый неон) -->
+                        <!-- 1. Если ячейка активна по телеметрии — зажигаем жирный черный текст на неоновом фоне -->
                         <DataTrigger Binding="{Binding IsActive}" Value="True">
                             <Setter Property="Foreground" Value="Black"/>
                             <Setter Property="FontWeight" Value="Bold"/>
                         </DataTrigger>
+
+                        <!-- 2. МАГИЯ АВТОФОКУСА: Как только таблица переходит в режим редактирования, 
+                             именно НАША выбранная ячейка принудительно забирает системный фокус ввода! -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Parent.IsEditing}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
+                        </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>
+
             </Grid.Resources>
 
             <Grid.RowDefinitions>

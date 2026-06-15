@@ -67,8 +67,6 @@ public partial class MainViewModel
     }
 
 
-
-
     // Вспомогательный метод для поиска переменной по имени
     private VariableViewModel? FindVariable(string varName)
     {
@@ -143,6 +141,14 @@ public partial class MainViewModel
                 var realVar = FindVariable(info.VarName);
                 if (realVar == null) continue;
 
+                // ТИХАЯ ЗАЩИТА ОТ ДУБЛИКАТОВ ПРИ ЗАГРУЗКЕ:
+                // Если этот калибровочный параметр уже был успешно добавлен на холст ранее в этом цикле —
+                // мы просто молча пропускаем его дубликат и идем к следующему элементу!
+                if (realVar.IsParam && ActiveWidgets.Any(w => w.DataSource != null && w.DataSource.Name == realVar.Name))
+                {
+                    continue;
+                }
+
                 // Восстанавливаем привязки Look-Up осей, если они сохранены внутри виджета
                 if (info.TableBindings != null && info.TableBindings.HasBindings)
                 {
@@ -167,7 +173,6 @@ public partial class MainViewModel
                 ActiveWidgets.Add(widgetVm);
 
                 // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
-                // Если вывели на холст калибровочный параметр (например, нашу LUT-таблицу)
                 if (realVar.IsParam && _commService.IsConnected)
                 {
                     _ = RefreshAllLayoutParametersAsync();
@@ -182,50 +187,50 @@ public partial class MainViewModel
 
 
 
-// Метод последовательного и безопасного вычитывания всех параметров экрана из МК
-public async Task RefreshAllLayoutParametersAsync()
-{
-    if (!_commService.IsConnected || SelectedDevice == null) return;
-
-    // Временно отключаем циклическую телеметрию, чтобы освободить UART-линию
-    bool wasPolling = _isPollingEnabled;
-    _isPollingEnabled = false;
-
-    try
+    // Метод последовательного и безопасного вычитывания всех параметров экрана из МК
+    public async Task RefreshAllLayoutParametersAsync()
     {
-        // Собираем в уникальный список (HashSet) вообще все параметры, которые нужно обновить
-        var parametersToUpdate = new HashSet<VariableViewModel>();
+        if (!_commService.IsConnected || SelectedDevice == null) return;
 
-        foreach (var widget in ActiveWidgets.ToList())
+        // Временно отключаем циклическую телеметрию, чтобы освободить UART-линию
+        bool wasPolling = _isPollingEnabled;
+        _isPollingEnabled = false;
+
+        try
         {
-            if (widget.DataSource == null || !widget.DataSource.IsParam) continue;
+            // Собираем в уникальный список (HashSet) вообще все параметры, которые нужно обновить
+            var parametersToUpdate = new HashSet<VariableViewModel>();
 
-            // Добавляем саму таблицу или скалярный параметр
-            parametersToUpdate.Add(widget.DataSource);
+            foreach (var widget in ActiveWidgets.ToList())
+            {
+                if (widget.DataSource == null || !widget.DataSource.IsParam) continue;
 
-            // Если это LUT-таблица, добавляем её оси в очередь на чтение
-            if (widget.DataSource.BoundAxisX != null) parametersToUpdate.Add(widget.DataSource.BoundAxisX);
-            if (widget.DataSource.BoundAxisY != null) parametersToUpdate.Add(widget.DataSource.BoundAxisY);
+                // Добавляем саму таблицу или скалярный параметр
+                parametersToUpdate.Add(widget.DataSource);
+
+                // Если это LUT-таблица, добавляем её оси в очередь на чтение
+                if (widget.DataSource.BoundAxisX != null) parametersToUpdate.Add(widget.DataSource.BoundAxisX);
+                if (widget.DataSource.BoundAxisY != null) parametersToUpdate.Add(widget.DataSource.BoundAxisY);
+            }
+
+            // Вычитываем каждый параметр СТРОГО по очереди, дожидаясь ответа (await)
+            foreach (var param in parametersToUpdate)
+            {
+                // Вызываем чтение и делаем паузу, чтобы STM32 успел ответить по DMA
+                await RequestSingleVariableReadAsync(param.ModelId, (byte)param.Id, param.TotalElements);
+                await Task.Delay(30); // Инженерная пауза 30 мс между пакетами для стабильности линии
+            }
         }
-
-        // Вычитываем каждый параметр СТРОГО по очереди, дожидаясь ответа (await)
-        foreach (var param in parametersToUpdate)
+        finally
         {
-            // Вызываем чтение и делаем паузу, чтобы STM32 успел ответить по DMA
-            await RequestSingleVariableReadAsync(param.ModelId, (byte)param.Id, param.TotalElements);
-            await Task.Delay(30); // Инженерная пауза 30 мс между пакетами для стабильности линии
+            // Обязательно возвращаем опрос телеметрии назад
+            _isPollingEnabled = wasPolling;
         }
     }
-    finally
-    {
-        // Обязательно возвращаем опрос телеметрии назад
-        _isPollingEnabled = wasPolling;
-    }
-}
 
 
-// 3. Метод создания нового экрана из кода или UI
-public void AddNewLayout(string name)
+    // 3. Метод создания нового экрана из кода или UI
+    public void AddNewLayout(string name)
     {
         if (string.IsNullOrWhiteSpace(name) || LayoutNames.Contains(name)) return;
 
