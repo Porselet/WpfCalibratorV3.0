@@ -115,17 +115,33 @@ public class WidgetViewModel : INotifyPropertyChanged
 
     // ... внутри класса WidgetViewModel:
 
-
-
-    private void ExecuteSubmitChanges()
+    private double _radarGridOffsetX = 0;
+    public double RadarGridOffsetX
     {
-        // Виджет сообщает системе: "Мои данные изменились, отправьте меня в UART!"
-        // Мы можем сгенерировать событие или вызвать метод центрального менеджера
-        if (DataSource != null)
+        get => _radarGridOffsetX;
+        set { if (_radarGridOffsetX != value) { _radarGridOffsetX = value; OnPropertyChanged(); } }
+    }
+
+    private double _radarGridOffsetY = 0;
+    public double RadarGridOffsetY
+    {
+        get => _radarGridOffsetY;
+        set { if (_radarGridOffsetY != value) { _radarGridOffsetY = value; OnPropertyChanged(); } }
+    }
+    private int _zIndex = 0;
+    public int ZIndex
+    {
+        get => _zIndex;
+        set
         {
-            // Передаем управление в центральный сервис
-            // Чуть позже мы свяжем это с вашим CommunicationService
+            if (_zIndex != value)
+            {
+                _zIndex = value;
+                OnPropertyChanged();
+            }
         }
     }
+
+
 
 }

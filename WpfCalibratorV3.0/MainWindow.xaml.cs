@@ -29,23 +29,30 @@ public partial class MainWindow : Window
         DataContext = viewModel;
 
         // ГЛОБАЛЬНЫЙ ПЕРЕХВАТ КЛИКА МЫШИ ДЛЯ СМЕНЫ АКТИВНОГО ВИДЖЕТА
+        // ГЛОБАЛЬНЫЙ ПЕРЕХВАТ КЛИКА МЫШИ ДЛЯ СМЕНЫ АКТИВНОГО ВИДЖЕТА И СЛОЯ ГЛУБИНЫ
         this.PreviewMouseLeftButtonDown += (s, e) =>
         {
             if (this.DataContext is MainViewModel vm)
             {
-                // Находим визуальный элемент, по которому кликнули
                 var element = e.OriginalSource as System.Windows.FrameworkElement;
-                // Ищем, к какому виджету WidgetViewModel принадлежит этот элемент UI
                 var clickedWidget = element?.DataContext as WidgetViewModel;
 
-                // Если кликнули по параметру — переносим фокус на него!
-                if (clickedWidget != null && clickedWidget.DataSource != null && clickedWidget.DataSource.IsParam)
+                if (clickedWidget != null)
                 {
-                    // Сбрасываем фокус у всех окон на холсте
-                    foreach (var w in vm.ActiveWidgets) w.IsActiveWidget = false;
+                    // 1. УПРАВЛЕНИЕ СЛОЯМИ (Z-Index Хак):
+                    // Находим, какой максимальный ZIndex сейчас есть среди всех окон на холсте
+                    int maxCurrentZ = vm.ActiveWidgets.Count > 0 ? vm.ActiveWidgets.Max(w => w.ZIndex) : 0;
 
-                    // Зажигаем рамку у того, по которому кликнули
-                    clickedWidget.IsActiveWidget = true;
+                    // Назначаем кликнутому виджету слой еще выше, чтобы он вылетел на самый передний план!
+                    clickedWidget.ZIndex = maxCurrentZ + 1;
+
+                    // 2. УПРАВЛЕНИЕ НАВИГАЦИЕЙ КЛАВИАТУРЫ (Наш прошлый Шаг 79)
+                    // Переносим жирную неоновую рамку фокуса только на параметры
+                    if (clickedWidget.DataSource != null && clickedWidget.DataSource.IsParam)
+                    {
+                        foreach (var w in vm.ActiveWidgets) w.IsActiveWidget = false;
+                        clickedWidget.IsActiveWidget = true;
+                    }
                 }
             }
         };
@@ -62,28 +69,31 @@ public partial class MainWindow : Window
         var mainVm = this.DataContext as MainViewModel;
         if (mainVm == null) return;
 
-        // УМНЫЙ ПОИСК MOTEC: Находим тот виджет на холсте, который СЕЙЧАС выделен жирной рамкой!
+        // 1. Ищем виджет, выделенный жирной рамкой
         var activeWidget = mainVm.ActiveWidgets.FirstOrDefault(w => w.IsActiveWidget);
-
-        // Если ни один виджет еще не выбран (например, только открыли программу) — 
-        // берем первый попавшийся параметр по умолчанию в качестве страховки
         if (activeWidget == null)
         {
             activeWidget = mainVm.ActiveWidgets.FirstOrDefault(w => w.DataSource != null && w.DataSource.IsParam);
-            if (activeWidget != null) activeWidget.IsActiveWidget = true; // Сразу подсвечиваем его
+            if (activeWidget != null) activeWidget.IsActiveWidget = true;
         }
 
         var activeTable = activeWidget?.DataSource;
         if (activeTable == null || activeWidget == null) return;
 
-        // Если мы УЖЕ пишем текст внутри TextBox, и нажата НЕ клавиша Enter — 
-        // даем калибровщику спокойно дописать число
-        if (activeTable.IsEditing && e.Key != Key.Enter) return;
+        // 2. ХАК ДЛЯ ВВОДА ТЕКСТА: Если мы пишем цифры внутри TextBox, 
+        // и нажата НЕ клавиша Enter, Esc, Tab, PageUp, PageDown — 
+        // мы ВООБЩЕ выходим из метода и отдаем клавишу операционной системе, чтобы она печаталась!
+        if (activeTable.IsEditing &&
+            e.Key != Key.Enter && e.Key != Key.Escape && e.Key != Key.Tab &&
+            e.Key != Key.PageUp && e.Key != Key.PageDown)
+        {
+            return;
+        }
 
         bool handled = false;
 
-        // 1. НАВИГАЦИЯ СТРЕЛОЧКАМИ (Активна ТОЛЬКО для многомерных таблиц)
-        if (activeWidget.ControlView == "MatrixTable")
+        // 3. НАВИГАЦИЯ СТРЕЛОЧКАМИ ДЛЯ 3D-ТАБЛИЦ
+        if (activeWidget.ControlView == "MatrixTable" && !activeTable.IsEditing)
         {
             switch (e.Key)
             {
@@ -102,7 +112,7 @@ public partial class MainWindow : Window
             }
         }
 
-        // 2. ИЗМЕНЕНИЕ ЗНАЧЕНИЙ КЛАВИШАМИ PAGE UP / PAGE DOWN (Работает и для таблиц, и для скаляров!)
+        // 4. ИЗМЕНЕНИЕ ЗНАЧЕНИЙ ПО PAGE UP / PAGE DOWN
         if (e.Key == Key.PageUp || e.Key == Key.PageDown)
         {
             float sign = (e.Key == Key.PageUp) ? 1.0f : -1.0f;
@@ -110,19 +120,48 @@ public partial class MainWindow : Window
 
             if (activeWidget.ControlView == "MatrixTable")
             {
-                // Изменяем конкретную выбранную ячейку 3D-карты
                 float currentVal = (float)activeTable.MatrixData[activeTable.SelectedRow, activeTable.SelectedCol];
                 activeTable.UpdateMatrixValue(activeTable.SelectedRow, activeTable.SelectedCol, currentVal + delta);
             }
             else
             {
-                // ИСПРАВЛЕНО: Изменяем одиночный скалярный параметр (TextBox) прямо на холсте!
                 activeTable.CurrentValue += delta;
+                // Шлем скаляр в UART сразу по изменению PageUp/PageDown!
+                _ = mainVm.SendTableToUartAsync(activeTable);
             }
             handled = true;
         }
 
-        // 3. ВВОД ЦИФР С КЛАВИАТУРЫ (Работает и для таблиц, и для скаляров!)
+        // 5. ФИКСАЦИЯ КАЛИБРОВКИ ПО НАЖАТИЮ ENTER (ЖЕЛЕЗОБЕТОННЫЙ ВОЗВРАТ)
+        if (e.Key == Key.Enter && activeTable.IsEditing)
+        {
+            // Принудительно заставляем WPF зафиксировать текст из TextBox в память C#
+            System.Windows.Input.FocusManager.SetFocusedElement(this, this);
+            System.Windows.Input.Keyboard.Focus(this); // Возвращаем фокус Окну для стрелочек
+
+            // Выключаем режим ввода ячейки/скаляра
+            activeTable.IsEditing = false;
+
+            // Если это одиночный скаляр — принудительно выстреливаем его в UART по Enter!
+            // (Для таблиц отправка сработает автоматически через UpdateMatrixValue по потере фокуса)
+            if (activeWidget.ControlView != "MatrixTable")
+            {
+                _ = mainVm.SendTableToUartAsync(activeTable);
+            }
+
+            handled = true;
+        }
+
+        // 6. СБРОС ВВОДА ПО ESCAPE
+        if (e.Key == Key.Escape && activeTable.IsEditing)
+        {
+            System.Windows.Input.FocusManager.SetFocusedElement(this, this);
+            System.Windows.Input.Keyboard.Focus(this);
+            activeTable.IsEditing = false;
+            handled = true;
+        }
+
+        // 7. ВВОД ПЕРВОЙ ЦИФРЫ И TAB
         switch (e.Key)
         {
             case Key.D0:
@@ -152,34 +191,23 @@ public partial class MainWindow : Window
 
                 if (activeTable.IsEditing) break;
 
+                activeTable.IsEditing = true;
+
                 if (activeWidget.ControlView == "MatrixTable")
                 {
                     if (activeTable.MatrixCells != null)
                     {
                         var targetCell = activeTable.MatrixCells.FirstOrDefault(c => c.Row == activeTable.SelectedRow && c.Col == activeTable.SelectedCol);
-                        if (targetCell != null)
-                        {
-                            activeTable.IsEditing = true;
-                            targetCell.ValueText = string.Empty; // Чистим под ввод в одно касание
-                        }
+                        if (targetCell != null) targetCell.ValueText = string.Empty; // Очистка в одно касание
                     }
                 }
                 else
                 {
-                    // ИСПРАВЛЕНО: Открываем прямой ввод для одиночного скаляра
-                    activeTable.IsEditing = true;
-
-                    // Чтобы скаляр тоже стирался в одно касание, находим TextBox одиночного параметра 
-                    // и выделяем его текст целиком через диспетчер фокуса
-                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        var focusedTextBox = FocusManager.GetFocusedElement(this) as TextBox;
-                        focusedTextBox?.SelectAll();
-                    }), System.Windows.Threading.DispatcherPriority.Input);
+                    // Для скаляра тоже делаем очистку перед вводом новой цифры
+                    activeTable.CurrentValue = 0; // Или сбрасываем строку, если завязано на текст
                 }
                 break;
 
-            // Навигация верхнего уровня (Tab), которую мы написали на прошлом шаге
             case Key.Tab:
                 var parameterWidgets = mainVm.ActiveWidgets.Where(w => w.DataSource != null && w.DataSource.IsParam).ToList();
                 if (parameterWidgets.Count > 0)

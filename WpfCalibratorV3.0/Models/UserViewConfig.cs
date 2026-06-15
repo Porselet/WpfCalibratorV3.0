@@ -37,5 +37,7 @@ namespace WpfCalibrator.Models
         public string AxisY_VarName { get; set; } = "";
         public string InputX_VarName { get; set; } = "";
         public string InputY_VarName { get; set; } = "";
+        // НОВОЕ: Флаг необходимости вывода плавающего прицела-радара для этой таблицы
+        public bool ShowRadarTracker { get; set; } = false;
     }
 }

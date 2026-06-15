@@ -38,6 +38,8 @@
                                 <Setter Property="Canvas.Top" Value="{Binding Top, Mode=TwoWay}"/>
                                 <Setter Property="Width" Value="{Binding Width, Mode=TwoWay}"/>
                                 <Setter Property="Height" Value="{Binding Height, Mode=TwoWay}"/>
+                                <!-- Добавляем внутрь стиля контейнера окон на холсте: -->
+                                <Setter Property="Panel.ZIndex" Value="{Binding ZIndex}"/>
                             </Style>
                         </ItemsControl.ItemContainerStyle>
 
@@ -81,9 +83,13 @@
                                         </Border>
 
                                         <!-- КОНТЕНТНАЯ ЗОНА -->
+                                        <!-- НАЧАЛО КОНТЕЙНЕРА ВЫВОДА ШАБЛОНОВ -->
                                         <ContentControl Grid.Row="1" Content="{Binding}">
                                             <ContentControl.Style>
                                                 <Style TargetType="ContentControl">
+                                                    <!-- БАЗОВОЕ ЗНАЧЕНИЕ ДЛЯ ЗАЩИТЫ ОТ СБОЯ INVALIDCASTEXCEPTION -->
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource EmptyFallbackTemplate}"/>
+
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding ControlView}" Value="TextBox">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource ScalarTextBoxTemplate}"/>
@@ -100,10 +106,16 @@
                                                         <DataTrigger Binding="{Binding ControlView}" Value="Gauge">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource WidgetGaugeTemplate}"/>
                                                         </DataTrigger>
+
+                                                        <!-- НОВЫЙ ТРИГГЕР ДЛЯ АВИАЦИОННОГО ПРИЦЕЛА-РАДАРА -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="RadarTracker">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource RadarTrackerTrackerTemplate}"/>
+                                                        </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </ContentControl.Style>
                                         </ContentControl>
+                                        <!-- КОНЕЦ КОНТЕЙНЕРА ВЫВОДА ШАБЛОНОВ -->
 
                                         <!-- МАРКЕР ИЗМЕНЕНИЯ РАЗМЕРА (RESIZE) В ПРАВОМ НИЖНЕМ УГЛУ -->
                                         <!-- МАРКЕР ИЗМЕНЕНИЯ РАЗМЕРА (RESIZE) В ПРАВОМ НИЖНЕМ УГЛУ -->

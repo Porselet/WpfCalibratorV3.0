@@ -41,6 +41,9 @@ namespace WpfCalibrator.Views
             if (_targetTable.BoundAxisY != null) ComboAxisY.SelectedItem = parameterVars.FirstOrDefault(v => v.Name == _targetTable.BoundAxisY.Name);
             if (_targetTable.BoundInputX != null) ComboInputX.SelectedItem = telemetryVars.FirstOrDefault(v => v.Name == _targetTable.BoundInputX.Name);
             if (_targetTable.BoundInputY != null) ComboInputY.SelectedItem = telemetryVars.FirstOrDefault(v => v.Name == _targetTable.BoundInputY.Name);
+
+            // 1. ВНУТРИ КОНСТРУКТОРА TableSettingsWindow (в самый конец, под шаг):
+            CheckShowRadar.IsChecked = _targetTable.ShowRadarTracker;
         }
 
         private void ApplyButton_Click(object sender, RoutedEventArgs e)
@@ -62,6 +65,47 @@ namespace WpfCalibrator.Views
             _targetTable.BoundInputX = ComboInputX.SelectedItem as VariableViewModel;
             _targetTable.BoundAxisY = ComboAxisY.SelectedItem as VariableViewModel;
             _targetTable.BoundInputY = ComboInputY.SelectedItem as VariableViewModel;
+
+            _targetTable.ShowRadarTracker = CheckShowRadar.IsChecked == true;
+
+            // СРАЗУ ПОСЛЕ СТРОКИ: _targetTable.ShowRadarTracker = CheckShowRadar.IsChecked == true;
+
+            // АВТОМАТИЗАЦИЯ ПРИЦЕЛА: Находим MainViewModel через главное окно
+            if (Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+            {
+                // Ищем, выведен ли уже радар для этой таблицы на рабочий стол
+                var existingRadar = mainVm.ActiveWidgets.FirstOrDefault(w =>
+                    w.ControlView == "RadarTracker" && w.DataSource?.Name == _targetTable.Name);
+
+                if (_targetTable.ShowRadarTracker)
+                {
+                    // Если галочка поставлена, а радара на столе еще нет — создаем его!
+                    if (existingRadar == null)
+                    {
+                        var radarWidget = new WidgetViewModel
+                        {
+                            DataSource = _targetTable, // Прицел жестко связан с данными этой таблицы
+                            ControlView = "RadarTracker", // Специальный тип отображения
+                            Left = _targetWidget.Left + _targetWidget.Width + 20, // Появляется справа от таблицы
+                            Top = _targetWidget.Top,
+                            Width = 220,  // Компактный квадратный прицел-радар
+                            Height = 220,
+                            IncrementStep = _targetWidget.IncrementStep
+                        };
+
+                        mainVm.ActiveWidgets.Add(radarWidget);
+                    }
+                }
+                else
+                {
+                    // Если галочку убрали — молча стираем прицел-радар с рабочего стола
+                    if (existingRadar != null)
+                    {
+                        mainVm.ActiveWidgets.Remove(existingRadar);
+                    }
+                }
+            }
+
 
             DialogResult = true;
         }

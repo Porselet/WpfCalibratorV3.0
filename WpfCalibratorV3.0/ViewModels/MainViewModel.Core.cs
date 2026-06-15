@@ -105,8 +105,8 @@ public partial class MainViewModel : INotifyPropertyChanged
         _commService = commService;
         _configManager = configManager;
 
-        _dashboardManager = dashboardManager ?? new NullDashboardManager(); 
-                                                                            
+        _dashboardManager = dashboardManager ?? new NullDashboardManager();
+
         // Вызываем метод инициализации при создании ViewModel
         InitializeConfigurations();
 
@@ -221,36 +221,4 @@ public partial class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    // Вспомогательный метод сборки TX-пакета по ТЗ
-    private byte[] FormRequestPacket(int varId, byte modelId)
-    {
-        byte[] packet = new byte[6];
-        packet[0] = 0xAA; // Стартовый байт (Заголовок)
-        packet[1] = 0x01; // Команда: 0x01 - Чтение данных
-        packet[2] = modelId;
-        packet[3] = (byte)(varId >> 8); // Идентификатор переменной (MSB)
-        packet[4] = (byte)(varId & 0xFF); // (LSB)
-
-        // Расчет контрольной суммы CRC-8 (Полином SAE J1850 из вашего ТЗ)
-        packet[5] = CalculateCRC8(packet, 5);
-
-        return packet;
-    }
-
-    private byte CalculateCRC8(byte[] data, int length)
-    {
-        byte crc = 0xFF; // Начальное значение по ТЗ
-        for (int i = 0; i < length; i++)
-        {
-            crc ^= data[i];
-            for (int j = 0; j < 8; j++)
-            {
-                if ((crc & 0x80) != 0)
-                    crc = (byte)((crc << 1) ^ 0x1D); // Полином 0x1D (SAE J1850)
-                else
-                    crc = (byte)(crc << 1);
-            }
-        }
-        return crc;
-    }
 }

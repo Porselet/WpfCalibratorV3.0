@@ -110,7 +110,10 @@ public partial class MainViewModel
                     AxisX_VarName = widget.DataSource.BoundAxisX?.Name ?? "",
                     AxisY_VarName = widget.DataSource.BoundAxisY?.Name ?? "",
                     InputX_VarName = widget.DataSource.BoundInputX?.Name ?? "",
-                    InputY_VarName = widget.DataSource.BoundInputY?.Name ?? ""
+                    InputY_VarName = widget.DataSource.BoundInputY?.Name ?? "",
+
+                    // НОВОЕ: Передаем состояние флага Радара из вьюмодели таблицы в JSON
+                    ShowRadarTracker = widget.DataSource.ShowRadarTracker
                 }
             });
         }
@@ -138,26 +141,18 @@ public partial class MainViewModel
         {
             foreach (var info in savedWidgets)
             {
+                // ВНУТРИ МЕТОДА SwitchToLayout В ЦИКЛЕ ЗАГРУЗКИ ВИДЖЕТОВ:
                 var realVar = FindVariable(info.VarName);
                 if (realVar == null) continue;
 
-                // ТИХАЯ ЗАЩИТА ОТ ДУБЛИКАТОВ ПРИ ЗАГРУЗКЕ:
-                // Если этот калибровочный параметр уже был успешно добавлен на холст ранее в этом цикле —
-                // мы просто молча пропускаем его дубликат и идем к следующему элементу!
-                if (realVar.IsParam && ActiveWidgets.Any(w => w.DataSource != null && w.DataSource.Name == realVar.Name))
+                // ТИХАЯ ЗАЩИТА ОТ ДУБЛИКАТОВ (Оставляем для таблиц и скаляров)
+                if (info.ControlView != "RadarTracker" && realVar.IsParam &&
+                    ActiveWidgets.Any(w => w.DataSource != null && w.DataSource.Name == realVar.Name && w.ControlView != "RadarTracker"))
                 {
                     continue;
                 }
 
-                // Восстанавливаем привязки Look-Up осей, если они сохранены внутри виджета
-                if (info.TableBindings != null && info.TableBindings.HasBindings)
-                {
-                    realVar.BoundAxisX = FindVariable(info.TableBindings.AxisX_VarName);
-                    realVar.BoundAxisY = FindVariable(info.TableBindings.AxisY_VarName);
-                    realVar.BoundInputX = FindVariable(info.TableBindings.InputX_VarName);
-                    realVar.BoundInputY = FindVariable(info.TableBindings.InputY_VarName);
-                }
-
+                // Создаем виджет, восстанавливая его ГЕОМЕТРИЮ (Left, Top, Width, Height) прямо из JSON на диске!
                 var widgetVm = new WidgetViewModel
                 {
                     DataSource = realVar,
@@ -166,12 +161,49 @@ public partial class MainViewModel
                     Top = info.Top,
                     Width = info.Width,
                     Height = info.Height,
-                    // НОВОЕ: Восстанавливаем шаг изменения параметров из JSON обратно в виджет
                     IncrementStep = info.IncrementStep
                 };
 
+                // Восстанавливаем привязки Look-Up осей
+                if (info.TableBindings != null && info.TableBindings.HasBindings)
+                {
+                    realVar.BoundAxisX = FindVariable(info.TableBindings.AxisX_VarName);
+                    realVar.BoundAxisY = FindVariable(info.TableBindings.AxisY_VarName);
+                    realVar.BoundInputX = FindVariable(info.TableBindings.InputX_VarName);
+                    realVar.BoundInputY = FindVariable(info.TableBindings.InputY_VarName);
+                    realVar.ShowRadarTracker = info.TableBindings.ShowRadarTracker;
+                }
+
                 ActiveWidgets.Add(widgetVm);
 
+                // СРАЗУ ПОСЛЕ СТРОКИ: ActiveWidgets.Add(widgetVm);
+
+                // АВТО-РОЖДЕНИЕ ПРИЦЕЛА ПРИ СТАРТЕ: 
+                // Если загруженный виджет — это MatrixTable, и у его таблицы сохранен флаг Радара
+/*                if (info.ControlView == "MatrixTable" && realVar.ShowRadarTracker)
+                {
+                    // Проверяем на всякий случай, не создали ли мы его уже
+                    var existingRadar = ActiveWidgets.FirstOrDefault(w =>
+                        w.ControlView == "RadarTracker" && w.DataSource?.Name == realVar.Name);
+
+                    if (existingRadar == null)
+                    {
+                        var radarWidget = new WidgetViewModel
+                        {
+                            DataSource = realVar, // Связываем с данными этой же таблицы
+                            ControlView = "RadarTracker",
+                            Left = widgetVm.Left + widgetVm.Width + 20, // Ставим аккуратно справа
+                            Top = widgetVm.Top,
+                            Width = 220, // Компактные стартовые размеры (Viewbox сам смасштабирует!)
+                            Height = 220,
+                            IncrementStep = widgetVm.IncrementStep
+                        };
+
+                        // Добавляем радар на холст прямо в процессе загрузки экрана!
+                        ActiveWidgets.Add(radarWidget);
+                    }
+                }
+*/
                 // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
                 if (realVar.IsParam && _commService.IsConnected)
                 {

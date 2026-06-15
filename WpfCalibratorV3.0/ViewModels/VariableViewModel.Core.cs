@@ -183,6 +183,49 @@ public partial class VariableViewModel : INotifyPropertyChanged
             }
         }
     }
+    private bool _showRadarTracker = false;
+    public bool ShowRadarTracker
+    {
+        get => _showRadarTracker;
+        set
+        {
+            if (_showRadarTracker != value)
+            {
+                _showRadarTracker = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+
+    private double _radarGridOffsetX = 0;
+    public double RadarGridOffsetX
+    {
+        get => _radarGridOffsetX;
+        set
+        {
+            if (_radarGridOffsetX != value)
+            {
+                _radarGridOffsetX = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private double _radarGridOffsetY = 0;
+    public double RadarGridOffsetY
+    {
+        get => _radarGridOffsetY;
+        set
+        {
+            if (_radarGridOffsetY != value)
+            {
+                _radarGridOffsetY = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
 
 
 
