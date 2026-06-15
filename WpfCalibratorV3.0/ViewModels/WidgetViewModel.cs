@@ -48,8 +48,48 @@ public class WidgetViewModel : INotifyPropertyChanged
         get => _top;
         set { _top = value; OnPropertyChanged(); }
     }
-    public double Width { get; set; } = 100;
-    public double Height { get; set; } = 30;
+    private double _width = 100;
+    public double Width
+    {
+        get => _width;
+        set
+        {
+            if (_width != value)
+            {
+                _width = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private float _incrementStep = 1.0f;
+    public float IncrementStep
+    {
+        get => _incrementStep;
+        set
+        {
+            if (_incrementStep != value)
+            {
+                _incrementStep = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+
+    private double _height = 30;
+    public double Height
+    {
+        get => _height;
+        set
+        {
+            if (_height != value)
+            {
+                _height = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     // Реализация INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;

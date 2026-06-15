@@ -17,7 +17,7 @@ public class MatrixCellViewModel : INotifyPropertyChanged
     public int Col { get; set; }
 
     // Текущее значение ячейки (строка для отображения)
-    private string _valueText = "0.0";
+    private string _valueText = string.Empty;
     public string ValueText
     {
         get => _valueText;
@@ -28,8 +28,9 @@ public class MatrixCellViewModel : INotifyPropertyChanged
                 _valueText = value;
                 OnPropertyChanged();
 
-                // Преобразуем текст в число и обновляем родительскую матрицу
-                if (float.TryParse(value, out float numericValue))
+                // Передаем измененное инженером число обратно в главную матрицу переменной
+                string normalizedValue = value.Replace('.', ',');
+                if (float.TryParse(normalizedValue, out float numericValue))
                 {
                     Parent?.UpdateMatrixValue(Row, Col, numericValue);
                 }
@@ -37,8 +38,34 @@ public class MatrixCellViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isSelected;
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected != value)
+            {
+                _isSelected = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     // Активность ячейки (для подсветки прицела)
-    public bool IsActive { get; set; } = false;
+    private bool _isActive;
+    public bool IsActive
+    {
+        get => _isActive;
+        set
+        {
+            if (_isActive != value)
+            {
+                _isActive = value;
+                OnPropertyChanged(); // Железно уведомляем XAML, что нужно включить неон!
+            }
+        }
+    }
 
     // Реализация INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;

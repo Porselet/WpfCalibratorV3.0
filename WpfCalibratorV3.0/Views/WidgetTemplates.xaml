@@ -28,57 +28,228 @@
 
     <!-- 2. ШАБЛОН: Скалярный параметр (Редактирование через DataSource) -->
     <DataTemplate x:Key="ScalarTextBoxTemplate">
-        <Grid>
+        <Grid Margin="5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="*"/>
+                <!-- Левая колонка для текста -->
+                <ColumnDefinition Width="Auto"/>
+                <!-- Правая колонка точно под размер TextBox -->
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                <TextBlock Text="{Binding DataSource.Name}" Foreground="#00FF00" FontSize="15" FontWeight="Bold" FontFamily="Consolas"/>
-                <TextBlock Text="{Binding DataSource.Comment}" Foreground="#888888" FontSize="11" TextWrapping="Wrap" FontFamily="Consolas"/>
+
+            <!-- НАЗВАНИЕ И ОПИСАНИЕ ПАРАМЕТРА (СТРОГО В КОЛОНКЕ 0) -->
+            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                <TextBlock Text="{Binding DataSource.Name}" 
+                           Foreground="#00FF00" 
+                           FontSize="14" 
+                           FontWeight="Bold" 
+                           FontFamily="Consolas"/>
+                <TextBlock Text="{Binding DataSource.Comment}" 
+                           Foreground="#888888" 
+                           FontSize="11" 
+                           TextWrapping="Wrap" 
+                           FontFamily="Consolas"
+                           Margin="0,2,0,0"/>
             </StackPanel>
-            <TextBox Grid.Column="1" Text="{Binding DataSource.CurrentValue, UpdateSourceTrigger=LostFocus}" 
-                     Background="#222222" Foreground="White" BorderBrush="#555555" 
-                     Padding="6" VerticalAlignment="Center" HorizontalContentAlignment="Center" FontSize="16" FontWeight="Bold" FontFamily="Consolas"/>
+
+            <!-- ТЕКСТОВОЕ ПОЛЕ ВВОДА (СТРОГО В КОЛОНКЕ 1) -->
+            <TextBox Grid.Column="1"
+                     x:Name="ScalarInput"
+                     Text="{Binding DataSource.CurrentValue, UpdateSourceTrigger=LostFocus, StringFormat='{}{0:F3}'}"
+                     Background="#222222" 
+                     Foreground="White" 
+                     BorderBrush="#555555" 
+                     BorderThickness="1"
+                     FontSize="14" 
+                     FontFamily="Consolas" 
+                     Width="80" Height="24"
+                     HorizontalContentAlignment="Center" 
+                     VerticalContentAlignment="Center"
+                     VerticalAlignment="Center">
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Enter" 
+                                Command="{Binding DataContext.SaveLayoutCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                </TextBox.InputBindings>
+            </TextBox>
         </Grid>
     </DataTemplate>
-
     <!-- 3. ШАБЛОН: Многомерная таблица LUT (Сетка через DataSource.Cells) -->
-    <DataTemplate x:Key="MatrixTableTemplate">
-        <StackPanel>
-            <Grid Margin="0,0,0,5">
-                <TextBlock Text="{Binding DataSource.Name}" Foreground="#FF9100" FontSize="16" FontWeight="Bold" FontFamily="Consolas"/>
-                <TextBlock Foreground="#FF9100" FontSize="11" FontFamily="Consolas" HorizontalAlignment="Right">
-                    <TextBlock.Text>
-                        <MultiBinding StringFormat="Размерность: {0} x {1}">
-                            <Binding Path="DataSource.Rows"/>
-                            <Binding Path="DataSource.Cols"/>
-                        </MultiBinding>
-                    </TextBlock.Text>
-                </TextBlock>
-            </Grid>
-            <TextBlock Text="{Binding DataSource.Comment}" Foreground="#A0A0A0" FontSize="12" Margin="0,0,0,8" FontFamily="Consolas"/>
 
-            <!-- ItemsSource теперь смотрит строго в вашу коллекцию Cells из VariableViewModel.Cells.cs -->
-            <ItemsControl ItemsSource="{Binding DataSource.Cells}">
+    <DataTemplate x:Key="MatrixTableTemplate">
+        <Grid Margin="5">
+            <Grid.Resources>
+                <!-- ЛОКАЛЬНЫЙ СТИЛЬ ДЛЯ ЯЧЕЕК ТАБЛИЦЫ -->
+                <!-- ОБНОВЛЕННЫЙ ЛОКАЛЬНЫЙ СТИЛЬ ДЛЯ ЯЧЕЕК ТАБЛИЦЫ С ПОДДЕРЖКОЙ КУРСОРНОГО ВЫДЕЛЕНИЯ -->
+                <Style x:Key="MatrixCellBorderStyle" TargetType="Border">
+                    <Setter Property="Background" Value="#222222"/>
+                    <Setter Property="BorderBrush" Value="#444444"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Style.Triggers>
+                        <!-- ТРИГГЕР 1: Живой неоновый прицел режимной точки двигателя -->
+                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <Setter Property="Background" Value="#00FF00"/>
+                            <Setter Property="BorderBrush" Value="#00FF00"/>
+                        </DataTrigger>
+
+                        <!-- ТРИГГЕР 2: Синий курсор выделения ячейки инженером -->
+                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                            <Setter Property="BorderBrush" Value="#007ACC"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                            <!-- Делаем рамку толще, чтобы её было четко видно -->
+                        </DataTrigger>
+
+                        <!-- ТРИГГЕР 3: КОМБО! Если курсор навигации совпал с живым прицелом мотора -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsActive}" Value="True"/>
+                                <Condition Binding="{Binding IsSelected}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="#00FF00"/>
+                            <Setter Property="BorderBrush" Value="#007ACC"/>
+                            <!-- Синяя рамка поверх неонового фона -->
+                            <Setter Property="BorderThickness" Value="2"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+
+
+                <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК -->
+                <!-- СТИЛЬ ДЛЯ ТЕКСТА ВНУТРИ ЯЧЕЕК С АВТОФОКУСОМ (MoTeC-Style) -->
+                <Style x:Key="MatrixCellTextBoxStyle" TargetType="TextBox">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontFamily" Value="Consolas"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                    <Style.Triggers>
+                        <!-- 1. Если ячейка активна по телеметрии (зеленый неон) -->
+                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                        </DataTrigger>
+
+                        <!-- 2. ИСПРАВЛЕНИЕ АВТОФОКУСА (MoTeC-Style): 
+                             Фокус ввода забирает ТОЛЬКО ТА ячейка, которая одновременно 
+                             и выбрана синей рамкой (IsSelected), и таблица перешла в режим ввода (IsEditing) -->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Parent.IsEditing}" Value="True"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="FocusManager.FocusedElement" Value="{Binding RelativeSource={RelativeSource Self}}"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Resources>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- Шапка -->
+                <RowDefinition Height="Auto"/>
+                <!-- Ось X -->
+                <RowDefinition Height="*"/>
+                <!-- Сетка + Ось Y -->
+            </Grid.RowDefinitions>
+
+            <!-- ШАПКА ТАБЛИЦЫ -->
+            <Grid Grid.Row="0" Margin="0,0,0,5">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding DataSource.Name}" Foreground="#FFA500" FontWeight="Bold" Margin="0,0,10,0" FontFamily="Consolas"/>
+                    <TextBlock Foreground="Gray" FontFamily="Consolas">
+                        <TextBlock.Text>
+                            <MultiBinding StringFormat="Размерность: {0} x {1}">
+                                <Binding Path="DataSource.Rows"/>
+                                <Binding Path="DataSource.Cols"/>
+                            </MultiBinding>
+                        </TextBlock.Text>
+                    </TextBlock>
+                </StackPanel>
+
+                <Button Content="⚙" 
+                        HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Width="24" Height="20"
+                        Background="#333333" Foreground="#FFA500" FontWeight="Bold" 
+                        BorderThickness="1" BorderBrush="#555555" Cursor="Hand"
+                        Command="{Binding DataContext.OpenTableSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                        CommandParameter="{Binding}"/>
+            </Grid>
+
+            <!-- ВЫВОД ЗНАЧЕНИЙ ОСИ X (ИСПРАВЛЕНО: MatrixCells вместо Cells) -->
+            <ItemsControl Grid.Row="1" ItemsSource="{Binding DataSource.BoundAxisX.MatrixCells}" Margin="35,0,0,2">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <UniformGrid Rows="{Binding DataSource.Rows}" Columns="{Binding DataSource.Cols}"/>
+                        <UniformGrid Rows="1" Columns="{Binding DataSource.Cols}"/>
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type viewmodels:MatrixCellViewModel}">
-                        <Border BorderBrush="#333333" BorderThickness="1" Background="#222222" Margin="1">
-                            <TextBox Text="{Binding ValueText, UpdateSourceTrigger=LostFocus}" 
-                                     Background="Transparent" Foreground="White" BorderThickness="0" 
-                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" 
-                                     Padding="6" FontSize="14" FontFamily="Consolas"/>
+                    <DataTemplate>
+                        <Border Background="#252525" BorderBrush="#333333" BorderThickness="1" Margin="1,0">
+                            <TextBlock Text="{Binding ValueText}" Foreground="#FFFF00" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="2"/>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </StackPanel>
+
+            <!-- НИЖНЯЯ ЗОНА: ОСЬ Y И МАТРИЦА -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="35"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- ВЫВОД ЗНАЧЕНИЙ ОСИ Y (ИСПРАВЛЕНО: MatrixCells вместо Cells) -->
+                <ItemsControl Grid.Column="0" ItemsSource="{Binding DataSource.BoundAxisY.MatrixCells}" Margin="0,0,2,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="1" Rows="{Binding DataSource.Rows}"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#252525" BorderBrush="#333333" BorderThickness="1" Margin="0,1">
+                                <TextBlock Text="{Binding ValueText}" Foreground="#FFFF00" FontSize="11" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,2"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                
+                <!-- ОСНОВНАЯ КАЛИБРОВОЧНАЯ МАТРИЦА (Добавлено событие клика) -->
+                <!-- ОСНОВНАЯ КАЛИБРОВОЧНАЯ МАТРИЦА (ИСПРАВЛЕНО: Чистый MVVM клик) -->
+                <!-- ОСНОВНАЯ КАЛИБРОВОЧНАЯ МАТРИЦА (Клик на уровне всего контейнера сетки) -->
+                <!-- ОСНОВНАЯ КАЛИБРОВОЧНАЯ МАТРИЦА (ЧИСТАЯ, БЕЗ ОШИБОК) -->
+                <!-- ОСНОВНАЯ КАЛИБРОВОЧНАЯ МАТРИЦА (TextBox с привязкой Enter) -->
+                <ItemsControl Grid.Column="1" ItemsSource="{Binding DataSource.MatrixCells}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="{Binding DataSource.Rows}" Columns="{Binding DataSource.Cols}"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource MatrixCellBorderStyle}" Margin="1">
+                                <TextBox Text="{Binding ValueText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 
+                                         Style="{StaticResource MatrixCellTextBoxStyle}">
+                                    <TextBox.InputBindings>
+                                        <!-- ВОЗВРАЩАЕМ В СТРОЙ КОМАНДУ ENTER: 
+                                             При нажатии Enter вызывается SaveLayoutCommand, которая зафиксирует ввод,
+                                             выключит режим IsEditing, отправит пакет в UART и вернет стрелочки! -->
+                                        <KeyBinding Key="Enter" 
+                                                    Command="{Binding DataContext.SaveLayoutCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </Grid>
+        </Grid>
     </DataTemplate>
+
+
+
     <!-- ==================== ВАРИАНТ 2: ГОРИЗОНТАЛЬНЫЙ ИНДИКАТОР УРОВНЯ (СЛАЙДЕР) ==================== -->
     <DataTemplate x:Key="WidgetSliderTemplate">
         <StackPanel VerticalAlignment="Center">

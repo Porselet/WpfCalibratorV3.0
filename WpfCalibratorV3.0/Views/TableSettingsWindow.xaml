@@ -1,0 +1,115 @@
+﻿<Window x:Class="WpfCalibrator.Views.TableSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Настройка привязок Look-Up таблицы" 
+        Height="320" Width="450"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None" 
+        ResizeMode="NoResize"
+        Background="#111111" 
+        BorderBrush="#FF9100" 
+        BorderThickness="2">
+
+
+    <Window.Resources>
+        <!-- СТИЛЬ И ШАБЛОН ДЛЯ ИДЕАЛЬНОГО КОНТРАСТА СТРОК (Черный шрифт на светло-сером фоне) -->
+        <Style x:Key="EngineeringComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background" Value="#222222"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="Consolas"/>
+
+            <!-- Оформляем внутренний вид выпадающих строк на уровне элементов данных -->
+            <Setter Property="ItemTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <!-- Заворачиваем каждую строку в сплошной светлый контейнер -->
+                        <Border Background="#E0E0E0" Margin="-6,-4" Padding="8,5">
+                            <TextBlock Text="{Binding Name}" 
+                                       Foreground="Black" 
+                                       FontFamily="Consolas" 
+                                       FontSize="13"/>
+                        </Border>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <!-- Дополнительно убираем серые системные отступы вокруг строк -->
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Background" Value="#E0E0E0"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Style.Triggers>
+                            <!-- Подсветка строки синим цветом MoTeC при наведении мыши -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#007ACC"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Заголовок -->
+            <RowDefinition Height="*"/>
+            <!-- Поля настроек -->
+            <RowDefinition Height="Auto"/>
+            <!-- Кнопки -->
+        </Grid.RowDefinitions>
+
+        <!-- ЗАГОЛОВОК С ИМЕНЕМ ТАБЛИЦЫ -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <TextBlock Text="📋 НАСТРОЙКА КАРТЫ: " Foreground="White" FontSize="14" FontFamily="Consolas"/>
+            <TextBlock x:Name="TableNameText" Text="TEST_Data" Foreground="#FF9100" FontSize="14" FontWeight="Bold" FontFamily="Consolas"/>
+        </StackPanel>
+
+        <!-- СЕТКА С ВЫБОРОМ ПЕРЕМЕННЫХ -->
+        <Grid Grid.Row="1" VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- ОСЬ X -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Ось X (Вектор):" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,0,10"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="ComboAxisX" Style="{StaticResource EngineeringComboBoxStyle}" DisplayMemberPath="Name" Margin="0,0,0,10"/>
+
+            <!-- ДАТЧИК X -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Сигнал оси X:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,0,10"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" x:Name="ComboInputX" Style="{StaticResource EngineeringComboBoxStyle}" DisplayMemberPath="Name" Margin="0,0,0,10"/>
+
+            <!-- ОСЬ Y -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Ось Y (Вектор):" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,0,10"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ComboAxisY" Style="{StaticResource EngineeringComboBoxStyle}" DisplayMemberPath="Name" Margin="0,0,0,10"/>
+
+            <!-- ДАТЧИК Y -->
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Сигнал оси Y:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="3" Grid.Column="1" x:Name="ComboInputY" Style="{StaticResource EngineeringComboBoxStyle}" DisplayMemberPath="Name"/>
+
+            <!-- ШАГ ПРИРАЩЕНИЯ (НОВОЕ ПОЛЕ) -->
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="Шаг PageUp/Dn:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="5" Grid.Column="1" x:Name="TextIncrementStep" Background="#222222" Foreground="White" FontFamily="Consolas" FontSize="13" Padding="4,2" Width="80" HorizontalAlignment="Left"/>
+
+        </Grid>
+
+        <!-- КНОПКИ УПРАВЛЕНИЯ -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="ПРИМЕНИТЬ" Width="100" Height="32" Background="#2E7D32" Foreground="White" FontWeight="Bold" FontFamily="Consolas" Margin="0,0,10,0" IsDefault="True" Click="ApplyButton_Click"/>
+            <Button Content="ОТМЕНА" Width="100" Height="32" Background="#C62828" Foreground="White" FontWeight="Bold" FontFamily="Consolas" IsCancel="True" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

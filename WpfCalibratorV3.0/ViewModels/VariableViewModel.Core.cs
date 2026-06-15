@@ -122,13 +122,68 @@ public partial class VariableViewModel : INotifyPropertyChanged
     // Методы для работы с MatrixData
     public void UpdateMatrixValue(int row, int col, float newValue)
     {
-        // Проверка границ
         if (row >= 0 && row < Rows && col >= 0 && col < Cols)
         {
-            MatrixData[row, col] = newValue;
-            OnPropertyChanged(nameof(MatrixData)); // Уведомляем UI об изменении
+            MatrixData[row, col] = newValue; // Записали в массив
+
+            if (IsParam)
+            {
+                if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+                {
+                    _ = mainVm.SendTableToUartAsync(this); // <=== ВОТ ОН, ВЫЗОВ UART!
+                }
+            }
         }
     }
 
 
- }
+
+    private int _selectedRow = 0;
+    public int SelectedRow
+    {
+        get => _selectedRow;
+        set
+        {
+            // Убираем жесткую проверку старого значения, чтобы метод вызывался всегда
+            if (value >= 0 && value < Rows)
+            {
+                _selectedRow = value;
+                OnPropertyChanged();
+                UpdateSelectionHighlight(); // Принудительно перекрашиваем рамки в XAML
+            }
+        }
+    }
+
+    private int _selectedCol = 0;
+    public int SelectedCol
+    {
+        get => _selectedCol;
+        set
+        {
+            if (value >= 0 && value < Cols)
+            {
+                _selectedCol = value;
+                OnPropertyChanged();
+                UpdateSelectionHighlight(); // Принудительно перекрашиваем рамки в XAML
+            }
+        }
+    }
+
+
+    private bool _isEditing = false;
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (_isEditing != value)
+            {
+                _isEditing = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+
+
+}

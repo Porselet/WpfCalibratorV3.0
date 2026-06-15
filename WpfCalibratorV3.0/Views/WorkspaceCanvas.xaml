@@ -1,10 +1,7 @@
 ﻿<UserControl x:Class="WpfCalibrator.Views.WorkspaceCanvas"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels"
-             
-
-             >
+             xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
 
     <Border Background="#111111" Padding="10">
         <Grid>
@@ -13,13 +10,21 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="📝 РАБОЧАЯ ОБЛАСТЬ КАЛИБРОВКИ И МОНИТОРИНГА" Style="{StaticResource LocalBlockHeaderStyle}" Margin="10,5,0,10"/>
+            <TextBlock Grid.Row="0" Text="📝 РАБОЧАЯ ОБЛАСТЬ КАЛИБРОВКИ И МОНИТОРИНГА" Style="{StaticResource BlockHeaderStyle}" Margin="10,5,0,10"/>
 
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <!-- К Canvas подключено событие приема объектов из дерева Drop="Canvas_Drop" -->
-                <Canvas Background="#050505" Width="2000" Height="2000" AllowDrop="True" Drop="Canvas_Drop">
+                <!-- Корневой холст рабочей области (Добавлен глобальный перехват кликов ячеек) -->
+                <!-- Корневой холст (Добавлен глобальный перехват клавиатуры) -->
+                <!-- Корневой холст рабочей области (Добавлено право на фокус ввода) -->
+                <Canvas Background="#050505" 
+        Width="2000" 
+        Height="2000" 
+        AllowDrop="True" 
+        Drop="Canvas_Drop"
+        Focusable="True" 
+        TextBox.PreviewMouseLeftButtonDown="GlobalMatrixTable_PreviewMouseLeftButtonDown"
+        >
 
-                    <!-- Единый ItemsControl для вывода всех окон-виджетов на холст -->
                     <ItemsControl ItemsSource="{Binding ActiveWidgets}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -27,7 +32,6 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
 
-                        <!-- Связываем геометрические параметры контейнера со свойствами WidgetViewModel -->
                         <ItemsControl.ItemContainerStyle>
                             <Style TargetType="ContentPresenter">
                                 <Setter Property="Canvas.Left" Value="{Binding Left, Mode=TwoWay}"/>
@@ -39,30 +43,40 @@
 
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type viewmodels:WidgetViewModel}">
-                                <!-- Внешняя рамка виджета. Цвет рамки меняется триггером (параметр/сигнал) -->
                                 <Border x:Name="WidgetBorder" 
-        Background="#1E1E1E" 
-        BorderBrush="#007ACC" 
-        BorderThickness="1" 
-        CornerRadius="3">
+                                        Background="#1E1E1E" 
+                                        BorderBrush="#007ACC" 
+                                        BorderThickness="1" 
+                                        CornerRadius="3">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
-                                            <!-- Шапка перемещения -->
                                             <RowDefinition Height="*"/>
-                                            <!-- Контент виджета -->
                                         </Grid.RowDefinitions>
 
                                         <!-- ШАПКА ВИДЖЕТА (ПЕРЕМЕЩЕНИЕ) -->
+                                        <!-- ШАПКА ВИДЖЕТА (ПЕРЕМЕЩЕНИЕ ИСПРАВЛЕНО: Убран Preview для Down и Up) -->
                                         <Border Grid.Row="0" Background="#2D2D2D" Padding="6,4" Cursor="SizeAll"
-                PreviewMouseLeftButtonDown="WidgetHeader_MouseDown" 
-                MouseMove="WidgetHeader_MouseMove" 
-                PreviewMouseLeftButtonUp="WidgetHeader_MouseUp">
+        MouseLeftButtonDown="WidgetHeader_MouseDown" 
+        MouseMove="WidgetHeader_MouseMove" 
+        MouseLeftButtonUp="WidgetHeader_MouseUp">
+
                                             <Grid>
                                                 <TextBlock Text="{Binding DataSource.Name}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
-                                                <Button Content="×" Background="Transparent" Foreground="Red" BorderThickness="0" 
-                        HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="10" 
-                        Click="CloseWidget_Click"/>
+                                                <!-- КНОПКА ЗАКРЫТИЯ ВИДЖЕТА (ИСПРАВЛЕНА НА КОМАНДУ) -->
+                                                <Button Content="×" 
+        Background="Transparent" 
+        Foreground="Red" 
+        BorderThickness="0" 
+        HorizontalAlignment="Right" 
+        VerticalAlignment="Center" 
+        FontSize="10" 
+        Cursor="Hand"
+        Command="{Binding DataContext.DeleteWidgetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+        CommandParameter="{Binding}"/>
+
+
+
                                             </Grid>
                                         </Border>
 
@@ -92,24 +106,25 @@
                                         </ContentControl>
 
                                         <!-- МАРКЕР ИЗМЕНЕНИЯ РАЗМЕРА (RESIZE) В ПРАВОМ НИЖНЕМ УГЛУ -->
-                                        <Border Width="12" Height="12" 
-                HorizontalAlignment="Right" 
-                VerticalAlignment="Bottom" 
-                Cursor="SizeNWSE" 
-                Background="Transparent"
-                PreviewMouseLeftButtonDown="ResizeMarker_MouseDown"
-                MouseMove="ResizeMarker_MouseMove"
-                PreviewMouseLeftButtonUp="ResizeMarker_MouseUp">
+                                        <!-- МАРКЕР ИЗМЕНЕНИЯ РАЗМЕРА (RESIZE) В ПРАВОМ НИЖНЕМ УГЛУ -->
+                                        <Border Grid.Row="1" 
+        Panel.ZIndex="10"
+        Width="12" Height="12" 
+        HorizontalAlignment="Right" 
+        VerticalAlignment="Bottom" 
+        Cursor="SizeNWSE" 
+        Background="Transparent"
+        PreviewMouseLeftButtonDown="ResizeMarker_MouseDown"
+        MouseMove="ResizeMarker_MouseMove"
+        PreviewMouseLeftButtonUp="ResizeMarker_MouseUp">
                                             <!-- Рисуем классические три диагональные насечки в углу окна -->
                                             <Path Data="M 4,12 L 12,4 M 7,12 L 12,7 M 10,12 L 12,10" 
-                  Stroke="#555555" 
-                  StrokeThickness="1.5" 
-                  Margin="0,0,2,2"/>
+          Stroke="#555555" 
+          StrokeThickness="1.5" 
+          Margin="0,0,2,2"/>
                                         </Border>
                                     </Grid>
                                 </Border>
-
-                                <!-- Триггеры для визуального разделения: Красим рамки параметров в оранжевый, сигналов в голубой -->
                                 <DataTemplate.Triggers>
                                     <DataTrigger Binding="{Binding DataSource.IsParam}" Value="True">
                                         <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#FF9100"/>

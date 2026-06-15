@@ -14,10 +14,19 @@ public partial class VariableViewModel
             if (_currentValue != value)
             {
                 _currentValue = value;
-                OnPropertyChanged(nameof(CurrentValue)); // Твой родной сишный метод прерывания для UI
+                OnPropertyChanged(nameof(CurrentValue));
 
-                // Саму отправку данных мы сделаем цивилизованно через Сервисы,
-                // а не внутри этой ОЗУ-переменной!
+                // АВТО-ОТПРАВКА СКАЛЯРА В UART:
+                // Проверяем, что это именно калибровочный параметр и связь активна
+                if (IsParam)
+                {
+                    // Находим DataContext главного окна (нашу MainViewModel)
+                    if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+                    {
+                        // Вызываем асинхронный метод отправки этого параметра в STM32
+                        _ = mainVm.SendTableToUartAsync(this);
+                    }
+                }
             }
         }
     }

@@ -23,6 +23,9 @@ namespace WpfCalibrator.Models
         public double Width { get; set; } = 100;
         public double Height { get; set; } = 30;
 
+        // НОВОЕ: Шаг приращения значения ячейки при нажатии PageUp / PageDown
+        public float IncrementStep { get; set; } = 1.0f;
+
         // Привязки осей Look-Up таблиц живут локально внутри описания виджета экрана
         public LutBindings TableBindings { get; set; } = new();
     }

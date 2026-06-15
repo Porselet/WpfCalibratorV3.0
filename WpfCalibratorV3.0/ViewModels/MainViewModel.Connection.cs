@@ -33,6 +33,8 @@ public partial class MainViewModel
             {
                 _commService.Connect(SelectedPort, 115200);
                 ConnectionStatusText = $"⚡ СВЯЗЬ УСТАНОВЛЕНА ({SelectedPort})";
+                // Как только связь появилась — мгновенно вычитываем все таблицы и оси, что лежат на столе!
+                _ = RefreshAllLayoutParametersAsync();
             }
             catch (Exception ex)
             {

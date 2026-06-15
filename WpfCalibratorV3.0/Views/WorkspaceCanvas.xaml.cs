@@ -20,21 +20,7 @@ public partial class WorkspaceCanvas : UserControl
     }
 
     // ==================== ИСПРАВЛЕННАЯ ЛОГИКА ЗАКРЫТИЯ (❌) ====================
-    private void CloseWidget_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button button && DataContext is MainViewModel vm)
-        {
-            // ИСПРАВЛЕНИЕ: Так как в ItemTemplate контекстом может быть вложенный объект,
-            // мы надежно поднимаемся по визуальному дереву WPF до контейнера виджета
-            var itemsControlItem = GetParentOfType<ContentPresenter>(button);
 
-            if (itemsControlItem?.Content is WidgetViewModel widgetToDelete)
-            {
-                vm.ActiveWidgets.Remove(widgetToDelete);
-                e.Handled = true; // Глушим событие, чтобы оно не улетело в шапку окна!
-            }
-        }
-    }
 
     // ==================== ИСПРАВЛЕННАЯ ЛОГИКА ДВИЖЕНИЯ ОКНА МЫШКОЙ ====================
 
@@ -332,6 +318,48 @@ public partial class WorkspaceCanvas : UserControl
             }
         }
         e.Handled = true;
+    }
+
+
+
+
+
+
+
+// Глобальный перехват клика мыши по любой ячейке на холсте
+private void GlobalMatrixTable_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        // Находим, по какому именно визуальному элементу кликнул калибровщик
+        var visualElement = e.OriginalSource as FrameworkElement;
+        if (visualElement == null) return;
+
+        // Проверяем, лежит ли внутри этого элемента вьюмодель ячейки таблицы MatrixCellViewModel
+        var cellVm = visualElement.DataContext as MatrixCellViewModel;
+
+        // Если кликнули мимо таблицы (например, по обычному скаляру или пустому холсту) — ничего не делаем
+        if (cellVm == null || cellVm.Parent == null) return;
+
+        // 1. Перемещаем синий курсор MoTeC в памяти C#
+        cellVm.Parent.SelectedRow = cellVm.Row;
+        cellVm.Parent.SelectedCol = cellVm.Col;
+
+        // 2. ЗАХВАТ КЛАВИАТУРНОГО ФОКУСА ДЛЯ СТРЕЛОЧЕК:
+        // Если таблица сейчас НЕ в режиме редактирования текста (IsEditing == false)
+        // Внутри метода GlobalMatrixTable_PreviewMouseLeftButtonDown (в самом конце):
+        if (!cellVm.Parent.IsEditing)
+        {
+            // 1. Гасим событие, чтобы Windows не активировала текстовый курсор внутри TextBox
+            e.Handled = true;
+
+            // 2. ЖЕЛЕЗОБЕТОННЫЙ ХАК ДЛЯ ФОКУСА:
+            // Принудительно забираем фокус у TextBox и отдаем его самому холсту WorkspaceCanvas!
+            // Это заставит Windows слать стрелочки клавиатуры строго в наш метод.
+            this.Focus();
+
+            // Дополнительно говорим системному менеджеру фокуса WPF, что холст теперь главный:
+            System.Windows.Input.Keyboard.Focus(this);
+        }
+
     }
 
 }

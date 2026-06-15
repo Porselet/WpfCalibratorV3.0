@@ -46,6 +46,38 @@ public partial class MainViewModel
     public ICommand ToggleConnectionCommand => _toggleConnectionCommand ??= new ToggleConnectionCommandImpl(this);
     private ICommand? _toggleConnectionCommand;
 
+    // Публичное свойство команды клика по ячейке таблицы
+    private ICommand? _selectMatrixCellCommand;
+    public ICommand SelectMatrixCellCommand => _selectMatrixCellCommand ??= new SelectMatrixCellCommandImpl(this);
+
+    private class SelectMatrixCellCommandImpl : BaseCommand
+    {
+        private readonly MainViewModel _parent;
+        public SelectMatrixCellCommandImpl(MainViewModel parent) => _parent = parent;
+
+        public override bool CanExecute(object? parameter) => true;
+
+        public override void Execute(object? parameter)
+        {
+            // Из параметра достаем вьюмодель ячейки, по которой кликнули
+            var cellVm = parameter as MatrixCellViewModel;
+            if (cellVm == null || cellVm.Parent == null) return;
+
+            // Передаем координаты в родительскую таблицу
+            cellVm.Parent.SelectedRow = cellVm.Row;
+            cellVm.Parent.SelectedCol = cellVm.Col;
+
+            // Сбрасываем режим редактирования, если мы просто перемещаем синий курсор мышкой
+            if (!cellVm.Parent.IsEditing)
+            {
+                // Находим холст через главное окно и принудительно возвращаем ему фокус,
+                // чтобы клавиатура не застревала внутри TextBox-ов при кликах мыши
+                var mainWindow = System.Windows.Application.Current.MainWindow;
+                var canvas = mainWindow?.FindName("CentralCanvas") as System.Windows.FrameworkElement;
+                canvas?.Focus();
+            }
+        }
+    }
 
 
 
@@ -58,7 +90,34 @@ public partial class MainViewModel
         private readonly MainViewModel _parent;
         public SaveLayoutCommandImpl(MainViewModel parent) => _parent = parent;
         public override bool CanExecute(object? parameter) => _parent.SelectedDevice != null;
-        public override void Execute(object? parameter) => _parent.SaveCurrentLayoutInternal();
+
+        public override void Execute(object? parameter)
+        {
+            // 1. Находим главное окно приложения
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+
+            if (mainWindow != null)
+            {
+                // 2. Сбрасываем фокус с TextBox, чтобы зафиксировать текст в память C#
+                System.Windows.Input.FocusManager.SetFocusedElement(mainWindow, mainWindow);
+
+                // 3. ХАК ДЛЯ ВОЗВРАТА СТРЕЛОЧЕК:
+                // Принудительно отдаем системный фокус клавиатуры обратно Главному Окну!
+                // Это заставит Windows мгновенно вернуть перехват стрелочек в метод GlobalWindow_PreviewKeyDown
+                System.Windows.Input.Keyboard.Focus(mainWindow);
+            }
+
+            // 4. Находим активную таблицу и выключаем режим редактирования
+            var activeWidget = _parent.ActiveWidgets.FirstOrDefault(w => w.ControlView == "MatrixTable");
+            if (activeWidget?.DataSource != null)
+            {
+                activeWidget.DataSource.IsEditing = false;
+            }
+
+            // 5. Сохраняем экран на диск
+            _parent.SaveCurrentLayoutInternal();
+        }
+
     }
 
     // 2. Публичное свойство команды удаления выбранного экрана
@@ -79,38 +138,110 @@ public partial class MainViewModel
         }
     }
 
+    // Публичное свойство команды удаления виджета с холста
+    private ICommand? _deleteWidgetCommand;
+    public ICommand DeleteWidgetCommand => _deleteWidgetCommand ??= new DeleteWidgetCommandImpl(this);
 
-
-// Публичное свойство команды добавления нового экрана
-private ICommand? _addLayoutCommand;
-public ICommand AddLayoutCommand => _addLayoutCommand ??= new AddLayoutCommandImpl(this);
-
-private class AddLayoutCommandImpl : BaseCommand
-{
-    private readonly MainViewModel _parent;
-    public AddLayoutCommandImpl(MainViewModel parent) => _parent = parent;
-
-    public override bool CanExecute(object? parameter) => _parent.SelectedDevice != null;
-
-    public override void Execute(object? parameter)
+    private class DeleteWidgetCommandImpl : BaseCommand
     {
-        // Создаем наше кастомное инженерное окно
-        var dialog = new NewLayoutWindow();
+        private readonly MainViewModel _parent;
+        public DeleteWidgetCommandImpl(MainViewModel parent) => _parent = parent;
 
-        // Делаем главное окно приложения владельцем диалога, чтобы он центрировался красиво поверх него
-        if (System.Windows.Application.Current.MainWindow != null)
-        {
-            dialog.Owner = System.Windows.Application.Current.MainWindow;
-        }
+        public override bool CanExecute(object? parameter) => true;
 
-        // Если пользователь нажал "ОК" (DialogResult == true)
-        if (dialog.ShowDialog() == true)
+        public override void Execute(object? parameter)
         {
-            // Вызываем метод ядра для создания новой вкладки
-            _parent.AddNewLayout(dialog.ResultResult);
+            var widgetVm = parameter as WidgetViewModel;
+            if (widgetVm != null && _parent.ActiveWidgets.Contains(widgetVm))
+            {
+                // Удаляем виджет из коллекции активных окон на холсте
+                _parent.ActiveWidgets.Remove(widgetVm);
+
+                // Сразу вызываем сохранение экрана, чтобы закрытое окно исчезло из JSON-конфига
+                if (_parent.SaveLayoutCommand.CanExecute(null))
+                {
+                    _parent.SaveLayoutCommand.Execute(null);
+                }
+            }
         }
     }
-}
+
+    // Публичное свойство команды добавления нового экрана
+    private ICommand? _addLayoutCommand;
+    public ICommand AddLayoutCommand => _addLayoutCommand ??= new AddLayoutCommandImpl(this);
+
+    private class AddLayoutCommandImpl : BaseCommand
+    {
+        private readonly MainViewModel _parent;
+        public AddLayoutCommandImpl(MainViewModel parent) => _parent = parent;
+
+        public override bool CanExecute(object? parameter) => _parent.SelectedDevice != null;
+
+        public override void Execute(object? parameter)
+        {
+            // Создаем наше кастомное инженерное окно
+            var dialog = new NewLayoutWindow();
+
+            // Делаем главное окно приложения владельцем диалога, чтобы он центрировался красиво поверх него
+            if (System.Windows.Application.Current.MainWindow != null)
+            {
+                dialog.Owner = System.Windows.Application.Current.MainWindow;
+            }
+
+            // Если пользователь нажал "ОК" (DialogResult == true)
+            if (dialog.ShowDialog() == true)
+            {
+                // Вызываем метод ядра для создания новой вкладки
+                _parent.AddNewLayout(dialog.ResultResult);
+            }
+        }
+    }
+
+    // Публичное свойство команды открытия настроек таблицы
+    private ICommand? _openTableSettingsCommand;
+    public ICommand OpenTableSettingsCommand => _openTableSettingsCommand ??= new OpenTableSettingsCommandImpl(this);
+
+    private class OpenTableSettingsCommandImpl : BaseCommand
+    {
+        private readonly MainViewModel _parent;
+        public OpenTableSettingsCommandImpl(MainViewModel parent) => _parent = parent;
+
+        public override bool CanExecute(object? parameter) => _parent.SelectedDevice != null;
+
+        public override void Execute(object? parameter)
+        {
+            // Из параметра команды (CommandParameter) достаем вьюмодель виджета таблицы
+            var widgetVm = parameter as WidgetViewModel;
+            if (widgetVm == null || widgetVm.DataSource == null) return;
+
+            // Собираем все переменные текущей модели в один плоский список
+            var allVariables = new List<VariableViewModel>();
+            allVariables.AddRange(_parent.ParameterVariables);
+            allVariables.AddRange(_parent.TelemetryVariables);
+
+            // Создаем наше окно настроек, передавая туда таблицу и список переменных
+            //            var settingsWindow = new TableSettingsWindow(widgetVm.DataSource, allVariables);
+            var settingsWindow = new TableSettingsWindow(widgetVm, allVariables);
+            // Делаем главное окно владельцем диалога для правильного центрирования
+            if (System.Windows.Application.Current.MainWindow != null)
+            {
+                settingsWindow.Owner = System.Windows.Application.Current.MainWindow;
+            }
+
+            // Открываем окно модально. Если пользователь нажал "ПРИМЕНИТЬ" (true)
+            if (settingsWindow.ShowDialog() == true)
+            {
+                // Принудительно заставляем таблицу перерисовать ячейки
+                widgetVm.DataSource.RebuildMatrixCells();
+
+                // Автоматически сохраняем обновленные связи экрана в JSON
+                if (_parent.SaveLayoutCommand.CanExecute(null))
+                {
+                    _parent.SaveLayoutCommand.Execute(null);
+                }
+            }
+        }
+    }
 
 
 }

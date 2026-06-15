@@ -6,6 +6,10 @@ using WpfCalibrator.Models;
 using System.Collections.Generic;
 namespace WpfCalibrator.ViewModels;
 
+using System.Threading.Tasks;
+using System.Linq;
+
+
 public partial class MainViewModel
 {
     // Метод для загрузки конфигураций при старте приложения
@@ -98,6 +102,9 @@ public partial class MainViewModel
                 Top = widget.Top,
                 Width = widget.Width,
                 Height = widget.Height,
+
+                // НОВОЕ: Передаем шаг изменения из виджета в структуру JSON
+                IncrementStep = widget.IncrementStep,
                 // Фиксируем связи Look-Up осей локально для этой таблицы на этом экране
                 TableBindings = new LutBindings
                 {
@@ -152,15 +159,18 @@ public partial class MainViewModel
                     Left = info.Left,
                     Top = info.Top,
                     Width = info.Width,
-                    Height = info.Height
+                    Height = info.Height,
+                    // НОВОЕ: Восстанавливаем шаг изменения параметров из JSON обратно в виджет
+                    IncrementStep = info.IncrementStep
                 };
 
                 ActiveWidgets.Add(widgetVm);
 
                 // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
+                // Если вывели на холст калибровочный параметр (например, нашу LUT-таблицу)
                 if (realVar.IsParam && _commService.IsConnected)
                 {
-                    _ = RequestSingleVariableReadAsync(realVar.ModelId, (byte)realVar.Id, realVar.TotalElements);
+                    _ = RefreshAllLayoutParametersAsync();
                 }
             }
         }
@@ -169,8 +179,53 @@ public partial class MainViewModel
         _isPollingEnabled = wasPolling;
     }
 
-    // 3. Метод создания нового экрана из кода или UI
-    public void AddNewLayout(string name)
+
+
+
+// Метод последовательного и безопасного вычитывания всех параметров экрана из МК
+public async Task RefreshAllLayoutParametersAsync()
+{
+    if (!_commService.IsConnected || SelectedDevice == null) return;
+
+    // Временно отключаем циклическую телеметрию, чтобы освободить UART-линию
+    bool wasPolling = _isPollingEnabled;
+    _isPollingEnabled = false;
+
+    try
+    {
+        // Собираем в уникальный список (HashSet) вообще все параметры, которые нужно обновить
+        var parametersToUpdate = new HashSet<VariableViewModel>();
+
+        foreach (var widget in ActiveWidgets.ToList())
+        {
+            if (widget.DataSource == null || !widget.DataSource.IsParam) continue;
+
+            // Добавляем саму таблицу или скалярный параметр
+            parametersToUpdate.Add(widget.DataSource);
+
+            // Если это LUT-таблица, добавляем её оси в очередь на чтение
+            if (widget.DataSource.BoundAxisX != null) parametersToUpdate.Add(widget.DataSource.BoundAxisX);
+            if (widget.DataSource.BoundAxisY != null) parametersToUpdate.Add(widget.DataSource.BoundAxisY);
+        }
+
+        // Вычитываем каждый параметр СТРОГО по очереди, дожидаясь ответа (await)
+        foreach (var param in parametersToUpdate)
+        {
+            // Вызываем чтение и делаем паузу, чтобы STM32 успел ответить по DMA
+            await RequestSingleVariableReadAsync(param.ModelId, (byte)param.Id, param.TotalElements);
+            await Task.Delay(30); // Инженерная пауза 30 мс между пакетами для стабильности линии
+        }
+    }
+    finally
+    {
+        // Обязательно возвращаем опрос телеметрии назад
+        _isPollingEnabled = wasPolling;
+    }
+}
+
+
+// 3. Метод создания нового экрана из кода или UI
+public void AddNewLayout(string name)
     {
         if (string.IsNullOrWhiteSpace(name) || LayoutNames.Contains(name)) return;
 
@@ -241,7 +296,7 @@ public partial class MainViewModel
 
         try
         {
-            // 1. Ставим фоновый опрос телеметрии на паузу (теперь доступ прямой!)
+            // 1. Ставим фоновый опрос телеметрии на паузу, освобождая UART-линию
             _isPollingEnabled = false;
 
             byte cmd = 0x01; // CMD_VAR_WRITE
@@ -252,51 +307,80 @@ public partial class MainViewModel
             int cCount = variable.Cols;
             int totalElements = rCount * cCount;
 
-            // 2. Проверяем тип данных и вызываем твой новый обобщенный метод из CommunicationService
-            if (variable.Type == "single") // float
+            // ВЕТВЛЕНИЕ ПО ТИПАМ ДАННЫХ
+            if (variable.Type == "single" || variable.Type == "float")
             {
                 float[] flatArray = new float[totalElements];
-                int index = 0;
-                for (int c = 0; c < cCount; c++)
-                    for (int r = 0; r < rCount; r++)
-                        flatArray[index++] = (float)variable.MatrixData[r, c];
+
+                if (totalElements == 1)
+                {
+                    // ИСПРАВЛЕНО: Для скаляров берем живое значение из CurrentValue!
+                    flatArray[0] = variable.CurrentValue;
+                }
+                else
+                {
+                    // Для 2D/3D таблиц разворачиваем матрицу в Column-Major
+                    int index = 0;
+                    for (int c = 0; c < cCount; c++)
+                        for (int r = 0; r < rCount; r++)
+                            flatArray[index++] = (float)variable.MatrixData[r, c];
+                }
 
                 await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
             }
-            else if (variable.Type == "int16" || variable.Type == "int16_t") // short / int16_t
+            else if (variable.Type == "int16" || variable.Type == "int16_t")
             {
                 short[] flatArray = new short[totalElements];
-                int index = 0;
-                for (int c = 0; c < cCount; c++)
-                    for (int r = 0; r < rCount; r++)
-                        flatArray[index++] = (short)variable.MatrixData[r, c];
+
+                if (totalElements == 1)
+                {
+                    // ИСПРАВЛЕНО: Для скаляров кастим CurrentValue в short
+                    flatArray[0] = (short)variable.CurrentValue;
+                }
+                else
+                {
+                    int index = 0;
+                    for (int c = 0; c < cCount; c++)
+                        for (int r = 0; r < rCount; r++)
+                            flatArray[index++] = (short)variable.MatrixData[r, c];
+                }
 
                 await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
             }
-            else if (variable.Type == "int32" || variable.Type == "int32_t") // int / int32_t
+            else if (variable.Type == "int32" || variable.Type == "int32_t")
             {
                 int[] flatArray = new int[totalElements];
-                int index = 0;
-                for (int c = 0; c < cCount; c++)
-                    for (int r = 0; r < rCount; r++)
-                        flatArray[index++] = (int)variable.MatrixData[r, c];
+
+                if (totalElements == 1)
+                {
+                    // ИСПРАВЛЕНО: Для скаляров кастим CurrentValue в int
+                    flatArray[0] = (int)variable.CurrentValue;
+                }
+                else
+                {
+                    int index = 0;
+                    for (int c = 0; c < cCount; c++)
+                        for (int r = 0; r < rCount; r++)
+                            flatArray[index++] = (int)variable.MatrixData[r, c];
+                }
 
                 await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
             }
 
-            // 3. Даем STM32 фору в 50 мс на обработку DMA IDLE и memcpy
+            // 3. Даем STM32 фору в 50 мс на обработку прерывания DMA IDLE и memcpy в ОЗУ
             await Task.Delay(50);
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка отправки матрицы: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Ошибка отправки параметра: {ex.Message}");
         }
         finally
         {
-            // 4. Снимаем паузу и возвращаем фоновый опрос сигналов
+            // 4. Снимаем паузу и возвращаем фоновый опрос сигналов телеметрии
             _isPollingEnabled = true;
         }
     }
+
     /// <summary>
     /// Единовременный принудительный запрос чтения параметра из STM32 при создании виджета
     /// </summary>
