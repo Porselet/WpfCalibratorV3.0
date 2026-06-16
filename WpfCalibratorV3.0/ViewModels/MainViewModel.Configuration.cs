@@ -406,6 +406,8 @@ public partial class MainViewModel
 
             // 3. Даем STM32 фору в 50 мс на обработку прерывания DMA IDLE и memcpy в ОЗУ
             await Task.Delay(50);
+
+            await RefreshAllLayoutParametersAsync();
         }
         catch (Exception ex)
         {
