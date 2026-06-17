@@ -215,52 +215,515 @@
     <!-- ====================================================================== -->
 
     <!-- ШАБЛОН ЦИФРОВОГО ДАТЧИКА (Digital) -->
+    <!-- ШАБЛОН ЦИФРОВОГО ДАТЧИКА (Digital С ПОДДЕРЖКОЙ АЛАРМОВ СИГНАЛОВ) -->
+    <!-- ШАБЛОН ЦИФРОВОГО ДАТЧИКА (Digital: БЕЗ ДУБЛИРОВАНИЯ ИМЕНИ, МАКСИМАЛЬНЫЙ ШРИФТ) -->
     <DataTemplate x:Key="WidgetDigitalTemplate">
         <Grid Margin="5">
-            <Viewbox Stretch="Uniform">
-                <Grid Width="260" Height="110" Background="#151515">
-                    <Border BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3"/>
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding DataSource.Name}" Foreground="Gray" FontSize="12" FontFamily="Consolas" HorizontalAlignment="Center"/>
-                        <TextBlock Text="{Binding DataSource.CurrentValue, StringFormat={}{0:F1}}" Foreground="#007ACC" FontSize="28" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-                    </StackPanel>
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <!-- Базовый контейнер. Увеличиваем высоту шрифта за счет удаления лишних строк -->
+                <Grid Width="200" Height="80">
+
+                    <!-- РАМКА С АЛАРМАМИ ПОДЛОЖКИ -->
+                    <Border x:Name="SensorBorder" BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#151515"/>
+                                <Style.Triggers>
+                                    <!-- УМНЫЙ МУЛЬТИТРИГГЕР: Краснеем, только если аларм активен И это разрешено в настройках! -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                            <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#990000"/>
+                                        <Setter Property="BorderBrush" Value="#FF0000"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+
+                            </Style>
+                        </Border.Style>
+
+                        <!-- ЧИСТЫЕ ГИГАНТСКИЕ ЦИФРЫ (Занимают 100% пространства) -->
+                        <TextBlock x:Name="ValueText" 
+                                   Text="{Binding DataSource.CurrentValue, StringFormat={}{0:F1}}" 
+                                   FontSize="48" FontWeight="Bold" FontFamily="Consolas" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#007ACC"/>
+                                    <Style.Triggers>
+                                        <!-- Текст белеет на красном фоне только при подтверждении флага -->
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                                <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
+
                 </Grid>
             </Viewbox>
         </Grid>
     </DataTemplate>
 
-    <!-- ШАБЛОН СЛАЙДЕРА (Slider) -->
+
+    <!-- ШАБЛОН ГОРИЗОНТАЛЬНОГО СЛАЙДЕРА (ЧИСТАЯ ШКАЛА, РИСКИ ЛИМИТОВ И АЛАРМ ФОНА) -->
     <DataTemplate x:Key="WidgetSliderTemplate">
         <Grid Margin="5">
-            <Viewbox Stretch="Uniform">
-                <Grid Width="260" Height="110" Background="#151515">
-                    <Border BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3"/>
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="220">
-                        <TextBlock Text="{Binding DataSource.Name}" Foreground="Gray" FontSize="12" FontFamily="Consolas" HorizontalAlignment="Center" Margin="0,0,0,5"/>
-                        <Slider Minimum="0" Maximum="100" Value="{Binding DataSource.CurrentValue}" IsEnabled="False"/>
-                        <TextBlock Text="{Binding DataSource.CurrentValue, StringFormat={}{0:F1}}" Foreground="White" FontSize="16" FontFamily="Consolas" HorizontalAlignment="Center" Margin="0,5,0,0"/>
-                    </StackPanel>
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <!-- Компактный, узкий прибор строго под шкалу -->
+                <Grid Width="260" Height="45">
+
+                    <!-- ОБЩАЯ РАМКА ПРИБОРА С АЛАРМОМ НА УРОВНЕ ФОНА ЗАДНИКА -->
+                    <Border x:Name="SliderBorder" BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <!-- Стандартный гоночный серый фон -->
+                                <Setter Property="Background" Value="#151515"/>
+                                <Style.Triggers>
+                                    <!-- Слайдер тоже проверяет разрешение на красный фон задника -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                            <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#990000"/>
+                                        <Setter Property="BorderBrush" Value="#FF0000"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+
+                            </Style>
+                        </Border.Style>
+
+                        <!-- Контейнер для наложения шкал и рисок друг на друга -->
+                        <!-- Контейнер для наложения шкал и двух рисок друг на друга -->
+                        <!-- Контейнер для наложения шкал и двух рисок друг на друга -->
+                        <!-- ИСПРАВЛЕНО: Полностью удалены MultiBinding и конвертеры! -->
+                        <!-- Контейнер для наложения шкал и треугольников друг на друга -->
+                        <!-- Контейнер для наложения барграфа и треугольников лимитов друг на друга -->
+                        <Grid Margin="15,0" Width="230">
+
+                            <!-- 1. РАСТУЩИЙ ВБОК ПРЯМОУГОЛЬНИК (Полноценный ProgressBar вместо Slider) -->
+                            <ProgressBar Minimum="{Binding DataSource.ScaleMin}" 
+                                         Maximum="{Binding DataSource.ScaleMax}" 
+                                         Value="{Binding DataSource.CurrentValue}"
+                                         Height="14" VerticalAlignment="Center"
+                                         Background="#222222" BorderThickness="1" BorderBrush="#333333">
+                                <ProgressBar.Style>
+                                    <Style TargetType="ProgressBar">
+                                        <!-- Стандартный синий неоновый MoTeC цвет заполнения -->
+                                        <Setter Property="Foreground" Value="#007ACC"/>
+                                        <Style.Triggers>
+                                            <!-- При аларме заполняющийся прямоугольник становится белым для контраста на красном фоне -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                                    <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ProgressBar.Style>
+                            </ProgressBar>
+
+                            <!-- 2. ДВА КРАСНЫХ ХОВЕР-ТРЕУГОЛЬНИКА СВЕРХУ ШКАЛЫ БАРГРАФА -->
+                            <!-- Используем наши готовые, отлаженные C#-координаты MinAlarmX и MaxAlarmX -->
+                            <Canvas Width="230" Height="45" VerticalAlignment="Stretch" HorizontalAlignment="Left">
+
+                                <!-- ТРЕУГОЛЬНИК МИНИМУМА (Смотрит острием вниз на растущую полосу) -->
+                                <Polygon Points="0,0 10,0 5,8" Fill="#FF0000" VerticalAlignment="Top" Canvas.Top="4">
+                                    <Polygon.RenderTransform>
+                                        <TranslateTransform X="{Binding MinAlarmX}"/>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+
+                                <!-- ТРЕУГОЛЬНИК МАКСИМУМА -->
+                                <Polygon Points="0,0 10,0 5,8" Fill="#FF0000" VerticalAlignment="Top" Canvas.Top="4">
+                                    <Polygon.RenderTransform>
+                                        <TranslateTransform X="{Binding MaxAlarmX}"/>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+
+                            </Canvas>
+                        </Grid>
+
+                    </Border>
                 </Grid>
             </Viewbox>
         </Grid>
     </DataTemplate>
 
-    <!-- ШАБЛОН СТРЕЛОЧНОГО ПРИБОРА (Gauge) -->
-    <DataTemplate x:Key="WidgetGaugeTemplate">
+
+    <!-- ШАБЛОН ВЕРТИКАЛЬНОГО СЛАЙДЕРА (ЧИСТЫЙ СТОЛБИК, СТРЕЛКИ СЛЕВА И АЛАРМ ФОНА) -->
+    <DataTemplate x:Key="WidgetVerticalSliderTemplate">
         <Grid Margin="5">
-            <Viewbox Stretch="Uniform">
-                <!-- Облегченная версия стрелочного индикатора MoTeC-style -->
-                <Grid Width="180" Height="210" Background="#151515">
-                    <Border BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3"/>
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="{Binding DataSource.Name}" Foreground="Gray" FontSize="12" FontFamily="Consolas" HorizontalAlignment="Center"/>
-                        <Ellipse Width="80" Height="80" Stroke="#007ACC" StrokeThickness="3" Margin="0,10"/>
-                        <TextBlock Text="{Binding DataSource.CurrentValue, StringFormat={}{0:F1}}" Foreground="White" FontSize="20" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Center"/>
-                    </StackPanel>
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <!-- Компактный вертикальный прибор MoTeC-Style -->
+                <Grid Width="75" Height="210">
+
+                    <!-- РАМКА С АЛАРМОМ НА УРОВНЕ ФОНА ЗАДНИКА -->
+                    <Border x:Name="SliderBorder" BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#151515"/>
+                                <Style.Triggers>
+                                    <!-- Слайдер тоже проверяет разрешение на красный фон задника -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                            <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#990000"/>
+                                        <Setter Property="BorderBrush" Value="#FF0000"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+
+                        <!-- Контейнер для наложения шкал и боковых треугольников (высота трека зажата в 180 пикселей) -->
+                        <!-- Контейнер для наложения вертикального барграфа и треугольников лимитов друг на друга -->
+                        <Grid Margin="0,15" Height="180">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20"/>
+                                <!-- Зона для треугольников слева -->
+                                <ColumnDefinition Width="*"/>
+                                <!-- Зона самого вертикального барграфа -->
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 1. РАСТУЩИЙ СНИЗУ ВВЕРХ СТОЛБИК (ProgressBar с вертикальной ориентацией) -->
+                            <ProgressBar Grid.Column="1"
+                                         Orientation="Vertical"
+                                         Minimum="{Binding DataSource.ScaleMin}" 
+                                         Maximum="{Binding DataSource.ScaleMax}" 
+                                         Value="{Binding DataSource.CurrentValue}" 
+                                         Width="14" HorizontalAlignment="Center"
+                                         Background="#222222" BorderThickness="1" BorderBrush="#333333">
+                                <ProgressBar.Style>
+                                    <Style TargetType="ProgressBar">
+                                        <!-- Стандартный синий неоновый MoTeC цвет заполнения -->
+                                        <Setter Property="Foreground" Value="#007ACC"/>
+                                        <Style.Triggers>
+                                            <!-- При активном аларме бегущий столбик становится белым для контраста на красном фоне -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                                    <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ProgressBar.Style>
+                            </ProgressBar>
+
+                            <!-- 2. ДВА КРАСНЫХ ХОВЕР-ТРЕУГОЛЬНИКА СЛЕВА ОТ СТОЛБИКА БАРГРАФА -->
+                            <!-- Canvas растянут ровно по высоте шкалы (180 пикселей) -->
+                            <Canvas Grid.Column="0" Width="20" Height="180" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+
+                                <!-- ТРЕУГОЛЬНИК МИНИМУМА (Смотрит острием вправо на растущий столбик) -->
+                                <Polygon Points="0,0 0,10 8,5" Fill="#FF0000" HorizontalAlignment="Left" Canvas.Left="8">
+                                    <Polygon.RenderTransform>
+                                        <!-- Смещаем по оси Y на рассчитанные в C# пиксели MinAlarmY -->
+                                        <TranslateTransform Y="{Binding MinAlarmY}"/>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+
+                                <!-- ТРЕУГОЛЬНИК МАКСИМУМА -->
+                                <Polygon Points="0,0 0,10 8,5" Fill="#FF0000" HorizontalAlignment="Left" Canvas.Left="8">
+                                    <Polygon.RenderTransform>
+                                        <TranslateTransform Y="{Binding MaxAlarmY}"/>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+
+                            </Canvas>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Viewbox>
         </Grid>
     </DataTemplate>
+
+
+
+
+
+
+
+
+
+    <!-- ШАБЛОН ДУГОВОГО ПРИБОРА (10 НЕЗАВИСИМЫХ КРУГЛЫХ СВЕТОДИОДОВ) -->
+    <!-- ШАБЛОН ДУГОВОГО ПРИБОРА (10 НЕЗАВИСИМЫХ КРУГЛЫХ СВЕТОДИОДОВ) -->
+    <!-- ШАБЛОН ДУГОВОГО ПРИБОРА (ЧИСТАЯ ЛИНЕЙКА ИЗ 10 ОБЪЕМНЫХ СВЕТОДИОДОВ БЕЗ ТЕКСТА) -->
+    <!-- ШАБЛОН ДУГОВОГО ПРИБОРА (ЧИСТАЯ ЛИНЕЙКА ИЗ 10 ОБЪЕМНЫХ СВЕТОДИОДОВ БЕЗ ТЕКСТА) -->
+    <DataTemplate x:Key="WidgetArcGaugeTemplate">
+        <Grid Margin="5">
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <!-- Узкий компактный блок строго под размер LED-линейки -->
+                <Grid Width="220" Height="35">
+
+                    <!-- КОРПУС ПРИБОРА С АЛАРМОМ ФОНА -->
+                    <Border x:Name="GaugeBody" BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#151515"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                            <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#990000"/>
+                                        <Setter Property="BorderBrush" Value="#FF0000"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+
+                        <!-- Центрируем линейку диодов по вертикали и горизонтали -->
+                        <Grid Margin="15,0" VerticalAlignment="Center">
+                            <!-- ЛИНЕЙКА ИЗ 10 КРУГЛЫХ СВЕТОДИОДОВ С ЗАЗОРАМИ -->
+                            <UniformGrid Rows="1" Columns="10" Width="180" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <UniformGrid.Resources>
+                                    <!-- Базовый стиль: выключенная контрастная стеклянная линза с ярким бликом -->
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Width" Value="11"/>
+                                        <Setter Property="Height" Value="11"/>
+                                        <Setter Property="Stroke" Value="#121212"/>
+                                        <Setter Property="StrokeThickness" Value="1"/>
+                                        <Setter Property="Margin" Value="3,0"/>
+                                        <Setter Property="Fill">
+                                            <Setter.Value>
+                                                <RadialGradientBrush Center="0.3,0.3" RadiusX="0.6" RadiusY="0.6">
+                                                    <GradientStop Color="#666666" Offset="0"/>
+                                                    <GradientStop Color="#333333" Offset="0.5"/>
+                                                    <GradientStop Color="#222222" Offset="0.95"/>
+                                                </RadialGradientBrush>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </UniformGrid.Resources>
+
+                                <!-- ДИОДЫ 1-6: ЗЕЛЕНЫЙ СЕКТОР (ИСПРАВЛЕНО: Индексы от 0 до 5) -->
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[0]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#A0FFA0" Offset="0"/>
+                                                                <GradientStop Color="#00FF00" Offset="0.5"/>
+                                                                <GradientStop Color="#004400" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[1]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#A0FFA0" Offset="0"/>
+                                                                <GradientStop Color="#00FF00" Offset="0.5"/>
+                                                                <GradientStop Color="#004400" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[2]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#A0FFA0" Offset="0"/>
+                                                                <GradientStop Color="#00FF00" Offset="0.5"/>
+                                                                <GradientStop Color="#004400" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[3]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#A0FFA0" Offset="0"/>
+                                                                <GradientStop Color="#00FF00" Offset="0.5"/>
+                                                                <GradientStop Color="#004400" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[4]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#A0FFA0" Offset="0"/>
+                                                                <GradientStop Color="#00FF00" Offset="0.5"/>
+                                                                <GradientStop Color="#004400" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[5]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#A0FFA0" Offset="0"/>
+                                                                <GradientStop Color="#00FF00" Offset="0.5"/>
+                                                                <GradientStop Color="#004400" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                                <!-- ДИОДЫ 7-8: ОБЪЕМНЫЙ ЖЕЛТЫЙ СЕКТОР (ИСПРАВЛЕНО: Индексы 6 и 7) -->
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[6]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#FFFFD0" Offset="0"/>
+                                                                <GradientStop Color="#FFFF00" Offset="0.5"/>
+                                                                <GradientStop Color="#555500" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[7]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#FFFFD0" Offset="0"/>
+                                                                <GradientStop Color="#FFFF00" Offset="0.5"/>
+                                                                <GradientStop Color="#555500" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                                <!-- ДИОДЫ 9-10: ОБЪЕМНЫЙ КРАСНЫЙ СЕКТОР (ИСПРАВЛЕНО: Индексы 8 и 9) -->
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[8]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#FFA0A0" Offset="0"/>
+                                                                <GradientStop Color="#FF0000" Offset="0.5"/>
+                                                                <GradientStop Color="#440000" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <Ellipse>
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding DataSource.LedStates[9]}" Value="True">
+                                                    <Setter Property="Fill">
+                                                        <Setter.Value>
+                                                            <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
+                                                                <GradientStop Color="#FFA0A0" Offset="0"/>
+                                                                <GradientStop Color="#FF0000" Offset="0.5"/>
+                                                                <GradientStop Color="#440000" Offset="0.95"/>
+                                                            </RadialGradientBrush>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                            </UniformGrid>
+                            <!-- Закрываем сетку светодиодов -->
+
+                        </Grid>
+                        <!-- Закрываем внутренний Grid разметки -->
+                    </Border>
+                    <!-- Закрываем корпус Border -->
+                </Grid>
+                <!-- Закрываем Grid фиксированного размера 220x35 -->
+            </Viewbox>
+            <!-- Закрываем масштабируемый Viewbox -->
+        </Grid>
+        <!-- Закрываем базовый Grid отступа -->
+    </DataTemplate>
+    <!-- Полностью закрываем шаблон виджета -->
+
+
+
 
 
     <!-- ====================================================================== -->
@@ -310,7 +773,91 @@
 
 
 
-<!-- ЗАЩИТНЫЙ ШАБЛОН ДЛЯ ПРЕДОТВРАЩЕНИЯ СБОЯ INVALIDCASTEXCEPTION -->
+    <!-- ШАБЛОН АВИАЦИОННОГО ГРАФИКА ВРЕМЕНИ (TimePlot / Осциллограф) -->
+    <DataTemplate x:Key="WidgetTimePlotTemplate">
+        <Grid Margin="5">
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <!-- Окно осциллографа вытянуто по горизонтали (Ширина 220, Высота 110) -->
+                <Grid Width="220" Height="110">
+
+                    <!-- КОРПУС С ИНДИВИДУАЛЬНЫМ АЛАРМОМ НА УРОВНЕ ФОНА ЗАДНИКА -->
+                    <Border x:Name="PlotBody" BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#121212"/>
+                                <!-- Глубокий черный фон экрана -->
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                            <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#770000"/>
+                                        <!-- Приглушенный багровый аларм, чтобы линию было видно -->
+                                        <Setter Property="BorderBrush" Value="#FF0000"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+
+                        <!-- Рабочая область отрисовки (зажимаем внутренний размер 200х100 под математику C#) -->
+                        <Grid Margin="10,5" Width="200" Height="100" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                            <!-- ТЕКСТОВОЕ ИМЯ ДАТЧИКА (Блеклый водяной знак на заднем плане) -->
+                            <TextBlock Text="{Binding DataSource.Name}" Foreground="Gray" FontSize="11" FontFamily="Consolas" FontWeight="Bold" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.3" Margin="5,5,0,0"/>
+
+                            <!-- ЖИВАЯ ПОЛЗУЩАЯ ВЕКТОРНАЯ ЛИНИЯ ОСЦИЛЛОГРАФА -->
+                            <!-- Биндим Points на нашу коллекцию PlotPoints из WidgetViewModel -->
+                            <Polyline Points="{Binding PlotPoints}" StrokeThickness="2" StrokeLineJoin="Round">
+                                <Polyline.Style>
+                                    <Style TargetType="Polyline">
+                                        <Setter Property="Stroke" Value="#007ACC"/>
+                                        <!-- Неоново-синий MoTeC цвет линии -->
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                                    <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Stroke" Value="White"/>
+                                                <!-- На красном фоне линия белеет для читаемости -->
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Polyline.Style>
+                            </Polyline>
+                            <!-- СИСТЕМА ГОРИЗОНТАЛЬНЫХ ПУНКТИРНЫХ ЛИНИЙ ЛИМИТОВ -->
+                            <Canvas Width="200" Height="100" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+
+                                <!-- ГОРИЗОНТАЛЬНЫЙ ПУНКТИР МИНИМАЛЬНОГО ЛИМИТА -->
+                                <!-- Используем StrokeDashArray="4,4" для создания красивого авиационного пунктира -->
+                                <Line X1="0" X2="200" 
+                                      Y1="{Binding PlotMinLimitY}" Y2="{Binding PlotMinLimitY}" 
+                                      Stroke="#FF3333" StrokeThickness="1" StrokeDashArray="4,4"/>
+
+                                <!-- ГОРИЗОНТАЛЬНЫЙ ПУНКТИР МАКСИМАЛЬНОГО ЛИМИТА -->
+                                <Line X1="0" X2="200" 
+                                      Y1="{Binding PlotMaxLimitY}" Y2="{Binding PlotMaxLimitY}" 
+                                      Stroke="#FF3333" StrokeThickness="1" StrokeDashArray="4,4"/>
+
+                            </Canvas>
+
+                        </Grid>
+                        <!-- Закрываем внутренний Grid рабочей области 200х100 -->
+                    </Border>
+                    <!-- Закрываем корпус Border -->
+                </Grid>
+                <!-- Закрываем Grid фиксированного размера 220x110 -->
+            </Viewbox>
+            <!-- Закрываем масштабируемый Viewbox -->
+        </Grid>
+        <!-- Закрываем базовый Grid отступа -->
+    </DataTemplate>
+    <!-- Полностью закрываем шаблон осциллографа -->
+
+
+
+    <!-- ЗАЩИТНЫЙ ШАБЛОН ДЛЯ ПРЕДОТВРАЩЕНИЯ СБОЯ INVALIDCASTEXCEPTION -->
     <DataTemplate x:Key="EmptyFallbackTemplate">
         <Grid Background="Transparent"/>
     </DataTemplate>

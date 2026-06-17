@@ -116,6 +116,8 @@ public partial class WorkspaceCanvas : UserControl
     }
 
     // ==================== ЛОГИКА DROP (СБРОС ИЗ ДЕРЕВА) ====================
+    /* 
+     * //Старая, рабочая версия
     private void Canvas_Drop(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(typeof(VariableConfig)) && sender is Canvas canvas)
@@ -142,6 +144,64 @@ public partial class WorkspaceCanvas : UserControl
             e.Handled = true;
         }
     }
+    //*/
+    private void Canvas_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(typeof(VariableConfig)) && sender is Canvas canvas)
+        {
+            var variable = (VariableConfig)e.Data.GetData(typeof(VariableConfig));
+            if (variable == null || DataContext is not MainViewModel vm) return;
+
+            // ЗАЩИТА ОТ ДУБЛИКАТОВ (MoTeC-Style):
+            // Если это калибровочный ПАРАМЕТР, проверяем, нет ли его уже на текущем рабочем столе
+            // ЗАЩИТА ОТ ДУБЛИКАТОВ (ИСПРАВЛЕНО: Учитываем ModelId каждого МК!)
+            // Если это калибровочный ПАРАМЕТР, проверяем, нет ли его уже на текущем рабочем столе
+            if (variable.IsParam)
+            {
+                // Теперь мы проверяем СВЯЗКУ: совпадает и Id переменной, И ModelId физической платы!
+                var existingWidget = vm.ActiveWidgets.FirstOrDefault(w =>
+                    w.DataSource != null &&
+                    w.DataSource.Id == variable.Id &&
+                    w.DataSource.ModelId == variable.ModelId);
+
+                if (existingWidget != null)
+                {
+                    // Параметр от этой конкретной платы уже на экране! Не плодим клонов — просто выводим старое окно на передний план
+                    int maxCurrentZ = vm.ActiveWidgets.Count > 0 ? vm.ActiveWidgets.Max(w => w.ZIndex) : 0;
+                    existingWidget.ZIndex = maxCurrentZ + 1;
+
+                    // Переносим жирную рамку фокуса на него
+                    foreach (var w in vm.ActiveWidgets) w.IsActiveWidget = false;
+                    existingWidget.IsActiveWidget = true;
+
+                    e.Handled = true;
+                    return; // Тихо выходим, запрещая создание дубликата!
+                }
+            }
+
+            Point dropPosition = e.GetPosition(canvas);
+
+            const double gridStep = 10.0;
+            double snappedX = Math.Round(dropPosition.X / gridStep) * gridStep;
+            double snappedY = Math.Round(dropPosition.Y / gridStep) * gridStep;
+
+            if (variable.IsParam)
+            {
+                // Калибровочные параметры (Матрицы или Скаляры) создаются тихо
+                string viewType = variable.TotalElements > 1 ? "MatrixTable" : "TextBox";
+                CreateWidgetOnWorkspace(vm, variable, snappedX, snappedY, viewType);
+            }
+            else
+            {
+                // ТИХИЙ РЕЖИМ ДЛЯ ДАТЧИКОВ: Вместо ShowWidgetSelectorMenu сразу создаем Digital!
+                CreateWidgetOnWorkspace(vm, variable, snappedX, snappedY, "Digital");
+            }
+
+            e.Handled = true;
+        }
+    }
+
+
 
     private void ShowWidgetSelectorMenu(Canvas canvas, MainViewModel vm, VariableConfig variable, double x, double y)
     {

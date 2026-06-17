@@ -101,9 +101,20 @@ public partial class MainViewModel
                 Width = widget.Width,
                 Height = widget.Height,
 
+                // НОВОЕ: Забираем флаг вертикальной ориентации из виджета и бережно пишем в JSON!
+                IsVertical = widget.IsVertical,
                 // НОВОЕ: Передаем шаг изменения из виджета в структуру JSON
                 IncrementStep = widget.IncrementStep,
                 // Фиксируем связи Look-Up осей локально для этой таблицы на этом экране
+
+                // НОВОЕ: Забираем масштабы и алармы из переменной виджета и пишем в JSON!
+                ScaleMin = widget.DataSource?.ScaleMin ?? 0f,
+                ScaleMax = widget.DataSource?.ScaleMax ?? 100f,
+                MinLimit = widget.DataSource?.MinLimit ?? float.NegativeInfinity,
+                MaxLimit = widget.DataSource?.MaxLimit ?? float.PositiveInfinity,
+                // НОВОЕ: Забираем флаг индивидуального аларма из виджета и пишем в JSON!
+                EnableVisualAlarm = widget.EnableVisualAlarm,
+                ModelId = widget.DataSource?.ModelId ?? 0,
                 TableBindings = new LutBindings
                 {
                     HasBindings = widget.DataSource.IsLutLinked,
@@ -141,9 +152,29 @@ public partial class MainViewModel
         {
             foreach (var info in savedWidgets)
             {
-                // ВНУТРИ МЕТОДА SwitchToLayout В ЦИКЛЕ ЗАГРУЗКИ ВИДЖЕТОВ:
+                // ВНУТРИ ЦИКЛА МЕТОДА SwitchToLayout ЗАМЕНИ СТРОКУ ПОИСКА ПЕРЕМЕННОЙ:
+                // Ищем переменную, у которой совпадает и Имя, и Идентификатор МК!
+                // ВНУТРИ ЦИКЛА МЕТОДА SwitchToLayout:
+                // Используем твой родной рабочий метод поиска по имени
                 var realVar = FindVariable(info.VarName);
+
+                // Дополнительная проверка безопасности: если переменная нашлась, 
+                // но её ModelId не совпадает с дисковым (параметр от другой платы) — пропускаем её
+                if (realVar != null && realVar.ModelId != info.ModelId)
+                {
+                    // Пытаемся найти её в общей структуре (если FindVariable искал только в активном устройстве)
+                    // Но для стабильности пока просто страхуемся, чтобы не перепутать платы
+                    realVar = null;
+                }
+
+
+
                 if (realVar == null) continue;
+                // НОВОЕ: Восстанавливаем сохраненные масштабы шкал и алармы из JSON прямо в переменную!
+                realVar.ScaleMin = info.ScaleMin;
+                realVar.ScaleMax = info.ScaleMax;
+                realVar.MinLimit = info.MinLimit;
+                realVar.MaxLimit = info.MaxLimit;
 
                 // ТИХАЯ ЗАЩИТА ОТ ДУБЛИКАТОВ (Оставляем для таблиц и скаляров)
                 if (info.ControlView != "RadarTracker" && realVar.IsParam &&
@@ -161,7 +192,14 @@ public partial class MainViewModel
                     Top = info.Top,
                     Width = info.Width,
                     Height = info.Height,
-                    IncrementStep = info.IncrementStep
+                    IncrementStep = info.IncrementStep,
+                    // НОВОЕ: Достаем флаг вертикальной ориентации из JSON обратно в ОЗУ виджета!
+                    IsVertical = info.IsVertical,
+
+                    // НОВОЕ: Восстанавливаем флаг разрешения визуального аларма из JSON!
+                    EnableVisualAlarm = info.EnableVisualAlarm
+
+
                 };
 
                 // Восстанавливаем привязки Look-Up осей

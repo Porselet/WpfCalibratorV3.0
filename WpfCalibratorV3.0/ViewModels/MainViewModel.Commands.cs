@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Input;
-using System.Windows.Input;
+
 using WpfCalibrator.Services;
 using WpfCalibrator.Views;
 

@@ -5,7 +5,8 @@ namespace WpfCalibrator.ViewModels;
 public partial class VariableViewModel
 {
 
-    private float _currentValue = 0.0f;
+
+    private float _currentValue = 0f;
     public float CurrentValue
     {
         get => _currentValue;
@@ -15,21 +16,40 @@ public partial class VariableViewModel
             {
                 _currentValue = value;
                 OnPropertyChanged(nameof(CurrentValue));
-
-                // АВТО-ОТПРАВКА СКАЛЯРА В UART:
-                // Проверяем, что это именно калибровочный параметр и связь активна
-                if (IsParam)
+                CheckAlarmStatus();
+                OnPropertyChanged(nameof(LedStates));
+                if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
                 {
-                    // Находим DataContext главного окна (нашу MainViewModel)
-                    if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+                    // ИСПРАВЛЕНО: Находим ВСЕ виджеты на холсте, которые отображают этот датчик!
+                    var targetWidgets = mainVm.ActiveWidgets.Where(w => w.DataSource == this).ToList();
+
+                    foreach (var widget in targetWidgets)
                     {
-                        // Вызываем асинхронный метод отправки этого параметра в STM32
+                        // Пинаем живую стрелку прибора
+                        widget.NotifyValueAngleChanged();
+
+                        // Заодно пинаем треугольники алармов, чтобы они тоже плавно реагировали
+                        widget.RefreshAlarmTriangles();
+
+                        // НОВОЕ: Добавляем текущее значение в ползущий осциллограф графика!
+                        if (widget.ControlView == "TimePlot")
+                        {
+                            widget.AppendPlotPoint(_currentValue);
+                        }
+
+                    }
+
+                    // 2. АВТО-ОТПРАВКА СКАЛЯРА В UART (Для калибровочных констант)
+                    if (IsParam)
+                    {
                         _ = mainVm.SendTableToUartAsync(this);
                     }
                 }
             }
         }
     }
+
+
 
     // Сериализация данных в байтовый массив (для отправки на устройство)
     public byte[] SerializeToBytesColumnMajor()
@@ -80,6 +100,37 @@ public partial class VariableViewModel
             }
         }
     }
+
+
+    private bool _isAlarmActive = false;
+    /// <summary>
+    /// Флаг активной тревоги (true, если живой сигнал вышел за критические лимиты Мин/Макс)
+    /// </summary>
+    public bool IsAlarmActive
+    {
+        get => _isAlarmActive;
+        set { if (_isAlarmActive != value) { _isAlarmActive = value; OnPropertyChanged(); } }
+    }
+
+    /// <summary>
+    /// Математическая верификация текущего сигнала на безопасность
+    /// </summary>
+    private void CheckAlarmStatus()
+    {
+        // Если это калибровочный параметр (константа или таблица), алармы на него не действуют
+        if (IsParam)
+        {
+            IsAlarmActive = false;
+            return;
+        }
+
+        // Проверяем, вылетело ли значение за наши рамки (учитывая бесконечности)
+        bool isLow = _currentValue < MinLimit;
+        bool isHigh = _currentValue > MaxLimit;
+
+        IsAlarmActive = isLow || isHigh;
+    }
+
 
 
 }

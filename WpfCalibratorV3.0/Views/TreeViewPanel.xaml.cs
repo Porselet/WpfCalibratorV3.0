@@ -43,13 +43,30 @@ namespace WpfCalibrator.Views
             if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
                 Math.Abs(diff.Y) > SystemParameters.MinimumHorizontalDragDistance)
             {
-                // ИСПРАВЛЕНО: sender теперь это TreeViewItem
-                if (sender is TreeViewItem treeViewItem && treeViewItem.DataContext is VariableConfig variableConfig)
+                // БРОНЕБОЙНЫЙ ПОДХОД: Вместо sender берем OriginalSource (то, во что мы ТКНУЛИ мышкой вживую)
+                // И поднимаемся вверх до ближайшего TreeViewItem именно этого конкретного дерева!
+                if (e.OriginalSource is DependencyObject originalSource)
                 {
-                    _isDragging = true;
-                    DragDrop.DoDragDrop(treeViewItem, variableConfig, DragDropEffects.Move);
-                    _isDragging = false;
-                    e.Handled = true;
+                    var current = originalSource;
+                    while (current != null && !(current is TreeViewItem))
+                    {
+                        current = System.Windows.Media.VisualTreeHelper.GetParent(current);
+                    }
+
+                    if (current is TreeViewItem clickedItem && clickedItem.DataContext is VariableConfig variableConfig)
+                    {
+                        _isDragging = true;
+
+                        // Намертво зажимаем e.Handled, чтобы событие не всплывало к родителям 
+                        // и не перехватывалось соседними деревьями/вкладками!
+                        e.Handled = true;
+
+                        // Запускаем перетаскивание строго выделенной переменной конкретного МК
+                        DragDrop.DoDragDrop(clickedItem, variableConfig, DragDropEffects.Move);
+
+                        _isDragging = false;
+                        return;
+                    }
                 }
             }
         }

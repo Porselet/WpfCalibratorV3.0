@@ -72,6 +72,9 @@ public partial class MainViewModel : INotifyPropertyChanged
     }
 
 
+
+
+
     // Текущие выбранные элементы
     private DeviceConfig? _selectedDevice;
     public DeviceConfig? SelectedDevice

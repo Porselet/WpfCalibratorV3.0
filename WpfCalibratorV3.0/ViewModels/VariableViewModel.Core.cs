@@ -30,18 +30,147 @@ public partial class VariableViewModel : INotifyPropertyChanged
     public float MinValue { get; set; } = 0.0f; // Для слайдеров
     public float MaxValue { get; set; } = 100.0f;
 
+
+
+    // ======================================================================
+    // НОВЫЕ СВОЙСТВА ДЛЯ СУБСЕТОЧНОГО ПРИЦЕЛА И 1-LUT КАЛИБРОВОК
+    // ======================================================================
+
+    private bool _showRadarTracker = false;
+    /// <summary>
+    /// Флаг необходимости отображения субсеточного прицела-радара для этой таблицы
+    /// </summary>
+    public bool ShowRadarTracker
+    {
+        get => _showRadarTracker;
+        set { if (_showRadarTracker != value) { _showRadarTracker = value; OnPropertyChanged(); } }
+    }
+
+    private bool _isVertical = false;
+    /// <summary>
+    /// Флаг вертикальной ориентации (только для одномерных осей и 1-LUT таблиц)
+    /// </summary>
+    public bool IsVertical
+    {
+        get => _isVertical;
+        set { if (_isVertical != value) { _isVertical = value; OnPropertyChanged(); } }
+    }
+
+    // Ссылки на связанные объекты для одномерного режима (зеркально X-осям 2D-матриц)
+    private VariableViewModel? _boundInputX;
+    public VariableViewModel? BoundInputX
+    {
+        get => _boundInputX;
+        set { if (_boundInputX != value) { _boundInputX = value; OnPropertyChanged(); } }
+    }
+
+    private VariableViewModel? _boundAxisX;
+    public VariableViewModel? BoundAxisX
+    {
+        get => _boundAxisX;
+        set { if (_boundAxisX != value) { _boundAxisX = value; OnPropertyChanged(); } }
+    }
+
+
     // Привязки осей для таблиц (Look-up tables)
-    public VariableViewModel? BoundAxisX { get; set; }
-    public VariableViewModel? BoundAxisY { get; set; }
-    public VariableViewModel? BoundInputX { get; set; }
-    public VariableViewModel? BoundInputY { get; set; }
+    // ======================================================================
+    // ОТРЕФАКТОРЕННЫЕ СВЯЗИ ДЛЯ ВЕРТИКАЛЬНОЙ ОСИ Y (2D-LUT)
+    // ======================================================================
+
+    private VariableViewModel? _boundAxisY;
+    public VariableViewModel? BoundAxisY
+    {
+        get => _boundAxisY;
+        set
+        {
+            if (_boundAxisY != value)
+            {
+                _boundAxisY = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private VariableViewModel? _boundInputY;
+    public VariableViewModel? BoundInputY
+    {
+        get => _boundInputY;
+        set
+        {
+            if (_boundInputY != value)
+            {
+                _boundInputY = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     // Логика подсветки (для таблиц)
     private int _activeRowIndex = -1;
     private int _activeColIndex = -1;
 
+    private float _minLimit = float.NegativeInfinity;
+    /// <summary>
+    /// Критический минимум сигнала (по умолчанию минус бесконечность)
+    /// </summary>
+    public float MinLimit
+    {
+        get => _minLimit;
+        set { if (_minLimit != value) 
+            { 
+                _minLimit = value;
+                // ДОБАВЬТЕ ВНУТРЬ СЕТТЕРОВ СВОЙСТВ MinLimit И MaxLimit (прямо под OnPropertyChanged();):
+                OnPropertyChanged(nameof(SliderTicks)); // Заставляем риски на слайдере перерисоваться!
+                                                        // Добавь внутрь set каждого из этих 4-х свойств (прямо под OnPropertyChanged();):
+                OnPropertyChanged(nameof(MinAlarmPercent));
+                OnPropertyChanged(nameof(MaxAlarmPercent));
 
+            }
+        }
+    }
 
+    private float _maxLimit = float.PositiveInfinity;
+    /// <summary>
+    /// Критический максимум сигнала (по умолчанию плюс бесконечность)
+    /// </summary>
+    public float MaxLimit
+    {
+        get => _maxLimit;
+        set { if (_maxLimit != value) 
+            { 
+                _maxLimit = value;
+                // ДОБАВЬТЕ ВНУТРЬ СЕТТЕРОВ СВОЙСТВ MinLimit И MaxLimit (прямо под OnPropertyChanged();):
+                OnPropertyChanged(nameof(SliderTicks)); // Заставляем риски на слайдере перерисоваться!
+                                                        // Добавь внутрь set каждого из этих 4-х свойств (прямо под OnPropertyChanged();):
+                OnPropertyChanged(nameof(MinAlarmPercent));
+                OnPropertyChanged(nameof(MaxAlarmPercent));
+            }
+        }
+    }
+
+    private float _scaleMin = 0f;
+    /// <summary>
+    /// Минимальное отображаемое значение на шкале прибора (левая граница / старт)
+    /// </summary>
+    public float ScaleMin
+    {
+        get => _scaleMin;
+        set { if (_scaleMin != value) { _scaleMin = value; OnPropertyChanged();
+                // Добавь внутрь set каждого из этих 4-х свойств (прямо под OnPropertyChanged();):
+                OnPropertyChanged(nameof(MinAlarmPercent));
+                OnPropertyChanged(nameof(MaxAlarmPercent));
+            } }
+    }
+
+    private float _scaleMax = 100f;
+    /// <summary>
+    /// Максимальное отображаемое значение на шкале прибора (правая граница / финиш)
+    /// </summary>
+    public float ScaleMax
+    {
+        get => _scaleMax;
+        set { if (_scaleMax != value) { _scaleMax = value; OnPropertyChanged(); } }
+    }
 
     public int ActiveRowIndex
     {
@@ -183,19 +312,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
             }
         }
     }
-    private bool _showRadarTracker = false;
-    public bool ShowRadarTracker
-    {
-        get => _showRadarTracker;
-        set
-        {
-            if (_showRadarTracker != value)
-            {
-                _showRadarTracker = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+
 
 
     private double _radarGridOffsetX = 0;
@@ -225,6 +342,117 @@ public partial class VariableViewModel : INotifyPropertyChanged
             }
         }
     }
+
+
+    /// <summary>
+    /// Коллекция точек для отрисовки красных рисок лимитов на слайдере
+    /// </summary>
+    public System.Windows.Media.DoubleCollection SliderTicks
+    {
+        get
+        {
+            var ticks = new System.Windows.Media.DoubleCollection();
+
+            // Добавляем минимум, если он не равен бесконечности
+            if (!float.IsNegativeInfinity(MinLimit)) ticks.Add(MinLimit);
+
+            // Добавляем максимум, если он не равен бесконечности
+            if (!float.IsPositiveInfinity(MaxLimit)) ticks.Add(MaxLimit);
+
+            return ticks;
+        }
+    }
+
+
+    /// <summary>
+    /// Процентное положение минимального аларма на шкале (от 0.0 до 1.0)
+    /// </summary>
+    public double MinAlarmPercent
+    {
+        get
+        {
+            if (float.IsNegativeInfinity(MinLimit) || (ScaleMax <= ScaleMin)) return -100; // Прячем за экран, если лимит не задан
+            double pct = (MinLimit - ScaleMin) / (ScaleMax - ScaleMin);
+            return Math.Max(0, Math.Min(1, pct)); // Зажимаем в границы 0..1
+        }
+    }
+
+    /// <summary>
+    /// Процентное положение максимального аларма на шкале (от 0.0 до 1.0)
+    /// </summary>
+    public double MaxAlarmPercent
+    {
+        get
+        {
+            if (float.IsPositiveInfinity(MaxLimit) || (ScaleMax <= ScaleMin)) return -100; // Прячем за экран, если лимит не задан
+            double pct = (MaxLimit - ScaleMin) / (ScaleMax - ScaleMin);
+            return Math.Max(0, Math.Min(1, pct));
+        }
+    }
+
+
+
+    /// <summary>
+    /// Координата X для треугольника минимального аларма (смещенная на центр острия)
+    /// </summary>
+    public double MinAlarmX
+    {
+        get
+        {
+            if (float.IsNegativeInfinity(MinLimit) || (ScaleMax <= ScaleMin)) return -100;
+
+            double pct = (MinLimit - ScaleMin) / (ScaleMax - ScaleMin);
+            if (pct < 0) pct = 0;
+            if (pct > 1) pct = 1;
+
+            // Вычитаем 5 пикселей (половину ширины треугольника 10px) для идеальной центровки острия!
+            return (pct * 230.0) - 5.0;
+        }
+    }
+
+    /// <summary>
+    /// Координата X для треугольника максимального аларма (смещенная на центр острия)
+    /// </summary>
+    public double MaxAlarmX
+    {
+        get
+        {
+            if (float.IsPositiveInfinity(MaxLimit) || (ScaleMax <= ScaleMin)) return -100;
+
+            double pct = (MaxLimit - ScaleMin) / (ScaleMax - ScaleMin);
+            if (pct < 0) pct = 0;
+            if (pct > 1) pct = 1;
+
+            return (pct * 230.0) - 5.0;
+        }
+    }
+
+
+    /// <summary>
+    /// Текущее значение датчика в процентах от его настроенной шкалы (0..100)
+    /// </summary>
+    /// <summary>
+    /// Статус горения 10 светодиодов Shift-Light линейки (true = горит)
+    /// </summary>
+    public bool[] LedStates
+    {
+        get
+        {
+            var states = new bool[10];
+            if (ScaleMax <= ScaleMin) return states;
+
+            // Переводим живое значение в чистый процент от 0 до 100
+            double pct = (CurrentValue - ScaleMin) / (ScaleMax - ScaleMin) * 100.0;
+
+            // Зажигаем лампочки по цепочке (каждые 10% шкалы — новый диод)
+            for (int i = 0; i < 10; i++)
+            {
+                states[i] = pct >= ((i + 1) * 10.0);
+            }
+            return states;
+        }
+    }
+
 
 
 

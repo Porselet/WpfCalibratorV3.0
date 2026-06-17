@@ -22,12 +22,30 @@ namespace WpfCalibrator.Models
         public double Top { get; set; }
         public double Width { get; set; } = 100;
         public double Height { get; set; } = 30;
+        // НОВОЕ: Разрешение визуального окрашивания фона при аларме
+        public bool EnableVisualAlarm { get; set; } = true;
+        // ======================================================================
+        // НОВОЕ: ИДЕНТИФИКАТОР МК ДЛЯ РАЗДЕЛЕНИЯ ДВУХ РАЗНЫХ МОДЕЛЕЙ (STM32)
+        // ======================================================================
+        public byte ModelId { get; set; } = 0;
 
         // НОВОЕ: Шаг приращения значения ячейки при нажатии PageUp / PageDown
         public float IncrementStep { get; set; } = 1.0f;
 
         // Привязки осей Look-Up таблиц живут локально внутри описания виджета экрана
         public LutBindings TableBindings { get; set; } = new();
+
+        // НОВОЕ: Флаг вертикальной ориентации для одномерных осей и 1-LUT таблиц
+        public bool IsVertical { get; set; } = false;
+
+        // ======================================================================
+        // НОВЫЕ ПОЛЯ ДЛЯ СОХРАНЕНИЯ МАСШТАБОВ ШКАЛ И АЛАРМОВ КОНКРЕТНОГО ВИДЖЕТА
+        // ======================================================================
+        public float ScaleMin { get; set; } = 0f;
+        public float ScaleMax { get; set; } = 100f;
+        public float MinLimit { get; set; } = float.NegativeInfinity;
+        public float MaxLimit { get; set; } = float.PositiveInfinity;
+
     }
 
     public class LutBindings

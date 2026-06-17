@@ -41,10 +41,24 @@ public sealed class ConfigurationManager
                 var jsonContent = File.ReadAllText(file);
                 var modelConfig = JsonSerializer.Deserialize<ModelConfig>(jsonContent, GetJsonOptions());
                 jsonContent = jsonContent.Trim();
+                // ВНУТРИ МЕТОДА DiscoverDevices():
                 if (modelConfig != null)
                 {
+                    // НОВОЕ: Намертво прописываем каждой переменной ID её родного микроконтроллера!
+                    if (modelConfig.Variables != null)
+                    {
+                        foreach (var variable in modelConfig.Variables)
+                        {
+                            // Принудительно раздаем байт ModelId из заголовка считанной модели
+                            // Используем рефлексию или прямое присвоение, так как у тебя там модификатор init
+                            // Если компилятор ругнется на init, мы обойдем это, но сначала пробуем прямое присвоение:
+                            variable.ModelId = modelConfig.ModelId;
+                        }
+                    }
+
                     device.Models[modelConfig.ModelId] = modelConfig;
                 }
+
             }
 
             devices.Add(device);
@@ -96,10 +110,19 @@ public sealed class ConfigurationManager
         return new JsonSerializerOptions
         {
             // Включаем регистронезависимость вместо принудительного camelCase
-            PropertyNameCaseInsensitive = true,
 
+
+
+            PropertyNameCaseInsensitive = true,
             AllowTrailingCommas = true,
-            NumberHandling = JsonNumberHandling.Strict,
+            WriteIndented = true, // Чтобы файл красиво разбивался по строкам
+
+            // РАЗРЕШАЕМ БЕСКОНЕЧНОСТИ (Фикс ошибки System.ArgumentException):
+            // Строчку со Strict мы полностью удалили, чтобы она не ломала логику!
+            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals,
+
+            // Позволяет сохранять русские комментарии и имена переменных в JSON в понятном текстовом виде, 
+            // а не превращать их в нечитаемые байт-коды вроде \u0410\u0431
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
     }

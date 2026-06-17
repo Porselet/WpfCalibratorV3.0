@@ -40,6 +40,29 @@
                                 <Setter Property="Height" Value="{Binding Height, Mode=TwoWay}"/>
                                 <!-- Добавляем внутрь стиля контейнера окон на холсте: -->
                                 <Setter Property="Panel.ZIndex" Value="{Binding ZIndex}"/>
+                                <!-- Добавьте этот Setter в общие свойства стиля вашего ContentPresenter / ListBoxItem -->
+                                <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                <!-- ДОБАВЛЯЕМ ВНУТРЬ СТИЛЯ ОБЕРТКИ ВИДЖЕТОВ НА ХОЛСТЕ: -->
+                                <Setter Property="ContextMenu">
+                                    <Setter.Value>
+                                        <!-- Стильное темно-серое гоночное меню -->
+                                        <!-- ИСПРАВЛЕННОЕ КОНТЕНСТНОЕ МЕНЮ С ПРОБРОСОМ ДАННЫХ -->
+                                        <ContextMenu Background="#1A1A1A" BorderBrush="#555555" BorderThickness="1">
+
+                                            <!-- Магия PlacementTarget.Tag: мы принудительно пробиваем изоляцию 
+                                            и достаем DataContext Главного Окна через элемент, который вызвал меню! -->
+                                            <MenuItem   Header="⚙ Настройки прибора..." 
+                                                        Foreground="White" FontFamily="Consolas" FontSize="12"
+                                                        Command="{Binding PlacementTarget.Tag.DataContext.OpenTableSettingsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                            <Separator Background="#333333"/>
+                                        </ContextMenu>
+
+                                    </Setter.Value>
+                                </Setter>
+
+
                             </Style>
                         </ItemsControl.ItemContainerStyle>
 
@@ -89,7 +112,6 @@
                                                 <Style TargetType="ContentControl">
                                                     <!-- БАЗОВОЕ ЗНАЧЕНИЕ ДЛЯ ЗАЩИТЫ ОТ СБОЯ INVALIDCASTEXCEPTION -->
                                                     <Setter Property="ContentTemplate" Value="{StaticResource EmptyFallbackTemplate}"/>
-
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding ControlView}" Value="TextBox">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource ScalarTextBoxTemplate}"/>
@@ -97,21 +119,43 @@
                                                         <DataTrigger Binding="{Binding ControlView}" Value="MatrixTable">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource MatrixTableTemplate}"/>
                                                         </DataTrigger>
+
+                                                        <!-- ЦИФРОВОЙ ИНДИКАТОР ТЕЛЕМЕТРИИ -->
                                                         <DataTrigger Binding="{Binding ControlView}" Value="Digital">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
                                                         </DataTrigger>
-                                                        <DataTrigger Binding="{Binding ControlView}" Value="Slider">
+
+                                                        <!-- СЛАЙДЕРЫ (ГОРИЗОНТАЛЬНЫЙ И ВЕРТИКАЛЬНЫЙ) -->
+                                                        <!-- Мы завяжем их оба на наш обновленный шаблон слайдера, 
+                                                             а направление (Orientation) внутри шаблона настроим на следующем шаге -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="SliderHorizontal">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource WidgetSliderTemplate}"/>
                                                         </DataTrigger>
-                                                        <DataTrigger Binding="{Binding ControlView}" Value="Gauge">
-                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetGaugeTemplate}"/>
+                                                        <!-- Переключаем на кастомный ВЕРТИКАЛЬНЫЙ слайдер-столбик -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="SliderVertical">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetVerticalSliderTemplate}"/>
                                                         </DataTrigger>
 
-                                                        <!-- НОВЫЙ ТРИГГЕР ДЛЯ АВИАЦИОННОГО ПРИЦЕЛА-РАДАРА -->
+                                                        <!-- СТРЕЛОЧНЫЕ ПРИБОРЫ (270 И 120 ГРАДУСОВ) -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="GaugeCircular270">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetGaugeTemplate}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="GaugeArc120">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetArcGaugeTemplate}"/>
+                                                        </DataTrigger>
+
+                                                        <!-- Включаем полноценный живой график времени! -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="TimePlot">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetTimePlotTemplate}"/>
+                                                        </DataTrigger>
+
+
+                                                        <!-- АВИАЦИОННЫЙ СУБСЕТОЧНЫЙ ПРИЦЕЛ -->
                                                         <DataTrigger Binding="{Binding ControlView}" Value="RadarTracker">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource RadarTrackerTrackerTemplate}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
+
                                                 </Style>
                                             </ContentControl.Style>
                                         </ContentControl>
