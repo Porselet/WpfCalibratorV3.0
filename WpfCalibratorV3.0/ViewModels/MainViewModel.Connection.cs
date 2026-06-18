@@ -148,7 +148,7 @@ public partial class MainViewModel
                         }
                     }
                     // Перерисовываем ячейки на экране, чтобы обновить текст в таблице
-                    targetVariable.RebuildMatrixCells();
+                    targetVariable.RebuildMatrixCells(true);
                 }
             }
         });

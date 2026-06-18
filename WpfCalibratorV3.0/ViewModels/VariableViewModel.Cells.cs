@@ -6,7 +6,7 @@ namespace WpfCalibrator.ViewModels
     {
         private ObservableCollection<MatrixCellViewModel> _matrixCells = new();
         public ObservableCollection<MatrixCellViewModel> MatrixCells => _matrixCells;
-        public void RebuildMatrixCells()
+        public void RebuildMatrixCells(bool isFromUart = false)
         {
             if (Rows <= 0 || Cols <= 0) return;
 
@@ -44,7 +44,8 @@ namespace WpfCalibrator.ViewModels
                 return;
             }
 
-            // 2. ТОЧЕЧНОЕ ОБНОВЛЕНИЕ ПО ТАЙМЕРУ
+
+            // // 2. ТОЧЕЧНОЕ ОБНОВЛЕНИЕ ПО ТАЙМЕРУ
             int index = 0;
             for (int r = 0; r < Rows; r++)
             {
@@ -59,17 +60,26 @@ namespace WpfCalibrator.ViewModels
                         cell.IsActive = shouldBeActive;
                     }
 
-                    // ИСПРАВЛЕНИЕ: Обновляем текст из памяти ТОЛЬКО если калибровщик 
-                    // прямо сейчас НЕ редактирует эту конкретную выбранную ячейку!
+                    // Вычисляем условия защиты
                     bool isCurrentCellBeingEdited = IsEditing && (r == SelectedRow && c == SelectedCol);
+                    bool isCellSelected = cell.IsSelected; // Используем уже извлеченную ячейку cell!
 
-                    if (!isCurrentCellBeingEdited)
+                    // БРОНЕБОЙНАЯ ЗАЩИТА: Щит от затирания включается ТОЛЬКО если данные прилетели из UART!
+                    bool shouldProtectFromUart = isCurrentCellBeingEdited || (isFromUart && isCellSelected);
+
+                    // Если щит активен, мы Пропускаем обновление текста (continue), 
+                    // сохраняя ручной ввод или инкремент от затирания фоновой телеметрией
+                    if (shouldProtectFromUart)
                     {
-                        string freshText = MatrixData[r, c].ToString("F1");
-                        if (cell.ValueText != freshText)
-                        {
-                            cell.ValueText = freshText;
-                        }
+                        continue;
+                    }
+
+                    // Если мы сами нажали PageUp (isFromUart == false), или ячейка вне группы — 
+                    // спокойно и плавно обновляем текст на экране из ОЗУ матрицы!
+                    string freshText = MatrixData[r, c].ToString("F1");
+                    if (cell.ValueText != freshText)
+                    {
+                        cell.ValueText = freshText;
                     }
                 }
             }
@@ -77,30 +87,54 @@ namespace WpfCalibrator.ViewModels
             UpdateSelectionHighlight();
         }
 
+        /// <summary>
+        /// Пересчитывает и обновляет визуальное выделение ячеек таблицы на экране (Прямоугольник MoTeC-style)
+        /// </summary>
         public void UpdateSelectionHighlight()
         {
-            if (MatrixCells == null || MatrixCells.Count == 0) return;
+            // Если индексы некорректны, сбрасываем подсветку
+            if (SelectedRow < 0 || SelectedCol < 0 || AnchorRow < 0 || AnchorCol < 0) return;
 
-            int index = 0;
-            for (int r = 0; r < Rows; r++)
+            // Вычисляем математические границы нашего прямоугольника выделения
+            int minRow = Math.Min(AnchorRow, SelectedRow);
+            int maxRow = Math.Max(AnchorRow, SelectedRow);
+            int minCol = Math.Min(AnchorCol, SelectedCol);
+            int maxCol = Math.Max(AnchorCol, SelectedCol);
+
+            // Бежим циклом по всей сетке ячеек таблицы
+            foreach (var cell in MatrixCells)
             {
-                for (int c = 0; c < Cols; c++)
-                {
-                    // Берем ячейку по индексу в плоском списке UniformGrid
-                    if (index < MatrixCells.Count)
-                    {
-                        var cell = MatrixCells[index++];
+                // Ячейка выделена, если её координаты r и c попадают внутрь рассчитанных границ прямоугольника
+                bool shouldBeSelected = (cell.Row >= minRow && cell.Row <= maxRow) &&
+                                        (cell.Col >= minCol && cell.Col <= maxCol);
 
-                        // Проверяем, совпадает ли она с выбранными координатами калибровщика
-                        bool shouldBeSelected = (r == SelectedRow && c == SelectedCol);
-                        if (cell.IsSelected != shouldBeSelected)
-                        {
-                            cell.IsSelected = shouldBeSelected;
-                        }
-                    }
-                }
+                cell.IsSelected = shouldBeSelected;
             }
         }
+
+
+
+        private int _anchorRow = -1;
+        private int _anchorCol = -1;
+
+        /// <summary>
+        /// Индекс строки «якоря» — стартовой точки группового выделения ячеек
+        /// </summary>
+        public int AnchorRow
+        {
+            get => _anchorRow;
+            set { if (_anchorRow != value) { _anchorRow = value; OnPropertyChanged(); } }
+        }
+
+        /// <summary>
+        /// Индекс колонки «якоря» — стартовой точки группового выделения ячеек
+        /// </summary>
+        public int AnchorCol
+        {
+            get => _anchorCol;
+            set { if (_anchorCol != value) { _anchorCol = value; OnPropertyChanged(); } }
+        }
+
 
 
     }

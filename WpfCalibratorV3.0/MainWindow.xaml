@@ -19,6 +19,7 @@
 
         <!-- СТАЛО (Явно передаем DataContext главного окна внутрь модуля): -->
         <views:TreeViewPanel Grid.Column="0" x:Name="LeftPanel" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"/>
+        <!-- Добавь этот пункт внутрь твоего Menu -->
 
 
         <!-- Подключаем модуль свободного холста -->
@@ -33,41 +34,40 @@
 
             <!-- ГОРИЗОНТАЛЬНАЯ ПАНЕЛЬ РАБОЧИХ ЭКРАНОВ (ВКЛАДОК) -->
             <!-- ГОРИЗОНТАЛЬНАЯ ПАНЕЛЬ С УПРАВЛЕНИЕМ ЭКРАНАМИ -->
+            <!-- ГОРИЗОНТАЛЬНАЯ ПАНЕЛЬ С УПРАВЛЕНИЕМ ЭКРАНАМИ И ИНСТРУМЕНТАМИ -->
             <Grid Grid.Row="0" Background="#151515">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Левая часть: вкладки экранов -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                     <!-- СПИСОК ВКЛАДОК -->
                     <ListBox ItemsSource="{Binding LayoutNames}" 
-                 SelectedItem="{Binding CurrentLayoutName}"
-                 Background="Transparent" 
-                 BorderThickness="0"
-                 Padding="5,2">
-
+                             SelectedItem="{Binding CurrentLayoutName}"
+                             Background="Transparent" 
+                             BorderThickness="0"
+                             Padding="5,2">
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <StackPanel Orientation="Horizontal"/>
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
-
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" Margin="5,2">
                                     <TextBlock Text="{Binding}" 
-                                   Foreground="White" 
-                                   FontSize="14" 
-                                   VerticalAlignment="Center" 
-                                   Margin="0,0,8,0"
-                                   FontFamily="Consolas"/>
-
+                                               Foreground="White" 
+                                               FontSize="14" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,8,0"
+                                               FontFamily="Consolas"/>
                                     <Button Content="×" 
-                                Foreground="#FF5555" 
-                                Background="Transparent" 
-                                BorderThickness="0" 
-                                FontSize="14"
-                                FontWeight="Bold"
-                                VerticalAlignment="Center"
-                                Cursor="Hand"
-                                Command="{Binding DataContext.DeleteLayoutCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding}"/>
+                                            Foreground="#FF5555" 
+                                            Background="Transparent" 
+                                            BorderThickness="0" 
+                                            FontSize="14"
+                                            FontWeight="Bold"
+                                            VerticalAlignment="Center"
+                                            Cursor="Hand"
+                                            Command="{Binding DataContext.DeleteLayoutCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -75,17 +75,32 @@
 
                     <!-- ИНЖЕНЕРНАЯ КНОПКА ДОБАВЛЕНИЯ НОВОГО ЭКРАНА [ + ] -->
                     <Button Content="+" 
-                Width="30" Height="26"
-                Background="#2E7D32" 
-                Foreground="White" 
-                FontWeight="Bold" 
-                FontSize="16"
-                FontFamily="Consolas"
-                Margin="5,0,0,0"
-                Cursor="Hand"
-                ToolTip="Создать новый рабочий экран"
-                Command="{Binding AddLayoutCommand}"/>
+                            Width="30" Height="26"
+                            Background="#2E7D32" 
+                            Foreground="White" 
+                            FontWeight="Bold" 
+                            FontSize="16"
+                            FontFamily="Consolas"
+                            Margin="5,0,0,0"
+                            Cursor="Hand"
+                            ToolTip="Создать новый рабочий экран"
+                            Command="{Binding AddLayoutCommand}"/>
                 </StackPanel>
+
+                <!-- ПРАВАЯ ЧАСТЬ: ИНЖЕНЕРНЫЙ ВЫЗОВ UART СНИФФЕРА -->
+                <Button Content="⚡ UART Monitor" 
+                        HorizontalAlignment="Right" 
+                        VerticalAlignment="Center" 
+                        Margin="0,0,10,0" 
+                        Padding="8,3"
+                        Background="#333333" 
+                        Foreground="#00FF00" 
+                        FontFamily="Consolas" 
+                        FontWeight="Bold"
+                        FontSize="12"
+                        Cursor="Hand"
+                        ToolTip="Открыть мониторинг сырых пакетов обмена"
+                        Click="MenuUartMonitor_Click"/>
             </Grid>
 
             <!-- ХОЛСТ СВОБОДНОГО ПОЗИЦИОНИРОВАНИЯ (С явным пробросом DataContext главного окна) -->

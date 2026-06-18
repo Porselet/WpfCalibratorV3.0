@@ -64,6 +64,12 @@ public partial class MainWindow : Window
         // Базовый обработчик клика по дереву (при необходимости)
     }
 
+    private void MenuUartMonitor_Click(object sender, RoutedEventArgs e)
+    {
+        // Открываем наше новое инженерное окно синглтоном
+        WpfCalibrator.Views.UartMonitorWindow.ShowWindow();
+    }
+
     private void GlobalWindow_PreviewKeyDown(object sender, KeyEventArgs e)
     {
         var mainVm = this.DataContext as MainViewModel;
@@ -92,9 +98,12 @@ public partial class MainWindow : Window
 
         bool handled = false;
 
-        // 3. НАВИГАЦИЯ СТРЕЛОЧКАМИ ДЛЯ 3D-ТАБЛИЦ
+        // 3. НАВИГАЦИЯ СТРЕЛОЧКАМИ И ГРУППОВОЕ ВЫДЕЛЕНИЕ ДЛЯ 3D-ТАБЛИЦ
         if (activeWidget.ControlView == "MatrixTable" && !activeTable.IsEditing)
         {
+            // Проверяем статус клавиши Shift прямо в момент нажатия стрелочки или пробела
+            bool isShiftPressed = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
             switch (e.Key)
             {
                 case Key.Up: activeTable.SelectedRow--; handled = true; break;
@@ -110,11 +119,69 @@ public partial class MainWindow : Window
                     }
                     break;
             }
+
+            // ЕСЛИ МЫ ДВИНУЛИСЬ (handled == true)
+            if (handled)
+            {
+                // ЕСЛИ SHIFT НЕ ЗАЖАТ: обычный шаг или прыжок по пробелу сбрасывает рамку группы и подтягивает Якорь к Курсору!
+                if (!isShiftPressed)
+                {
+                    activeTable.AnchorRow = activeTable.SelectedRow;
+                    activeTable.AnchorCol = activeTable.SelectedCol;
+                }
+                // ЕСЛИ SHIFT ЗАЖАТ: Якорь не трогаем, он зафиксирован, а прямоугольник послушно тянется за курсором
+
+                // Принудительно обновляем прямоугольное выделение ячеек на экране
+                activeTable.UpdateSelectionHighlight();
+            }
         }
+
 
         // 4. ИЗМЕНЕНИЕ ЗНАЧЕНИЙ ПО PAGE UP / PAGE DOWN
         if (e.Key == Key.PageUp || e.Key == Key.PageDown)
         {
+
+            // ИДЕАЛЬНЫЙ ЕДИНЫЙ ОБРАБОТЧИК PageUp / PageDown ДЛЯ ВСЕХ ТИПОВ ПРИБОРОВ:
+            if (e.Key == Key.PageUp)
+            {
+                //var activeWidget = vm.ActiveWidgets.FirstOrDefault(w => w.IsActiveWidget);
+                if (activeWidget != null && activeWidget.DataSource != null && activeWidget.DataSource.IsParam)
+                {
+                    if (activeWidget.DataSource.TotalElements > 1)
+                    {
+                        // ТАБЛИЦЫ: Инкремент ячейки с шагом виджета
+                        activeWidget.DataSource.IncrementSelectedCell(activeWidget.IncrementStep);
+                    }
+                    else
+                    {
+                        // СКАЛЯРЫ: Инкремент одиночного параметра с шагом виджета
+                        activeWidget.IncrementScalarValue();
+                    }
+                    e.Handled = true;
+                    return;
+                }
+            }
+            else if (e.Key == Key.PageDown)
+            {
+                //var activeWidget = vm.ActiveWidgets.FirstOrDefault(w => w.IsActiveWidget);
+                if (activeWidget != null && activeWidget.DataSource != null && activeWidget.DataSource.IsParam)
+                {
+                    if (activeWidget.DataSource.TotalElements > 1)
+                    {
+                        // ТАБЛИЦЫ: Декремент ячейки с шагом виджета
+                        activeWidget.DataSource.DecrementSelectedCell(activeWidget.IncrementStep);
+                    }
+                    else
+                    {
+                        // СКАЛЯРЫ: Декремент одиночного параметра с шагом виджета
+                        activeWidget.DecrementScalarValue();
+                    }
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            /*
             float sign = (e.Key == Key.PageUp) ? 1.0f : -1.0f;
             float delta = activeWidget.IncrementStep * sign;
 
@@ -130,6 +197,7 @@ public partial class MainWindow : Window
                 _ = mainVm.SendTableToUartAsync(activeTable);
             }
             handled = true;
+            */
         }
 
         // 5. ФИКСАЦИЯ КАЛИБРОВКИ ПО НАЖАТИЮ ENTER (ЖЕЛЕЗОБЕТОННЫЙ ВОЗВРАТ)
@@ -230,6 +298,7 @@ public partial class MainWindow : Window
             e.Handled = true;
         }
     }
+
 
     // ==================== ЛОГИКА DROP (СБРОС НА ХОЛСТ) ====================
 }

@@ -1,0 +1,28 @@
+﻿<Window x:Class="WpfCalibrator.Views.UartMonitorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Инженерный UART Монитор Пакетов" Height="400" Width="700"
+        Background="#1E1E1E" Foreground="White" FontFamily="Consolas">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Панель управления -->
+            <RowDefinition Height="*"/>
+            <!-- Терминал -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. ПАНЕЛЬ УПРАВЛЕНИЯ -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Button x:Name="BtnClear" Content="ОЧИСТИТЬ ЛОГ" Padding="10,4" Background="#333333" Foreground="White" BorderBrush="#555555" Click="BtnClear_Click" Margin="0,0,10,0"/>
+            <CheckBox x:Name="CheckAutoScroll" Content="Автопрокрутка лога" Foreground="Gray" IsChecked="True" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- 2. МОНОЛИТНЫЙ ТЕРМИНАЛЬНЫЙ ТЕКСТБОКС -->
+        <!-- Разрешаем вертикальный скролл и выделение текста, отключаем ручной ввод -->
+        <TextBox Grid.Row="1" x:Name="TerminalTextBox" 
+                 Background="#0A0A0A" Foreground="#00FF00" BorderBrush="#333333"
+                 IsReadOnly="True" AcceptsReturn="True" 
+                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+    </Grid>
+</Window>
+

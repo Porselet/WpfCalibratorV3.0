@@ -453,10 +453,99 @@ public partial class VariableViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Пакетный инкремент значений ВСЕХ выделенных ячеек таблицы по нажатию PageUp (с учетом CTRL x10)
+    /// </summary>
+    public void IncrementSelectedCell(float customStep)
+    {
+        if (!IsParam) return;
 
+        // Проверяем статус клавиши CTRL для форсажа x10
+        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
+                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
 
+        float delta = customStep * (isCtrlPressed ? 10f : 1f);
+        bool hasChanges = false;
 
+        // Бежим циклом по всей двухмерной матрице калибровок
+        for (int r = 0; r < Rows; r++)
+        {
+            for (int c = 0; c < Cols; c++)
+            {
+                // Находим соответствующую визуальную ячейку в нашей коллекции, чтобы проверить её статус выделения
+                var cell = MatrixCells.FirstOrDefault(m => m.Row == r && m.Col == c);
+                if (cell != null && cell.IsSelected)
+                {
+                    float newValue = MatrixData[r, c] + delta;
 
+                    // Защита от дурака: удерживаем значение каждой ячейки в границах шкалы
+                    if (newValue > ScaleMax) newValue = ScaleMax;
+                    if (newValue < ScaleMin) newValue = ScaleMin;
+
+                    MatrixData[r, c] = newValue;
+                    hasChanges = true;
+                }
+            }
+        }
+
+        if (hasChanges)
+        {
+            // Перегенерируем текстовые ячейки для отображения новых цифр на экране
+            RebuildMatrixCells();
+
+            // Пинаем радиальные свойства и стрелочки, если они завязаны на этот параметр
+            //NotifyValueAngleChanged();
+
+            // Одним монолитным Column-Major пакетом отправляем измененную таблицу в STM32!
+            if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+            {
+                _ = mainVm.SendTableToUartAsync(this);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Пакетный декремент значений ВСЕХ выделенных ячеек таблицы по нажатию PageDown (с учетом CTRL x10)
+    /// </summary>
+    public void DecrementSelectedCell(float customStep)
+    {
+        if (!IsParam) return;
+
+        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
+                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
+
+        float delta = customStep * (isCtrlPressed ? 10f : 1f);
+        bool hasChanges = false;
+
+        for (int r = 0; r < Rows; r++)
+        {
+            for (int c = 0; c < Cols; c++)
+            {
+                var cell = MatrixCells.FirstOrDefault(m => m.Row == r && m.Col == c);
+                if (cell != null && cell.IsSelected)
+                {
+                    float newValue = MatrixData[r, c] - delta;
+
+                    if (newValue > ScaleMax) newValue = ScaleMax;
+                    if (newValue < ScaleMin) newValue = ScaleMin;
+
+                    MatrixData[r, c] = newValue;
+                    hasChanges = true;
+                }
+            }
+        }
+
+        if (hasChanges)
+        {
+            RebuildMatrixCells();
+            //NotifyValueAngleChanged();
+
+            if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+            {
+                _ = mainVm.SendTableToUartAsync(this);
+            }
+        }
+    }
 
 
 

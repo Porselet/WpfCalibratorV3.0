@@ -110,6 +110,10 @@ public sealed class CommunicationService : IDisposable
         // 3. Добавляем CRC в конец массива
         Array.Resize(ref packet, packet.Length + 1);
         packet[packet.Length - 1] = crc;
+        // ВНУТРИ МЕТОДА SendPacketAsync ПЕРЕД ЗАПИСЬЮ В ПОРТ:
+
+        string txDesc = $"TX [CMD: 0x{cmd:X2}, VarId: {varId}]";
+        WpfCalibrator.Views.UartMonitorWindow.LogPacket("TX -->", "#007ACC", txDesc, packet);
 
         // 4. Отправка в физический порт
         _serialPort.Write(packet, 0, packet.Length);
@@ -197,6 +201,15 @@ public sealed class CommunicationService : IDisposable
 
                 if (calculatedCrc == receivedCrc)
                 {
+
+                    // ВНУТРИ МЕТОДА ListenAsync ПОСЛЕ СЛОВА "if (calculatedCrc == fullPacket[fullPacket.Length - 1])":
+                    byte rxCmd = fullPacket[2];
+                    byte rxVarId = fullPacket[3];
+                    string rxDesc = $"RX [CMD: 0x{rxCmd:X2}, VarId: {rxVarId}]";
+                    WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDesc, fullPacket);
+
+
+
                     // 🔥 УСПЕХ: Пакет полностью валиден! Пуляем событие в MainViewModel
                     DataPacketReceived?.Invoke(modelId, cmd, varId, elementsCount, payloadBytes);
                 }

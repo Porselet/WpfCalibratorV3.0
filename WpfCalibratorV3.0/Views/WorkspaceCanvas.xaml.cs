@@ -402,7 +402,21 @@ private void GlobalMatrixTable_PreviewMouseLeftButtonDown(object sender, MouseBu
         // 1. Перемещаем синий курсор MoTeC в памяти C#
         cellVm.Parent.SelectedRow = cellVm.Row;
         cellVm.Parent.SelectedCol = cellVm.Col;
+        // ======================================================================
+        // НОВОЕ: УПРАВЛЕНИЕ ЯКОРЕМ ГРУППОВОГО ВЫДЕЛЕНИЯ
+        // ======================================================================
+        bool isShiftPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftShift) ||
+                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightShift);
 
+        if (!isShiftPressed)
+        {
+            // Если Shift НЕ зажат — обычный клик сбрасывает группу и ставит якорь на эту же ячейку!
+            cellVm.Parent.AnchorRow = cellVm.Row;
+            cellVm.Parent.AnchorCol = cellVm.Col;
+        }
+
+        // Принудительно вызываем обновление подсветки для новой геометрии
+        cellVm.Parent.UpdateSelectionHighlight();
         // 2. ЗАХВАТ КЛАВИАТУРНОГО ФОКУСА ДЛЯ СТРЕЛОЧЕК:
         // Если таблица сейчас НЕ в режиме редактирования текста (IsEditing == false)
         // Внутри метода GlobalMatrixTable_PreviewMouseLeftButtonDown (в самом конце):

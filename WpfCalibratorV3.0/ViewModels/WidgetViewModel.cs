@@ -516,6 +516,54 @@ public class WidgetViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Шаговое увеличение значения активного скалярного параметра (PageUp) с учетом шага виджета и CTRL
+    /// </summary>
+    public void IncrementScalarValue()
+    {
+        if (DataSource == null || !DataSource.IsParam || DataSource.TotalElements > 1) return;
+
+        // Проверяем: если зажат CTRL — ускоряем шаг виджета в 10 раз, иначе шаг стандартный
+        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
+                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
+
+        float delta = this.IncrementStep * (isCtrlPressed ? 10f : 1f);
+        float newValue = DataSource.CurrentValue + delta;
+
+        // Защита от дурака: удерживаем значение в границах шкалы
+        if (newValue > DataSource.ScaleMax) newValue = DataSource.ScaleMax;
+
+        DataSource.CurrentValue = newValue;
+
+        // Сразу отправляем измененный скаляр по UART в STM32
+        if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+        {
+            _ = mainVm.SendTableToUartAsync(DataSource);
+        }
+    }
+
+    /// <summary>
+    /// Шаговое уменьшение значения активного скалярного параметра (PageDown) с учетом шага виджета и CTRL
+    /// </summary>
+    public void DecrementScalarValue()
+    {
+        if (DataSource == null || !DataSource.IsParam || DataSource.TotalElements > 1) return;
+
+        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
+                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
+
+        float delta = this.IncrementStep * (isCtrlPressed ? 10f : 1f);
+        float newValue = DataSource.CurrentValue - delta;
+
+        if (newValue < DataSource.ScaleMin) newValue = DataSource.ScaleMin;
+
+        DataSource.CurrentValue = newValue;
+
+        if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+        {
+            _ = mainVm.SendTableToUartAsync(DataSource);
+        }
+    }
 
 
 }
