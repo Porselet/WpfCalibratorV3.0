@@ -1,31 +1,227 @@
 {
   "LastUsedComPort": "COM4",
   "LastUsedBaudRate": 115200,
-  "VariableViews": {
-    // Настройки для таблицы из модели Test
-    "TEST_TABLE": {
-      "ControlView": "Matrix", // Тип виджета: Matrix (таблица)
-      "MinValue": 0.0,
-      "MaxValue": 100.0,
-      "TableBindings": {
-        "HasBindings": true,
-        "AxisX_VarName": "TEST_Axle1", // Привязка оси X к вектору
-        "AxisY_VarName": "TEST_Axle2", // Привязка оси Y к вектору
-        "InputX_VarName": "TEST_IN_1", // Привязка сигнала для оси X
-        "InputY_VarName": "TEST_IN_2" // Привязка сигнала для оси Y
+  "ActiveLayoutName": "123",
+  "Layouts": {
+    "тест": [
+      {
+        "VarName": "TEST_Data",
+        "ControlView": "MatrixTable",
+        "Left": 20,
+        "Top": 660,
+        "Width": 990,
+        "Height": 570,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "",
+          "AxisY_VarName": "",
+          "InputX_VarName": "",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": 0,
+        "ScaleMax": 100,
+        "MinLimit": "-Infinity",
+        "MaxLimit": "Infinity"
+      },
+      {
+        "VarName": "TEST_Axle2",
+        "ControlView": "MatrixTable",
+        "Left": 1290,
+        "Top": 530,
+        "Width": 500,
+        "Height": 280,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "",
+          "AxisY_VarName": "",
+          "InputX_VarName": "",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": 0,
+        "ScaleMax": 100,
+        "MinLimit": "-Infinity",
+        "MaxLimit": "Infinity"
+      },
+      {
+        "VarName": "TEST_IN_VOLTAGE",
+        "ControlView": "Digital",
+        "Left": 330,
+        "Top": 160,
+        "Width": 260,
+        "Height": 110,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "",
+          "AxisY_VarName": "",
+          "InputX_VarName": "",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": 0,
+        "ScaleMax": 10,
+        "MinLimit": 1,
+        "MaxLimit": 9
+      },
+      {
+        "VarName": "TEST_IN_VOLTAGE",
+        "ControlView": "SliderHorizontal",
+        "Left": 760,
+        "Top": 330,
+        "Width": 260,
+        "Height": 110,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "",
+          "AxisY_VarName": "",
+          "InputX_VarName": "",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": 0,
+        "ScaleMax": 10,
+        "MinLimit": 1,
+        "MaxLimit": 9
+      },
+      {
+        "VarName": "TEST_IN_VOLTAGE",
+        "ControlView": "SliderVertical",
+        "Left": 640,
+        "Top": 180,
+        "Width": 100,
+        "Height": 280,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "",
+          "AxisY_VarName": "",
+          "InputX_VarName": "",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": 0,
+        "ScaleMax": 10,
+        "MinLimit": 1,
+        "MaxLimit": 9
       }
-    },
-
-    // Настройки для скалярного параметра Gain
-    "T2_Gain": {
-      "ControlView": "Slider", // Тип виджета: Slider (слайдер)
-      "MinValue": 0.0,
-      "MaxValue": 10.0
-    },
-
-    // Настройки для сигнала OUT (будет показан как график)
-    "T2_OUT": {
-      "ControlView": "Graph"
-    }
+    ],
+    "123": [
+      {
+        "VarName": "TEST_Voltage",
+        "ControlView": "MatrixTable",
+        "Left": 650,
+        "Top": 250,
+        "Width": 500,
+        "Height": 280,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "",
+          "AxisY_VarName": "",
+          "InputX_VarName": "",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": 0,
+        "ScaleMax": 100,
+        "MinLimit": "-Infinity",
+        "MaxLimit": "Infinity"
+      },
+      {
+        "VarName": "TEST_Temperature",
+        "ControlView": "MatrixTable",
+        "Left": 580,
+        "Top": 710,
+        "Width": 500,
+        "Height": 280,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "TEST_Voltage",
+          "AxisY_VarName": "",
+          "InputX_VarName": "TEST_IN_VOLTAGE",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": 0,
+        "ScaleMax": 100,
+        "MinLimit": "-Infinity",
+        "MaxLimit": "Infinity"
+      },
+      {
+        "VarName": "TEST_OUT_TEMPERATURE",
+        "ControlView": "TimePlot",
+        "Left": 180,
+        "Top": 370,
+        "Width": 540,
+        "Height": 490,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "",
+          "AxisY_VarName": "",
+          "InputX_VarName": "",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": -40,
+        "ScaleMax": 100,
+        "MinLimit": "-Infinity",
+        "MaxLimit": "Infinity"
+      },
+      {
+        "VarName": "TEST_IN_VOLTAGE",
+        "ControlView": "Digital",
+        "Left": 190,
+        "Top": 230,
+        "Width": 260,
+        "Height": 110,
+        "EnableVisualAlarm": false,
+        "ModelId": 0,
+        "IncrementStep": 1,
+        "TableBindings": {
+          "HasBindings": false,
+          "AxisX_VarName": "",
+          "AxisY_VarName": "",
+          "InputX_VarName": "",
+          "InputY_VarName": "",
+          "ShowRadarTracker": false
+        },
+        "IsVertical": false,
+        "ScaleMin": 0,
+        "ScaleMax": 10,
+        "MinLimit": 1,
+        "MaxLimit": 9
+      }
+    ]
   }
 }
