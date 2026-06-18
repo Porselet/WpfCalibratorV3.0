@@ -452,15 +452,116 @@
 
 
 
+    <!-- ШАБЛОН КРУГЛОГО СТРЕЛОЧНОГО ПРИБОРА 270° (ВОССТАНОВЛЕННЫЙ, СИММЕТРИЯ 8-4 ЧАСА) -->
+    <DataTemplate x:Key="WidgetGaugeTemplate">
+        <DataTemplate.Resources>
+            <!-- Выносим стиль корпуса, гарантируя ЕДИНСТВЕННЫЙ Child внутри Border -->
+            <Style x:Key="GaugeBodyBorderStyle" TargetType="Border">
+                <Setter Property="Background" Value="#121212"/>
+                <Setter Property="BorderBrush" Value="#007ACC"/>
+                <Setter Property="BorderThickness" Value="1.5"/>
+                <Setter Property="CornerRadius" Value="100"/>
+                <Style.Triggers>
+                    <!-- МУЛЬТИТРИГГЕР: Задник монолитно багровеет при аларме, если разрешено -->
+                    <MultiDataTrigger>
+                        <MultiDataTrigger.Conditions>
+                            <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                            <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                        </MultiDataTrigger.Conditions>
+                        <Setter Property="Background" Value="#990000"/>
+                        <Setter Property="BorderBrush" Value="#FF0000"/>
+                    </MultiDataTrigger>
+                </Style.Triggers>
+            </Style>
+        </DataTemplate.Resources>
+
+        <Grid Margin="5">
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <!-- Прибор строго круглый (Width="200" Height="200") -->
+                <Grid Width="200" Height="200">
+
+                    <!-- КОРПУС ПРИБОРА -->
+                    <Border x:Name="GaugeBody" Style="{StaticResource GaugeBodyBorderStyle}">
+                        <Grid>
+
+                            <!-- ТЕКСТ НАЗВАНИЯ ДАТЧИКА (Блеклый, по центру в верхней части полусферы) -->
+                            <TextBlock Text="{Binding DataSource.Name}" Foreground="Gray" FontSize="11" FontFamily="Consolas" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,35,0,0" Opacity="0.6"/>
+
+                            <!-- ЦИФРОВОЙ ДУБЛИКАТОР ЗНАЧЕНИЯ (Крупный, по центру в нижней части полусферы) -->
+                            <TextBlock Text="{Binding DataSource.CurrentValue, StringFormat={}{0:F1}}" FontSize="24" FontWeight="Bold" FontFamily="Consolas" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,35">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                                    <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Foreground" Value="White"/>
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                            <!-- СЕКТОРНАЯ ДУГА ШКАЛЫ ПРИБОРА (МОНОЛИТНАЯ, ЦЕНТРИРОВАННАЯ 200х200) -->
+                            <Path Stroke="#333333" StrokeThickness="3" 
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" 
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                  Width="200" Height="200" Stretch="None"
+                                  Data="M 35,137.5 A 75,75 0 1 1 165,137.5"/>
+
+                            <!-- КРАСНЫЙ ТРЕУГОЛЬНИК МИНИМАЛЬНОГО АЛАРМА (Gauge Min) -->
+                            <Polygon Points="96,15 104,15 100,25" Fill="#FF0000">
+                                <Polygon.RenderTransform>
+                                    <RotateTransform Angle="{Binding GaugeMinAlarmAngle}" CenterX="100" CenterY="100"/>
+                                </Polygon.RenderTransform>
+                            </Polygon>
+
+                            <!-- КРАСНЫЙ ТРЕУГОЛЬНИК МАКСИМАЛЬНОГО АЛАРМА (Gauge Max) -->
+                            <Polygon Points="96,15 104,15 100,25" Fill="#FF0000">
+                                <Polygon.RenderTransform>
+                                    <RotateTransform Angle="{Binding GaugeMaxAlarmAngle}" CenterX="100" CenterY="100"/>
+                                </Polygon.RenderTransform>
+                            </Polygon>
+
+                            <!-- ЖИВАЯ НЕОНОВАЯ СТРУКТУРНАЯ СТРЕЛКА ПРИБОРА -->
+                            <Line X1="100" Y1="100" X2="100" Y2="22" StrokeThickness="3.5" StrokeStartLineCap="Round" StrokeEndLineCap="Round">
+                                <Line.Style>
+                                    <Style TargetType="Line">
+                                        <Setter Property="Stroke" Value="#007ACC"/>
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                                    <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Stroke" Value="White"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Line.Style>
+                                <Line.RenderTransform>
+                                    <RotateTransform Angle="{Binding GaugeValueAngle}" CenterX="100" CenterY="100"/>
+                                </Line.RenderTransform>
+                            </Line>
+
+                            <!-- Центральный изящный колпачок стрелки -->
+                            <Ellipse Width="12" Height="12" Fill="#121212" Stroke="#007ACC" StrokeThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Viewbox>
+        </Grid>
+    </DataTemplate>
 
 
 
 
 
-
-    <!-- ШАБЛОН ДУГОВОГО ПРИБОРА (10 НЕЗАВИСИМЫХ КРУГЛЫХ СВЕТОДИОДОВ) -->
-    <!-- ШАБЛОН ДУГОВОГО ПРИБОРА (10 НЕЗАВИСИМЫХ КРУГЛЫХ СВЕТОДИОДОВ) -->
-    <!-- ШАБЛОН ДУГОВОГО ПРИБОРА (ЧИСТАЯ ЛИНЕЙКА ИЗ 10 ОБЪЕМНЫХ СВЕТОДИОДОВ БЕЗ ТЕКСТА) -->
     <!-- ШАБЛОН ДУГОВОГО ПРИБОРА (ЧИСТАЯ ЛИНЕЙКА ИЗ 10 ОБЪЕМНЫХ СВЕТОДИОДОВ БЕЗ ТЕКСТА) -->
     <DataTemplate x:Key="WidgetArcGaugeTemplate">
         <Grid Margin="5">

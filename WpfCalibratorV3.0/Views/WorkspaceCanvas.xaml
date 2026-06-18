@@ -137,9 +137,11 @@
                                                         </DataTrigger>
 
                                                         <!-- СТРЕЛОЧНЫЕ ПРИБОРЫ (270 И 120 ГРАДУСОВ) -->
+                                                        <!-- ИСПРАВЛЕНО: Указываем точный существующий ключ шаблона -->
                                                         <DataTrigger Binding="{Binding ControlView}" Value="GaugeCircular270">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource WidgetGaugeTemplate}"/>
                                                         </DataTrigger>
+
                                                         <DataTrigger Binding="{Binding ControlView}" Value="GaugeArc120">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource WidgetArcGaugeTemplate}"/>
                                                         </DataTrigger>
