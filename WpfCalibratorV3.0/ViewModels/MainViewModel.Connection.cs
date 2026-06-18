@@ -130,7 +130,16 @@ public partial class MainViewModel
                 if (elementsCount == 1) // Одиночный скаляр float
                 {
                     // Конвертируем 4 байта обратно во float (Little Endian для STM32)
+                    // ВНУТРИ МЕТОДА OnUartPacketReceived (ДЛЯ ОДИНОЧНОГО СКАЛЯРА):
+                    // Взводим щит перед записью значения в свойство!
+                    targetVariable.IsUpdatingFromNetwork = true;
+
+                    // Твой старый неизмененный рабочий код записи значения:
                     targetVariable.CurrentValue = BitConverter.ToSingle(payload, 0);
+
+                    // Опускаем щит обратно, возвращая свободу ручному вводу инженера
+                    targetVariable.IsUpdatingFromNetwork = false;
+
                 }
                 else // Многомерная таблица LUT
                 {

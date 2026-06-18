@@ -90,6 +90,10 @@ public partial class VariableViewModel : INotifyPropertyChanged
             }
         }
     }
+    /// <summary>
+    /// Флаг-предохранитель: true блокирует отправку пакета записи обратно в UART при сетевом обновлении
+    /// </summary>
+    public bool IsUpdatingFromNetwork { get; set; } = false;
 
     private VariableViewModel? _boundInputY;
     public VariableViewModel? BoundInputY

@@ -55,26 +55,7 @@ public partial class WorkspaceCanvas : UserControl
             }
         }
     }
-    private async void ProcessAndSendWidgetData(TextBox textBox)
-    {
-        // 1. Поднимаемся по визуальному дереву, ищем виджет
-        var container = GetParentOfType<ContentPresenter>(textBox);
-        if (container?.Content is not WidgetViewModel widget || widget.DataSource == null) return;
 
-        // 2. Достаем нашу MainViewModel из контекста данных
-        if (DataContext is not MainViewModel mainVm) return;
-
-        // 3. Если это многомерная таблица (матрица)
-        if (widget.DataSource.Rows * widget.DataSource.Cols > 1)
-        {
-            // Вызываем наш новый безопасный метод из MainViewModel!
-            await mainVm.SendTableToUartAsync(widget.DataSource);
-        }
-        else // Если это одиночный скаляр float
-        {
-            // Логику отправки одиночного скаляра мы тоже сможем перенести в MainViewModel чуть позже
-        }
-    }
     private void WidgetHeader_MouseMove(object sender, MouseEventArgs e)
     {
         if (!_isMovingWidget || _draggedWidgetDataContext == null) return;
