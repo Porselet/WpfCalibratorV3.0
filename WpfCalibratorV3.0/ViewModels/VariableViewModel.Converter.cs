@@ -6,8 +6,8 @@ public partial class VariableViewModel
 {
 
 
-    private float _currentValue = 0f;
-    public float CurrentValue
+    private double _currentValue = 0f;
+    public double CurrentValue
     {
         get => _currentValue;
         set
@@ -45,7 +45,7 @@ public partial class VariableViewModel
                     // ИСПРАВЛЕНО: Пакет летит в шину ТОЛЬКО если это ручной ввод (НЕ обновление из сети!)
                     if (IsParam && !IsUpdatingFromNetwork)
                     {
-                        _ = mainVm.SendTableToUartAsync(this);
+                        //_ = mainVm.SendTableToUartAsync(this);
                     }
 
                 }
@@ -58,28 +58,6 @@ public partial class VariableViewModel
 
 
     // Сериализация данных в байтовый массив (для отправки на устройство)
-    public byte[] SerializeToBytesColumnMajor()
-    {
-        if (TotalElements == 1)
-        {
-            // Для скаляров
-            return BitConverter.GetBytes(CurrentValue);
-        }
-        else
-        {
-            // Для матриц: упаковка в Column-Major (как в MATLAB)
-            var rawBytes = new List<byte>();
-            for (int c = 0; c < Cols; c++)
-            {
-                for (int r = 0; r < Rows; r++)
-                {
-                    float val = MatrixData[r, c];
-                    rawBytes.AddRange(BitConverter.GetBytes(val));
-                }
-            }
-            return rawBytes.ToArray();
-        }
-    }
 
     // Десериализация байтового массива в значение (для приема с устройства)
     public void DeserializeFromBytes(byte[] bytes)

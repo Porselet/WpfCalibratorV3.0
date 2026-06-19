@@ -244,7 +244,7 @@ public class WidgetViewModel : INotifyPropertyChanged
     /// <summary>
     /// Добавляет новое значение в историю заезда и сдвигает график осциллографа влево
     /// </summary>
-    public void AppendPlotPoint(float newValue)
+    public void AppendPlotPoint(double newValue)
     {
         if (DataSource == null) return;
 
@@ -528,18 +528,31 @@ public class WidgetViewModel : INotifyPropertyChanged
                              System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
 
         float delta = this.IncrementStep * (isCtrlPressed ? 10f : 1f);
-        float newValue = DataSource.CurrentValue + delta;
+        double newValue = DataSource.CurrentValue + delta;
 
         // Защита от дурака: удерживаем значение в границах шкалы
         if (newValue > DataSource.ScaleMax) newValue = DataSource.ScaleMax;
 
         DataSource.CurrentValue = newValue;
 
-        // Сразу отправляем измененный скаляр по UART в STM32
-        if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+        // ВНУТРИ МЕТОДА IncrementScalarValue ПОСЛЕ ИЗМЕНЕНИЯ ЗНАЧЕНИЯ:
+        DataSource.CurrentValue = newValue;
+
+        // ФОРМИРУЕМ КОМАНДУ ЗАПИСИ ОДИНОЧНОГО СКАЛЯРА ДЛЯ ДИСПЕТЧЕРА
+        var writeCmd = new Models.NetworkCommand
         {
-            _ = mainVm.SendTableToUartAsync(DataSource);
-        }
+            ModelId = DataSource.ModelId,
+            Cmd = Models.LinkCommand.VarWrite, // Операция записи (0x01)
+            VarId = (byte)DataSource.Id,
+            DataType = DataSource.Type,
+            Rows = 1, // Для скаляра всегда 1
+            Cols = 1,
+            PayloadData = new double[] { newValue } // Кладем одно измененное число в массив double
+        };
+
+        // Заталкиваем команду в приоритетную очередь Арбитра
+        Services.BusArbiter.Instance.PushCommand(writeCmd);
+
     }
 
     /// <summary>
@@ -553,16 +566,28 @@ public class WidgetViewModel : INotifyPropertyChanged
                              System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
 
         float delta = this.IncrementStep * (isCtrlPressed ? 10f : 1f);
-        float newValue = DataSource.CurrentValue - delta;
+        double newValue = DataSource.CurrentValue - delta;
 
         if (newValue < DataSource.ScaleMin) newValue = DataSource.ScaleMin;
 
+        // ВНУТРИ МЕТОДА IncrementScalarValue ПОСЛЕ ИЗМЕНЕНИЯ ЗНАЧЕНИЯ:
         DataSource.CurrentValue = newValue;
 
-        if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+        // ФОРМИРУЕМ КОМАНДУ ЗАПИСИ ОДИНОЧНОГО СКАЛЯРА ДЛЯ ДИСПЕТЧЕРА
+        var writeCmd = new Models.NetworkCommand
         {
-            _ = mainVm.SendTableToUartAsync(DataSource);
-        }
+            ModelId = DataSource.ModelId,
+            Cmd = Models.LinkCommand.VarWrite, // Операция записи (0x01)
+            VarId = (byte)DataSource.Id,
+            DataType = DataSource.Type,
+            Rows = 1, // Для скаляра всегда 1
+            Cols = 1,
+            PayloadData = new double[] { newValue } // Кладем одно измененное число в массив double
+        };
+
+        // Заталкиваем команду в приоритетную очередь Арбитра
+        Services.BusArbiter.Instance.PushCommand(writeCmd);
+
     }
 
 

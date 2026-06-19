@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Threading;
+using WpfCalibrator.Models;
+using WpfCalibrator.Services;
 
 namespace WpfCalibrator.ViewModels;
 
@@ -22,20 +24,35 @@ public partial class MainViewModel
     // 1. Логика подключения
     public void ToggleConnection()
     {
-        if (_commService.IsConnected)
+        if (CommunicationService.Instance.IsConnected)
         {
-            _commService.Disconnect();
+            // Вежливо ОСТАНАВЛИВАЕМ фоновый планировщик обмена ПЕРЕД закрытием порта
+            Services.BusArbiter.Instance.Stop();
+
+            CommunicationService.Instance.Disconnect();
             ConnectionStatusText = "❌ ПРИБОР ОТКЛЮЧЕН";
         }
         else
         {
             try
             {
-                _commService.Connect(SelectedPort, 115200);
+                CommunicationService.Instance.Connect(SelectedPort, 115200);
                 ConnectionStatusText = $"⚡ СВЯЗЬ УСТАНОВЛЕНА ({SelectedPort})";
-                // Как только связь появилась — мгновенно вычитываем все таблицы и оси, что лежат на столе!
+
+                // НОВОЕ: Передаем оригинальный список переменных из Матлаба прямо в парсер приемника!
+                // Замени _configManager.CurrentConfig.Variables на точное имя свойства в твоем менеджере, 
+                // если оно называется по-другому (например, _configManager.Variables)
+                //CommunicationService.Instance.AllVariablesConfig = _configManager.CurrentConfig.Variables;
+
+                // 🔥 НОВОЕ: Безопасно, в UI-потоке, передаем живую карту выбранного прибора в сервис связи!
+                CommunicationService.Instance.CurrentDeviceConfig = SelectedDevice;
+
+                // Намертво запускаем бесконечный фоновый цикл планировщика пакетов
+                Services.BusArbiter.Instance.Start();
+
                 _ = RefreshAllLayoutParametersAsync();
             }
+
             catch (Exception ex)
             {
                 ConnectionStatusText = $"🛑 ОШИБКА: {ex.Message}";
@@ -43,124 +60,51 @@ public partial class MainViewModel
         }
     }
 
-    // 2. Обработчик события подключения (из CommunicationService)
-    private void OnPortStateChanged(bool isConnected)
-    {
-        // Обновляем UI
-        OnPropertyChanged(nameof(ConnectionStatusText));
-    }
 
-    // 3. Обработчик приема пакета (из CommunicationService)
-    private void HandlePacketReceived(byte modelId, byte cmd, byte varId, byte[] data)
-    {
-        // 1. Находим переменную по ID
-        var variable = FindVariableById(modelId, varId);
-        if (variable == null) return;
 
-        // 2. Обновляем значение переменной
-        if (variable.IsParam)
+
+
+
+
+
+
+
+
+
+    private void OnUartPacketReceived(NetworkCommand response)
+    {
+        // 1. Ищем переменную в нашей живой программе по её VarId
+        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == response.VarId)
+                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == response.VarId);
+
+        if (targetVariable == null) return;
+
+        // 2. Взводим наш флаг-щит сетевого обновления
+        targetVariable.IsUpdatingFromNetwork = true;
+
+        // 3. Распределяем данные в ОЗУ вьюмодели C#
+        if (response.PayloadData.Length == 1)
         {
-            // Для параметров: десериализуем байты в значение
-            variable.DeserializeFromBytes(data);
+            // Если скаляр — просто обновляем его одиночное double-значение!
+            targetVariable.CurrentValue = response.PayloadData[0];
         }
         else
         {
-            // Для сигналов: обновляем текущее значение (live watch)
-            variable.CurrentValue = ConvertBytesToFloat(data);
-        }
-
-        // 3. Обновляем UI
-        OnPropertyChanged(nameof(ParameterVariables));
-        OnPropertyChanged(nameof(TelemetryVariables));
-    }
-
-    // Вспомогательный метод для поиска переменной
-    private VariableViewModel? FindVariableById(byte modelId, byte varId)
-    {
-        // TODO: Реализуйте логику поиска переменной по ID
-        // Пример:
-         return ParameterVariables.FirstOrDefault(v => v.ModelId == modelId && v.Id == varId);
-    }
-
-    // Вспомогательный метод для преобразования байтов в float
-    private float ConvertBytesToFloat(byte[] bytes)
-    {
-        // Предполагается, что данные приходят в Little Endian (стандарт для STM32)
-        return BitConverter.ToSingle(bytes, 0);
-    }
-
-    // Метод, который вызывается при успешной сборке RX-пакета из UART
-    private void HandleIncomingDataPacket(byte modelId, int varId, float receivedValue)
-    {
-        // Ищем переменную в ParameterVariables или TelemetryVariables
-        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == varId && v.ModelId == modelId)
-                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == varId && v.ModelId == modelId);
-
-        if (targetVariable != null)
-        {
-            // Записываем значение в UI-поток (Dispatcher), чтобы WPF не ругался на мультипоточность
-            App.Current.Dispatcher.Invoke(() =>
+            // Если это многомерная таблица — сочно заливаем массив double[] в двухмерную матрицу MatrixData
+            int idx = 0;
+            for (int r = 0; r < response.Rows; r++)
             {
-                targetVariable.CurrentValue = receivedValue;
-            });
-        }
-    }
-
-
-
-
-    private void OnUartPacketReceived(byte modelId, byte cmd, byte varId, byte elementsCount, byte[] payload)
-    {
-        // 1. Ищем, какому прибору на холсте принадлежат эти данные (по совпадению ID и ID модели)
-        // Ищем сначала в параметрах, потом в телеметрии
-        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == varId && v.ModelId == modelId)
-                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == varId && v.ModelId == modelId);
-
-        // Если прилетел пакет для переменной, которой нет в текущем конфиге — игнорируем мусор
-        if (targetVariable == null) return;
-
-        // 2. БЕЗОПАСНЫЙ ПРОБРОС В UI-ПОТОК (Dispatcher). 
-        // UART работает в фоновом потоке Windows. Если попытаться записать данные в UI напрямую, 
-        // WPF выдаст ошибку "Поток не имеет доступа к объекту". Dispatcher решает эту проблему.
-        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-        {
-            // Если прилетел ответ на чтение телеметрии (CMD_VAR_READ = 2 по твоей прошивке app_link.h)
-            if (cmd == 0x02)
-            {
-                if (elementsCount == 1) // Одиночный скаляр float
+                for (int c = 0; c < response.Cols; c++)
                 {
-                    // Конвертируем 4 байта обратно во float (Little Endian для STM32)
-                    // ВНУТРИ МЕТОДА OnUartPacketReceived (ДЛЯ ОДИНОЧНОГО СКАЛЯРА):
-                    // Взводим щит перед записью значения в свойство!
-                    targetVariable.IsUpdatingFromNetwork = true;
-
-                    // Твой старый неизмененный рабочий код записи значения:
-                    targetVariable.CurrentValue = BitConverter.ToSingle(payload, 0);
-
-                    // Опускаем щит обратно, возвращая свободу ручному вводу инженера
-                    targetVariable.IsUpdatingFromNetwork = false;
-
-                }
-                else // Многомерная таблица LUT
-                {
-                    // Заполняем твой двумерный массив MatrixData в Column-Major порядке (строго по столбцам)
-                    int index = 0;
-                    for (int c = 0; c < targetVariable.Cols; c++)
-                    {
-                        for (int r = 0; r < targetVariable.Rows; r++)
-                        {
-                            if (index + 4 <= payload.Length)
-                            {
-                                targetVariable.MatrixData[r, c] = BitConverter.ToSingle(payload, index);
-                                index += 4;
-                            }
-                        }
-                    }
-                    // Перерисовываем ячейки на экране, чтобы обновить текст в таблице
-                    targetVariable.RebuildMatrixCells(true);
+                    targetVariable.MatrixData[r, c] = (float)response.PayloadData[idx++];
                 }
             }
-        });
+            // Перерисовываем ячейки на экране ноутбука
+            targetVariable.RebuildMatrixCells(true);
+        }
+
+        // 4. Опускаем щит
+        targetVariable.IsUpdatingFromNetwork = false;
     }
 
 }

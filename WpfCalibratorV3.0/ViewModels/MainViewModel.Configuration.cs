@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using WpfCalibrator.Models;
+using WpfCalibrator.Services;
 
-using WpfCalibrator.Models;
-using System.Collections.Generic;
 namespace WpfCalibrator.ViewModels;
 
-using System.Threading.Tasks;
 using System.Linq;
+using System.Threading.Tasks;
 
 
 public partial class MainViewModel
@@ -243,7 +243,7 @@ public partial class MainViewModel
                 }
 */
                 // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
-                if (realVar.IsParam && _commService.IsConnected)
+                if (realVar.IsParam && CommunicationService.Instance.IsConnected)
                 {
                     _ = RefreshAllLayoutParametersAsync();
                 }
@@ -258,13 +258,13 @@ public partial class MainViewModel
 
 
     // Метод последовательного и безопасного вычитывания всех параметров экрана из МК
+    /// <summary>
+    /// Массовая синхронизация: формирует высокоуровневые команды чтения для всех параметров 
+    /// на текущем экране и бережно заталкивает их в приоритетную очередь Диспетчера.
+    /// </summary>
     public async Task RefreshAllLayoutParametersAsync()
     {
-        if (!_commService.IsConnected || SelectedDevice == null) return;
-
-        // Временно отключаем циклическую телеметрию, чтобы освободить UART-линию
-        bool wasPolling = _isPollingEnabled;
-        _isPollingEnabled = false;
+        if (!CommunicationService.Instance.IsConnected || SelectedDevice == null) return;
 
         try
         {
@@ -278,24 +278,39 @@ public partial class MainViewModel
                 // Добавляем саму таблицу или скалярный параметр
                 parametersToUpdate.Add(widget.DataSource);
 
-                // Если это LUT-таблица, добавляем её оси в очередь на чтение
+                // If это LUT-таблица, добавляем её оси в очередь на чтение
                 if (widget.DataSource.BoundAxisX != null) parametersToUpdate.Add(widget.DataSource.BoundAxisX);
                 if (widget.DataSource.BoundAxisY != null) parametersToUpdate.Add(widget.DataSource.BoundAxisY);
             }
 
-            // Вычитываем каждый параметр СТРОГО по очереди, дожидаясь ответа (await)
+            // ИСПРАВЛЕНО: Вместо прямой отправки байт вслепую, мы просто ставим задачи в очередь Арбитра!
             foreach (var param in parametersToUpdate)
             {
-                // Вызываем чтение и делаем паузу, чтобы STM32 успел ответить по DMA
-                await RequestSingleVariableReadAsync(param.ModelId, (byte)param.Id, param.TotalElements);
-                await Task.Delay(30); // Инженерная пауза 30 мс между пакетами для стабильности линии
+                var readCmd = new Models.NetworkCommand
+                {
+                    ModelId = param.ModelId,
+                    Cmd = Models.LinkCommand.VarRead, // Команда чтения
+                    VarId = (byte)param.Id,
+                    DataType = param.Type,
+                    Rows = param.Rows,
+                    Cols = param.Cols,
+                    PayloadData = null // При чтении данные нам вернет сам STM32 в ответе
+                };
+
+                // Заталкиваем команду в приоритетную очередь калибровок Диспетчера.
+                // Диспетчер сам поштучно, на максимальной скорости и с соблюдением Handshake,
+                // вычитает все параметры один за другим!
+                Services.BusArbiter.Instance.PushCommand(readCmd);
             }
         }
-        finally
+        catch (Exception ex)
         {
-            // Обязательно возвращаем опрос телеметрии назад
-            _isPollingEnabled = wasPolling;
+            System.Diagnostics.Debug.WriteLine($"[ERROR] Ошибка постановки параметров в очередь: {ex.Message}");
         }
+
+        // Так как этот метод теперь работает мгновенно (просто закидывает задачи в ОЗУ-очередь),
+        // мы возвращаем пустой Task.CompletedTask, чтобы не ломать асинхронную сигнатуру Task.
+        await Task.CompletedTask;
     }
 
 
@@ -362,134 +377,7 @@ public partial class MainViewModel
     }
 
 
-    /// <summary>
-    /// Универсальный метод отправки калибровочной таблицы из MainViewModel
-    /// </summary>
-    public async Task SendTableToUartAsync(VariableViewModel variable)
-    {
-        if (variable == null || _commService == null || !_commService.IsConnected) return;
 
-        try
-        {
-            // 1. Ставим фоновый опрос телеметрии на паузу, освобождая UART-линию
-            _isPollingEnabled = false;
-
-            byte cmd = 0x01; // CMD_VAR_WRITE
-            byte modelId = variable.ModelId;
-            byte varId = (byte)variable.Id;
-
-            int rCount = variable.Rows;
-            int cCount = variable.Cols;
-            int totalElements = rCount * cCount;
-
-            // ВЕТВЛЕНИЕ ПО ТИПАМ ДАННЫХ
-            if (variable.Type == "single" || variable.Type == "float")
-            {
-                float[] flatArray = new float[totalElements];
-
-                if (totalElements == 1)
-                {
-                    // ИСПРАВЛЕНО: Для скаляров берем живое значение из CurrentValue!
-                    flatArray[0] = variable.CurrentValue;
-                }
-                else
-                {
-                    // Для 2D/3D таблиц разворачиваем матрицу в Column-Major
-                    int index = 0;
-                    for (int c = 0; c < cCount; c++)
-                        for (int r = 0; r < rCount; r++)
-                            flatArray[index++] = (float)variable.MatrixData[r, c];
-                }
-
-                await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
-            }
-            else if (variable.Type == "int16" || variable.Type == "int16_t")
-            {
-                short[] flatArray = new short[totalElements];
-
-                if (totalElements == 1)
-                {
-                    // ИСПРАВЛЕНО: Для скаляров кастим CurrentValue в short
-                    flatArray[0] = (short)variable.CurrentValue;
-                }
-                else
-                {
-                    int index = 0;
-                    for (int c = 0; c < cCount; c++)
-                        for (int r = 0; r < rCount; r++)
-                            flatArray[index++] = (short)variable.MatrixData[r, c];
-                }
-
-                await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
-            }
-            else if (variable.Type == "int32" || variable.Type == "int32_t")
-            {
-                int[] flatArray = new int[totalElements];
-
-                if (totalElements == 1)
-                {
-                    // ИСПРАВЛЕНО: Для скаляров кастим CurrentValue в int
-                    flatArray[0] = (int)variable.CurrentValue;
-                }
-                else
-                {
-                    int index = 0;
-                    for (int c = 0; c < cCount; c++)
-                        for (int r = 0; r < rCount; r++)
-                            flatArray[index++] = (int)variable.MatrixData[r, c];
-                }
-
-                await _commService.SendPacketAsync(modelId, cmd, varId, flatArray);
-            }
-
-            // 3. Даем STM32 фору в 50 мс на обработку прерывания DMA IDLE и memcpy в ОЗУ
-            await Task.Delay(50);
-
-            await RefreshAllLayoutParametersAsync();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Ошибка отправки параметра: {ex.Message}");
-        }
-        finally
-        {
-            // 4. Снимаем паузу и возвращаем фоновый опрос сигналов телеметрии
-            _isPollingEnabled = true;
-        }
-    }
-
-    /// <summary>
-    /// Единовременный принудительный запрос чтения параметра из STM32 при создании виджета
-    /// </summary>
-    public async Task RequestSingleVariableReadAsync(byte modelId, byte varId, int totalElements)
-    {
-        if (_commService == null || !_commService.IsConnected) return;
-
-        try
-        {
-            // Временно притормаживаем фоновую телеметрию, чтобы освободить линию под запрос
-            _isPollingEnabled = false;
-
-            byte cmd = 0x02; // CMD_VAR_READ (код 2 строго по app_link.h)
-            byte elementsCount = (byte)totalElements;
-            byte[] emptyPayload = Array.Empty<byte>();
-
-            // Выстреливаем ОДИН ОДИНОЧНЫЙ пакет запроса в STM32
-            await _commService.SendPacketAsync(modelId, cmd, varId, elementsCount, emptyPayload);
-
-            // Даем МК 20 мс на ответ по DMA, прежде чем вернуть телеметрию
-            await Task.Delay(20);
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[Single Read Error]: {ex.Message}");
-        }
-        finally
-        {
-            // Возвращаем опрос живых датчиков телеметрии
-            _isPollingEnabled = true;
-        }
-    }
 
 
 

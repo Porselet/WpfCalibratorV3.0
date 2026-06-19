@@ -269,11 +269,25 @@ public partial class WorkspaceCanvas : UserControl
 
         // 🔥 ДОБАВЛЕННЫЙ ТРИГГЕР: Если это калибровочный параметр (скаляр или таблица), 
         // запрашиваем его текущие данные из ОЗУ микроконтроллера СТРОГО ОДИН РАЗ
+        // 🔥 ИСПРАВЛЕННЫЙ ТРИГГЕР: Если это калибровочный параметр (скаляр или таблица), 
+        // запрашиваем его текущие данные из ОЗУ МК через приоритетную очередь Диспетчера!
         if (variable.IsParam)
         {
-            // Вызываем наш новый метод из MainViewModel
-            await vm.RequestSingleVariableReadAsync(variable.ModelId, (byte)variable.Id, variable.TotalElements);
+            var readCmd = new WpfCalibrator.Models.NetworkCommand
+            {
+                ModelId = variable.ModelId,
+                Cmd = WpfCalibrator.Models.LinkCommand.VarRead, // Операция чтения (0x02)
+                VarId = (byte)variable.Id,
+                DataType = variable.Type,
+                Rows = variable.Rows,
+                Cols = variable.Cols,
+                PayloadData = null // При чтении полезная нагрузка заполнится из ответа STM32
+            };
+
+            // Заталкиваем команду в приоритетную очередь Арбитра
+            WpfCalibrator.Services.BusArbiter.Instance.PushCommand(readCmd);
         }
+
     }
 
 

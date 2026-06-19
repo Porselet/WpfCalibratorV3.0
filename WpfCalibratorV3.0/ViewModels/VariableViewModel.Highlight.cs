@@ -5,7 +5,7 @@ namespace WpfCalibrator.ViewModels;
 public partial class VariableViewModel
 {
     // Логика подсветки для таблиц
-    public void CalculateWorkingPoint(float currentInputX, float currentInputY, float[] axisXData, float[] axisYData)
+    public void CalculateWorkingPoint(double currentInputX, double currentInputY, float[] axisXData, float[] axisYData)
     {
         // Проверка: если это не таблица, или нет привязок, или массивы осей не совпадают по размерам
         if (!IsLutLinked || axisXData.Length != Cols || axisYData.Length != Rows)
@@ -41,8 +41,8 @@ public partial class VariableViewModel
                     baseColIdx = i; // Нашли базовый левый узел квадранта для радара!
 
                     // Ваша эталонная логика: округляем к ближайшей точке для неона таблицы
-                    float distToLeft = Math.Abs(currentInputX - axisXData[i]);
-                    float distToRight = Math.Abs(axisXData[i + 1] - currentInputX);
+                    double distToLeft = Math.Abs(currentInputX - axisXData[i]);
+                    double distToRight = Math.Abs(axisXData[i + 1] - currentInputX);
                     colIdx = distToLeft < distToRight ? i : i + 1;
                     break;
                 }
@@ -69,8 +69,8 @@ public partial class VariableViewModel
                 {
                     baseRowIdx = i; // Нашли базовый верхний узел квадранта для радара!
 
-                    float distToLeft = Math.Abs(currentInputY - axisYData[i]);
-                    float distToRight = Math.Abs(axisYData[i + 1] - currentInputY);
+                    double distToLeft = Math.Abs(currentInputY - axisYData[i]);
+                    double distToRight = Math.Abs(axisYData[i + 1] - currentInputY);
                     rowIdx = distToLeft < distToRight ? i : i + 1;
                     break;
                 }

@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using WpfCalibrator.Models;
 using WpfCalibrator.Services;
-using System.Collections.ObjectModel;
+
 
 
 namespace WpfCalibrator.ViewModels;
@@ -15,7 +15,6 @@ namespace WpfCalibrator.ViewModels;
 public partial class MainViewModel : INotifyPropertyChanged
 {
     // Сервисы, которые будут управлять работой приложения
-    private readonly CommunicationService _commService;
     private readonly ConfigurationManager _configManager;
     private readonly IDashboardManager _dashboardManager; // <=== Исправляем тип
 
@@ -101,27 +100,32 @@ public partial class MainViewModel : INotifyPropertyChanged
 
     // Конструктор с инъекцией зависимостей
     public MainViewModel(
-        CommunicationService commService,
         ConfigurationManager configManager,
         IDashboardManager dashboardManager = null)
     {
-        _commService = commService;
         _configManager = configManager;
-
         _dashboardManager = dashboardManager ?? new NullDashboardManager();
 
         // Вызываем метод инициализации при создании ViewModel
         InitializeConfigurations();
 
-        // Инициализация таймера для обновления прицела и опроса сигналов
+        // Инициализация таймера для обновления прицела и работы калибровочной математики LUT
         _updateTimer.Interval = TimeSpan.FromMilliseconds(100);
         _updateTimer.Tick += UpdateTimer_Tick;
         _updateTimer.Start();
 
         // Загрузка доступных портов
         RefreshAvailablePorts();
-        _commService.DataPacketReceived += OnUartPacketReceived;
+
+        // ИСПРАВЛЕНО: Привязываем обработчик пакетов к новому Синглтону!
+        CommunicationService.Instance.DataPacketReceived += OnUartPacketReceived;
+
+        // ======================================================================
+        // СВЯЗЫВАЕМ ДИСПЕТЧЕР ОБМЕНА С ГЛАВНЫМ ОКНОМ ДЛЯ СИНХРОНИЗАЦИИ ОЧЕРЕДЕЙ
+        // ======================================================================
+        Services.BusArbiter.Instance.Initialize(this);
     }
+
 
 
 
@@ -146,8 +150,8 @@ public partial class MainViewModel : INotifyPropertyChanged
                 var axisYValues = param.BoundAxisY!.MatrixData.Cast<float>().ToArray();
 
                 param.CalculateWorkingPoint(
-                    param.BoundInputX!.CurrentValue,
-                    param.BoundInputY!.CurrentValue,
+                    (float)param.BoundInputX!.CurrentValue,
+                    (float)param.BoundInputY!.CurrentValue,
                     axisXValues,
                     axisYValues
                 );
@@ -155,9 +159,9 @@ public partial class MainViewModel : INotifyPropertyChanged
         }
 
         // 2. Если включено, запускаем опрос сигналов (polling)
-        if (_isPollingEnabled && _commService.IsConnected)
+        if (_isPollingEnabled && CommunicationService.Instance.IsConnected)
         {
-            PollNextTelemetryVariable();
+            //PollNextTelemetryVariable();
         }
     }
 
@@ -181,47 +185,5 @@ public partial class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    // Вспомогательный метод для опроса следующего сигнала
-    private async void PollNextTelemetryVariable()
-    {
-        // 1. Фильтруем активные виджеты: ищем среди них только сигналы телеметрии (IsParam = false)
-        var activeSignals = ActiveWidgets
-            .Where(w => w.DataSource != null && !w.DataSource.IsParam)
-            .Select(w => w.DataSource)
-            .ToList();
-
-        if (activeSignals.Count == 0) return;
-
-        // 2. Индекс циклического перебора ( Round-Robin )
-        if (_currentPollingIndex >= activeSignals.Count)
-        {
-            _currentPollingIndex = 0;
-        }
-
-        var variableToPoll = activeSignals[_currentPollingIndex];
-        _currentPollingIndex++;
-
-        // 🔥 ИСПРАВЛЕНИЕ: Прямая асинхронная отправка параметров строго по вашей карте байт из app_link.c!
-        try
-        {
-            byte cmd = 0x02; // CMD_VAR_READ (Операция чтения)
-            byte modelId = variableToPoll.ModelId;
-            byte varId = (byte)variableToPoll.Id; // Однобайтовый ID из прошивки
-            byte elementsCount = (byte)(variableToPoll.Rows * variableToPoll.Cols);
-
-            // При чтении Payload (данные) пустой — шлем пустой массив байт
-            byte[] emptyPayload = Array.Empty<byte>();
-
-            if (_commService != null && _commService.IsConnected)
-            {
-                // Раскомментируем и вызываем твой реальный Task-метод!
-                await _commService.SendPacketAsync(modelId, cmd, varId, elementsCount, emptyPayload);
-            }
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"[UART Polling Error]: {ex.Message}");
-        }
-    }
 
 }

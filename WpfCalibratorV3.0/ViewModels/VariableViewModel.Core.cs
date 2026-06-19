@@ -17,6 +17,12 @@ public partial class VariableViewModel : INotifyPropertyChanged
     public string Type { get; init; } = ""; // "single", "double", "int32" и т.д.
     public int ElementSize { get; init; } // Размер одного элемента в байтах
     public bool IsParam { get; init; } // True, если это параметр (calibratable)
+
+    /// <summary>
+    /// Флаг-предохранитель: true временно блокирует отправку пакета записи обратно в UART при сетевом обновлении телеметрии
+    /// </summary>
+    //public bool IsUpdatingFromNetwork { get; set; } = false;
+
     public int Rows { get; init; }
     public int Cols { get; init; }
     public string Comment { get; init; } = "";
@@ -253,21 +259,8 @@ public partial class VariableViewModel : INotifyPropertyChanged
     }
 
     // Методы для работы с MatrixData
-    public void UpdateMatrixValue(int row, int col, float newValue)
-    {
-        if (row >= 0 && row < Rows && col >= 0 && col < Cols)
-        {
-            MatrixData[row, col] = newValue; // Записали в массив
 
-            if (IsParam)
-            {
-                if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
-                {
-                    _ = mainVm.SendTableToUartAsync(this); // <=== ВОТ ОН, ВЫЗОВ UART!
-                }
-            }
-        }
-    }
+
 
 
 
@@ -491,21 +484,43 @@ public partial class VariableViewModel : INotifyPropertyChanged
                 }
             }
         }
-
+        // ВНУТРИ МЕТОДОВ IncrementSelectedCell и DecrementSelectedCell ПОСЛЕ ЦИКЛА:
         if (hasChanges)
         {
-            // Перегенерируем текстовые ячейки для отображения новых цифр на экране
-            RebuildMatrixCells();
+            // 1. Мгновенно обновляем текст в ячейках на экране компьютера своими силами
+            RebuildMatrixCells(false);
 
-            // Пинаем радиальные свойства и стрелочки, если они завязаны на этот параметр
-            //NotifyValueAngleChanged();
-
-            // Одним монолитным Column-Major пакетом отправляем измененную таблицу в STM32!
-            if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+            // 2. МАРШАЛИНГ В DOUBLE: Вытаскиваем всю двухмерную матрицу MatrixData 
+            // в один плоский одномерный массив double[] для Диспетчера.
+            // Переводим строго в Row-Major порядке C# (строка за строкой), 
+            // так как наш MATLAB-маршалер в сервисе связи сам развернет его в Column-Major!
+            double[] flatPayload = new double[Rows * Cols];
+            int idx = 0;
+            for (int r = 0; r < Rows; r++)
             {
-                _ = mainVm.SendTableToUartAsync(this);
+                for (int c = 0; c < Cols; c++)
+                {
+                    flatPayload[idx++] = MatrixData[r, c];
+                }
             }
+
+            // 3. ФОРМИРУЕМ ВЫСОКОУРОВНЕВУЮ КОМАНДУ ЗАПИСИ
+            var writeCmd = new Models.NetworkCommand
+            {
+                ModelId = this.ModelId,
+                Cmd = Models.LinkCommand.VarWrite, // Операция записи (0x01)
+                VarId = (byte)this.Id,
+                DataType = this.Type,
+                Rows = this.Rows,
+                Cols = this.Cols,
+                PayloadData = flatPayload
+            };
+
+            // 4. ПУШ В ОЧЕРЕДЬ: Заталкиваем калибровку в приоритетную очередь Арбитра.
+            // Он мгновенно приостановит фоновую телеметрию и выстрелит этот пакет следующим!
+            Services.BusArbiter.Instance.PushCommand(writeCmd);
         }
+
     }
 
     /// <summary>
@@ -539,16 +554,43 @@ public partial class VariableViewModel : INotifyPropertyChanged
             }
         }
 
+        // ВНУТРИ МЕТОДОВ IncrementSelectedCell и DecrementSelectedCell ПОСЛЕ ЦИКЛА:
         if (hasChanges)
         {
-            RebuildMatrixCells();
-            //NotifyValueAngleChanged();
+            // 1. Мгновенно обновляем текст в ячейках на экране компьютера своими силами
+            RebuildMatrixCells(false);
 
-            if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+            // 2. МАРШАЛИНГ В DOUBLE: Вытаскиваем всю двухмерную матрицу MatrixData 
+            // в один плоский одномерный массив double[] для Диспетчера.
+            // Переводим строго в Row-Major порядке C# (строка за строкой), 
+            // так как наш MATLAB-маршалер в сервисе связи сам развернет его в Column-Major!
+            double[] flatPayload = new double[Rows * Cols];
+            int idx = 0;
+            for (int r = 0; r < Rows; r++)
             {
-                _ = mainVm.SendTableToUartAsync(this);
+                for (int c = 0; c < Cols; c++)
+                {
+                    flatPayload[idx++] = MatrixData[r, c];
+                }
             }
+
+            // 3. ФОРМИРУЕМ ВЫСОКОУРОВНЕВУЮ КОМАНДУ ЗАПИСИ
+            var writeCmd = new Models.NetworkCommand
+            {
+                ModelId = this.ModelId,
+                Cmd = Models.LinkCommand.VarWrite, // Операция записи (0x01)
+                VarId = (byte)this.Id,
+                DataType = this.Type,
+                Rows = this.Rows,
+                Cols = this.Cols,
+                PayloadData = flatPayload
+            };
+
+            // 4. ПУШ В ОЧЕРЕДЬ: Заталкиваем калибровку в приоритетную очередь Арбитра.
+            // Он мгновенно приостановит фоновую телеметрию и выстрелит этот пакет следующим!
+            Services.BusArbiter.Instance.PushCommand(writeCmd);
         }
+
     }
 
 

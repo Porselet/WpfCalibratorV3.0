@@ -19,10 +19,9 @@ public partial class MainWindow : Window
 
         // Собираем зависимости вручную (Pure DI)
         var configManager = new ConfigurationManager();
-        var commService = new CommunicationService();
 
         // Инициализируем вьюмодель, передавая ей созданные сервисы
-        var viewModel = new MainViewModel(commService, configManager);
+        var viewModel = new MainViewModel(configManager);
 
         // Привязываем DataContext к главному окну. 
         // Все вложенные элементы (панель и холст) унаследуют его автоматически!
@@ -210,15 +209,28 @@ public partial class MainWindow : Window
             // Выключаем режим ввода ячейки/скаляра
             activeTable.IsEditing = false;
 
-            // Если это одиночный скаляр — принудительно выстреливаем его в UART по Enter!
-            // (Для таблиц отправка сработает автоматически через UpdateMatrixValue по потере фокуса)
+            // ИСПРАВЛЕНО: Если это одиночный скаляр — пакуем его число и пушим в приоритетную очередь Арбитра!
+            // (Для таблиц отправка сработает автоматически через потерю фокуса и метод UpdateMatrixValue)
             if (activeWidget.ControlView != "MatrixTable")
             {
-                _ = mainVm.SendTableToUartAsync(activeTable);
+                var writeCmd = new WpfCalibrator.Models.NetworkCommand
+                {
+                    ModelId = activeTable.ModelId,
+                    Cmd = WpfCalibrator.Models.LinkCommand.VarWrite, // Операция записи
+                    VarId = (byte)activeTable.Id,
+                    DataType = activeTable.Type,
+                    Rows = 1,
+                    Cols = 1,
+                    PayloadData = new double[] { activeTable.CurrentValue } // Берем обновленное double-значение константы
+                };
+
+                // Отправляем транзакцию на конвейер Диспетчера
+                WpfCalibrator.Services.BusArbiter.Instance.PushCommand(writeCmd);
             }
 
             handled = true;
         }
+
 
         // 6. СБРОС ВВОДА ПО ESCAPE
         if (e.Key == Key.Escape && activeTable.IsEditing)

@@ -6,6 +6,51 @@ namespace WpfCalibrator.ViewModels
     {
         private ObservableCollection<MatrixCellViewModel> _matrixCells = new();
         public ObservableCollection<MatrixCellViewModel> MatrixCells => _matrixCells;
+
+        public void UpdateMatrixValue(int row, int col, float newValue)
+        {
+            if (row >= 0 && row < Rows && col >= 0 && col < Cols)
+            {
+                // ЖЕЛЕЗОБЕТОННЫЙ ИНЖЕНЕРНЫЙ ФИКС:
+                // Если значение в ячейке НЕ изменилось (просто прицел подсветил ячейку или сработал фокус WPF) —
+                // мы тихо выходим из метода, полностью блокируя паразитную генерацию пакетов записи!
+                if (MatrixData[row, col] == newValue)
+                {
+                    return;
+                }
+
+                MatrixData[row, col] = newValue; // Записали в массив памяти C#, только если число РЕАЛЬНО новое!
+
+                if (IsParam && !IsUpdatingFromNetwork && Services.BusArbiter.Instance.IsRunning)
+                {
+                    // Вытаскиваем всю двухмерную матрицу MatrixData в плоский массив double[]
+                    double[] flatPayload = new double[Rows * Cols];
+                    int idx = 0;
+                    for (int r = 0; r < Rows; r++)
+                    {
+                        for (int c = 0; c < Cols; c++)
+                        {
+                            flatPayload[idx++] = MatrixData[r, c];
+                        }
+                    }
+
+                    var writeCmd = new Models.NetworkCommand
+                    {
+                        ModelId = this.ModelId,
+                        Cmd = Models.LinkCommand.VarWrite,
+                        VarId = (byte)this.Id,
+                        DataType = this.Type,
+                        Rows = this.Rows,
+                        Cols = this.Cols,
+                        PayloadData = flatPayload
+                    };
+
+                    Services.BusArbiter.Instance.PushCommand(writeCmd);
+                }
+            }
+        }
+
+
         public void RebuildMatrixCells(bool isFromUart = false)
         {
             if (Rows <= 0 || Cols <= 0) return;
