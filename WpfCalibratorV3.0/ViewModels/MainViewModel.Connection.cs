@@ -82,26 +82,43 @@ public partial class MainViewModel
         // 2. Взводим наш флаг-щит сетевого обновления
         targetVariable.IsUpdatingFromNetwork = true;
 
-        // 3. Распределяем данные в ОЗУ вьюмодели C#
-        if (response.PayloadData.Length == 1)
+        // ======================================================================
+        // 3. РАСПРЕДЕЛЯЕМ ДАННЫЕ В ОЗУ ВЬЮМОДЕЛИ C# (СТРОГО ПОТОКОБЕЗОПАСНО!)
+        // ======================================================================
+        if (response.PayloadData == null || response.PayloadData.Length == 0) return;
+
+        // Принудительно переносим обновление графики в главный UI-поток Windows!
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
-            // Если скаляр — просто обновляем его одиночное double-значение!
-            targetVariable.CurrentValue = response.PayloadData[0];
-        }
-        else
-        {
-            // Если это многомерная таблица — сочно заливаем массив double[] в двухмерную матрицу MatrixData
-            int idx = 0;
-            for (int r = 0; r < response.Rows; r++)
+            if (response.PayloadData.Length == 1)
             {
-                for (int c = 0; c < response.Cols; c++)
-                {
-                    targetVariable.MatrixData[r, c] = (float)response.PayloadData[idx++];
-                }
+                // Если скаляр — записываем его в свойство CurrentValue.
+                // Теперь сеттер выполнится внутри UI-потока, безопасно переберет ActiveWidgets,
+                // и стрелки MoTeC вместе с графиками TimePlot мгновенно полетят в космос!
+                targetVariable.CurrentValue = response.PayloadData[0];
             }
-            // Перерисовываем ячейки на экране ноутбука
-            targetVariable.RebuildMatrixCells(true);
-        }
+            else
+            {
+                // Если это многомерная таблица (LUT) — взводим флаг сетевого обновления
+                targetVariable.IsUpdatingFromNetwork = true;
+
+                // Сочно заливаем массив double[] в двухмерную матрицу MatrixData
+                int idx = 0;
+                for (int r = 0; r < response.Rows; r++)
+                {
+                    for (int c = 0; c < response.Cols; c++)
+                    {
+                        targetVariable.MatrixData[r, c] = (float)response.PayloadData[idx++];
+                    }
+                }
+
+                // Перерисовываем ячейки таблицы на экране ноутбука
+                targetVariable.RebuildMatrixCells(true);
+
+                // Опускаем щит
+                targetVariable.IsUpdatingFromNetwork = false;
+            }
+        });
 
         // 4. Опускаем щит
         targetVariable.IsUpdatingFromNetwork = false;
