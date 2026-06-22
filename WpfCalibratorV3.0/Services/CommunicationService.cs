@@ -158,197 +158,129 @@ public sealed class CommunicationService : IDisposable
     }
 
     // 3. Прием пакетов (фоновый поток)
+
+    /// <summary>
+    /// Бесконечный фоновый поток вычерпывания физического буфера COM-порта.
+    /// Полностью переведен на неблокирующий стерильный конвейер WaitForBytesAsync.
+    /// </summary>
+    /// <summary>
+    /// Бесконечный фоновый поток вычерпывания физического буфера COM-порта.
+    /// Полностью переведен на неблокирующий стерильный конвейер WaitForBytesAsync.
+    /// </summary>
+    /// <summary>
+    /// Бесконечный фоновый поток вычерпывания физического буфера COM-порта.
+    /// Полностью переведен на неблокирующий стерильный конвейер WaitForBytesAsync.
+    /// </summary>
     private async System.Threading.Tasks.Task ListenAsync()
     {
-        byte[] headerBuffer = new byte[4]; // Буфер под оставшиеся 4 байта заголовка
-
-        // Железный щит: перехватывает системное исключение при жестком закрытии COM-порта извне
-        try
+        while (_serialPort != null && _serialPort.IsOpen)
         {
-            // === НАЧАЛО ЦИКЛА WHILE ВНУТРИ ListenAsync ===
-            while (_serialPort != null && _serialPort.IsOpen)
+            try
             {
-                try
+                // ======================================================================
+                // 1. ИЩЕМ ПРЕАМБУЛУ 0xAA (Жестко ждем 1 байт маркера старта)
+                // ======================================================================
+                byte[]? preambleResult = await WaitForBytesAsync(1, 300);
+                if (preambleResult == null) continue;
+
+                byte singleByte = preambleResult[0];
+
+                if (singleByte != 0xAA)
                 {
-
-                    // Железобетонный предохранитель от холостого хода
-                    /*if (_serialPort.BytesToRead == 0)
-                    {
-                        await System.Threading.Tasks.Task.Delay(5, _cts.Token);
-                        continue;
-                    }
-                    */
-                    // 🔥 ИСПРАВЛЕНО НАЧИСТО (БОРЬБА С ПРОМАХОМ УКАЗАТЕЛЯ):
-                    // Читаем один байт напрямую из системного буфера Windows синхронно!
-                    // Это исключит гонку асинхронных тасков .NET на стыке длинного DMA кадра.
-                    int singleByteInt = _serialPort.ReadByte();
-                    if (singleByteInt == -1) continue; // Порт пуст или закрылся
-
-                    byte singleByte = (byte)singleByteInt;
-
-                    // [Оставляем твой отладочный побайтовый сниффер мусора для проверки]
-                    if (singleByte != 0xAA)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[UART-GARBAGE] Пропущен байт мусора: 0x{singleByte:X2}");
-                        continue; // Ищем 0xAA дальше
-                    }
-
-
-
-
-
-
-                    // 3. Нашли 0xAA! Срочно дочитываем остальные 4 байта заголовка кадра
-                    int headerRead = 0;
-                    while (headerRead < 4)
-                    {
-                        int currentRead = await _serialPort.BaseStream.ReadAsync(headerBuffer, headerRead, 4 - headerRead);
-                        if (currentRead == 0)
-                        {
-                            await System.Threading.Tasks.Task.Yield();
-                            break;
-                        }
-                        headerRead += currentRead;
-                    }
-
-                    if (headerRead < 4) continue; // Недогруженный заголовок — сброс кадра
-
-                    // Десериализуем поля заголовка
-                    byte modelId = headerBuffer[0];
-                    byte cmd = headerBuffer[1];
-                    byte varId = headerBuffer[2];
-                    byte elementsCount = headerBuffer[3];
-
-                    // ======================================================================
-                    // 4. ДИНАМИЧЕСКИЙ РАСЧЕТ РАЗМЕРА ПОЛЕЗНОЙ НАГРУЗКИ (PAYLOAD)
-                    // ======================================================================
-                    int payloadSize = 0;
-
-                    // Данные прилетают И на Чтение (0x02), И на Запись (0x01) согласно нашему Handshake!
-                    if (cmd == 0x02 || cmd == 0x01)
-                    {
-                        // Чистая автономность: берем точный размер типа, который нам оставил поток отправки!
-                        payloadSize = elementsCount * _expectedElementSize;
-                    }
-                    // Если cmd == 0x03 (Flash ACK) — полезной нагрузки нет, payloadSize остается 0
-
-                    // 5. Выделяем буфер под полный кадр: 5 байт заголовка + данные + 1 байт CRC
-                    byte[] fullPacket = new byte[5 + payloadSize + 1];
-                    fullPacket[0] = 0xAA;
-                    Buffer.BlockCopy(headerBuffer, 0, fullPacket, 1, 4);
-
-                    // ======================================================================
-                    // 6. Вычитываем из порта саму полезную нагрузку (payload) + 1 байт CRC
-                    // ======================================================================
-                    int targetBytesToRead = payloadSize + 1;
-                    int totalBytesRead = 0;
-
-                    while (totalBytesRead < targetBytesToRead)
-                    {
-                        int currentRead = await _serialPort.BaseStream.ReadAsync(fullPacket, 5 + totalBytesRead, targetBytesToRead - totalBytesRead);
-
-                        if (currentRead == 0)
-                        {
-                            // ЖЕЛЕЗОБЕТОННЫЙ ФИКС БАГА ШРЁДИНГЕРА:
-                            // Если виртуальный COM-порт кратковременно пуст, но соединение открыто — 
-                            // мы категорически НЕ делаем break! Мы вежливо уступаем микросекунду 
-                            // операционной системе Windows через Yield, давая USB-чипу время догрузить 
-                            // отставший хвост таблицы, и упорно продолжаем собирать кадр дальше!
-                            if (_serialPort != null && _serialPort.IsOpen)
-                            {
-                                await System.Threading.Tasks.Task.Yield();
-                                continue;
-                            }
-                            else
-                            {
-                                break; // Если порт реально закрыли физически — выходим
-                            }
-                        }
-
-                        totalBytesRead += currentRead;
-                    }
-                    string rxDescB = $"RXRAW [CMD: 0x{cmd:X2}, VarId: {varId}, Len: {elementsCount}]";
-                    WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDescB, fullPacket);
-
-                    // 7. РАСЧЕТ И ПРОВЕРКА КОНТРОЛЬНОЙ СУММЫ (CRC-8 SAE J1850)
-                    byte receivedCrc = fullPacket[fullPacket.Length - 1];
-                    byte calculatedCrc = CalculateCRC8_SAE_J1850(fullPacket, fullPacket.Length - 1);
-
-                    if (calculatedCrc == receivedCrc)
-                    {
-                        string rxDesc = $"RX [CMD: 0x{cmd:X2}, VarId: {varId}, Len: {elementsCount}]";
-                        WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDesc, fullPacket);
-
-                        // АСИНХРОННЫЙ ТРИГГЕР: Разблокируем шлагбаум
-                        var tcs = _responseCompletionSource;
-                        if (tcs != null && (int)cmd == _expectedCmd && (int)varId == _expectedVarId)
-                        {
-                            tcs.TrySetResult(true);
-                        }
-
-                        // 1. Распаковываем сырые байты полезной нагрузки в чистый плоский double[]
-                        double[] decodedData = DeserializeResponsePayload(varId, elementsCount, fullPacket, payloadSize);
-
-                        // 2. СИММЕТРИЧНЫЙ ОТВЕТ: Собираем чистый объект команды на основе сохраненных ожиданий!
-                        var responseCommand = new Models.NetworkCommand
-                        {
-                            ModelId = modelId,
-                            Cmd = (Models.LinkCommand)cmd,
-                            VarId = varId,
-                            DataType = _expectedDataType,
-                            Rows = _expectedRows,
-                            Cols = _expectedCols,
-                            PayloadData = decodedData
-                        };
-
-                        // 3. Выстреливаем объект наверх в MainViewModel.OnUartPacketReceived
-                        DataPacketReceived?.Invoke(responseCommand);
-
-                    }
-                    else
-                    {
-                        // Ошибка CRC — пакет искажен помехой или сдвигом фазы
-                        string crcErrDesc = $"[CRC ERROR] Заголовок VarId: {varId}, CMD: {cmd}. Ожидалось: 0x{calculatedCrc:X2}, Пришло: 0x{receivedCrc:X2}";
-                        WpfCalibrator.Views.UartMonitorWindow.LogPacket("CRC!", "#FF1111", crcErrDesc, fullPacket);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // ЖЕЛЕЗОБЕТОННЫЙ ФИКС БЕШЕНОГО ЦИКЛА .NET:
-                    // Если токен был легально отменен — мы просто выходим из цикла while, 
-                    // завершая фоновую задачу цивилизованно, без единого писка в лог!
-                    System.Diagnostics.Debug.WriteLine("--- [INFO] Поток ListenAsync штатно остановлен через токен отмены ---");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    // Если Windows шлет сигнал жесткого аборта операции чтения (The I/O operation has been aborted...)
-                    // из-за набегающих графических перерисовок метода RefreshAllLayoutParametersAsync — 
-                    // мы принудительно делаем микро-паузу и выходим на следующий круг, категорически запрещая 
-                    // программе уходить в бешеную рекурсию и забивать ОЗУ лавиной исключений!
-                    if (ex.Message.Contains("aborted"))
-                    {
-                        //System.Diagnostics.Debug.WriteLine($"[UART-ABORT-RECOVER] Перехвачен графический аборт шины в RefreshAllLayoutParameters. Восстанавливаем синхронизацию... Время: {DateTime.Now:mm:ss.fff}");
-
-                        // Даем операционной системе Windows 15 миллисекунд полностью очистить 
-                        // и перезапустить внутренние дескрипторы порта после графического фриза
-                        await System.Threading.Tasks.Task.Delay(15);
-                        continue; // Спокойно идем на следующий кругwhile, удерживая поток приёма ЖИВЫМ!
-                    }
-
-                    System.Diagnostics.Debug.WriteLine($"Локальный сбой пакета в UART: {ex.Message}");
-                    await System.Threading.Tasks.Task.Delay(10);
+                    System.Diagnostics.Debug.WriteLine($"[UART-GARBAGE] Пропущен байт мусора: 0x{singleByte:X2}");
+                    continue;
                 }
 
+                // ======================================================================
+                // 2. СТЕРИЛЬНЫЙ ПЕРЕХВАТ ЗАГЛОВКА (Жестко дочитываем остальные 4 байта)
+                // ======================================================================
+                byte[]? headerResult = await WaitForBytesAsync(4, 100);
+                if (headerResult == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[UART-ERROR] Обрыв кадра: заголовок не долетел.");
+                    continue;
+                }
+
+                byte modelId = headerResult[0];
+                byte cmd = headerResult[1];
+                byte varId = headerResult[2];
+                byte elementsCount = headerResult[3];
+
+                // Рассчитываем точную геометрию кадра полезной нагрузки
+                int payloadSize = elementsCount * _expectedElementSize;
+                int totalPacketSize = 5 + payloadSize + 1; // 5 байт заголовка + payload + 1 байт CRC
+
+                // Выделяем монолитный буфер под весь пакет и упаковываем туда заголовок
+                byte[] fullPacket = new byte[totalPacketSize];
+                fullPacket[0] = 0xAA;
+                System.Array.Copy(headerResult, 0, fullPacket, 1, 4);
+
+                // ======================================================================
+                // 3. СТЕРИЛЬНЫЙ ПЕРЕХВАТ ДАННЫХ И CRC (Жестко ждем весь остаток кадра куском!)
+                // ======================================================================
+                byte[]? payloadResult = await WaitForBytesAsync(payloadSize + 1, 400);
+                if (payloadResult == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UART-ERROR] Обрыв кадра: данные VarId {varId} не долетели по таймауту.");
+                    continue;
+                }
+
+                // Допаковываем прилетевшие данные float и CRC в наш полный пакет
+                System.Array.Copy(payloadResult, 0, fullPacket, 5, payloadResult.Length);
+
+                // Извлекаем финальный байт контрольной суммы кадра
+                byte receivedCrc = fullPacket[fullPacket.Length - 1];
+
+                // ======================================================================
+                // 4. МАТЕМАТИЧЕСКАЯ ВАЛИДАЦИЯ ТВОИМ РОДНЫМ МЕТОДОМ CalculateCRC8_SAE_J1850
+                // ======================================================================
+                byte calculatedCrc = CalculateCRC8_SAE_J1850(fullPacket, fullPacket.Length - 1);
+
+                if (calculatedCrc == receivedCrc)
+                {
+                    string rxDesc = $"RX [CMD: 0x{cmd:X2}, VarId: {varId}, Len: {elementsCount}]";
+                    WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDesc, fullPacket);
+
+                    // АСИНХРОННЫЙ ТРИГГЕР: Разблокируем шлагбаум
+                    var tcs = _responseCompletionSource;
+                    if (tcs != null && (int)cmd == _expectedCmd && (int)varId == _expectedVarId)
+                    {
+                        tcs.TrySetResult(true);
+                    }
+
+                    // 1. Распаковываем сырые байты полезной нагрузки в чистый плоский double[]
+                    double[] decodedData = DeserializeResponsePayload(varId, elementsCount, fullPacket, payloadSize);
+
+                    // 2. СИММЕТРИЧНЫЙ ОТВЕТ: Собираем чистый объект команды на основе сохраненных ожиданий!
+                    var responseCommand = new Models.NetworkCommand
+                    {
+                        ModelId = modelId,
+                        Cmd = (Models.LinkCommand)cmd,
+                        VarId = varId,
+                        DataType = _expectedDataType,
+                        Rows = _expectedRows,
+                        Cols = _expectedCols,
+                        PayloadData = decodedData
+                    };
+
+                    // 3. Выстреливаем объект наверх в MainViewModel.OnUartPacketReceived
+                    DataPacketReceived?.Invoke(responseCommand);
+                }
+                else
+                {
+                    string crcErrDesc = $"[CRC ERROR] Заголовок VarId: {varId}, CMD: {cmd}. Ожидалось: 0x{calculatedCrc:X2}, Пришло: 0x{receivedCrc:X2}";
+                    System.Diagnostics.Debug.WriteLine(crcErrDesc);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UART-CRITICAL-EXCEPTION]: {ex.Message}");
+                await System.Threading.Tasks.Task.Delay(20);
             }
         }
-        catch (Exception)
-        {
-            // Попадаем сюда, когда инженер нажал "Отключить" и поток ReadAsync аварийно проснулся.
-            // Мы тихо гасим фоновый поток без падения софта и вывода ошибок пользователю.
-            System.Diagnostics.Debug.WriteLine("--- [INFO] Фоновый поток UART ListenAsync успешно остановлен по закрытию порта ---");
-        }
     }
+
+
     // 4. Вспомогательные методы
     private byte CalculateCRC8_SAE_J1850(byte[] data, int length)
     {
@@ -666,6 +598,57 @@ public sealed class CommunicationService : IDisposable
         return bytePayload;
     }
 
+    /// <summary>
+    /// БРОНЕБОЙНЫЙ ИНСТРУМЕНТ ВЫЧИТКИ: упорно дожидается и забирает из порта СТРОГО заданное количество байт.
+    /// Не блокирует поток, не дергает вхолостую Win32 API и полностью защищен от ложных исключений Windows.
+    /// </summary>
+    /// <param name="count">Сколько байт нам жестко необходимо получить</param>
+    /// <param name="timeoutMs">Максимальное время ожидания в миллисекундах</param>
+    /// <returns>Массив байт ровно заданного размера, либо null в случае таймаута или обрыва связи</returns>
+    private async System.Threading.Tasks.Task<byte[]?> WaitForBytesAsync(int count, int timeoutMs)
+    {
+        byte[] buffer = new byte[count];
+        int totalBytesRead = 0;
+
+        // Засекаем системное время старта на ноутбуке
+        var startTime = System.DateTime.Now;
+
+        while (totalBytesRead < count)
+        {
+            // Предохранитель №1: если порт закрылся или токен отменили — мгновенно выходим
+            if (_serialPort == null || !_serialPort.IsOpen || _cts.IsCancellationRequested)
+            {
+                return null;
+            }
+
+            // Предохранитель №2: жесткий программный таймаут транзакции
+            if ((System.DateTime.Now - startTime).TotalMilliseconds > timeoutMs)
+            {
+                return null;
+            }
+
+            // Смотрим, сколько байт физически лежит в буфере Windows прямо сейчас
+            int available = _serialPort.BytesToRead;
+            if (available > 0)
+            {
+                // Выгребаем из порта ровно столько, сколько привалило, но не больше, чем нам осталось дочитать
+                int bytesToReadNow = System.Math.Min(available, count - totalBytesRead);
+
+                // Вызываем прямолинейный синхронный Read, который на заполненном буфере 
+                // отрабатывает за 0 наносекунд и никогда не генерирует IOException!
+                int read = _serialPort.Read(buffer, totalBytesRead, bytesToReadNow);
+                totalBytesRead += read;
+            }
+            else
+            {
+                // Если буфер Windows пуст — вежливо уступаем 1 мс операционной системе,
+                // полностью разгружая процессор и давая USB-чипу время подгрузить байты.
+                await System.Threading.Tasks.Task.Delay(1, _cts.Token);
+            }
+        }
+
+        return buffer; // УСПЕХ: Ровно count байт монолитно собраны в ОЗУ компьютера!
+    }
 
 
 }
