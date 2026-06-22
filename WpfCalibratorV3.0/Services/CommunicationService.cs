@@ -46,9 +46,9 @@ public sealed class CommunicationService : IDisposable
     private System.Threading.Tasks.TaskCompletionSource<bool>? _responseCompletionSource;
 
     // Технические переменные для контроля: какой именно зеркальный ответ мы сейчас ждем от STM32
-    private byte _expectedCmd;
-    private byte _expectedVarId;
-    private int _expectedElementSize = 4; // НОВОЕ: Ожидаемый размер одного элемента в байтах
+    private volatile byte _expectedCmd;
+    private volatile byte _expectedVarId;
+    private volatile int _expectedElementSize = 4; // НОВОЕ: Ожидаемый размер одного элемента в байтах
     private int _expectedRows = 1; // Ожидаемое количество строк матрицы ответа
     private int _expectedCols = 1; // Ожидаемое количество колонок матрицы ответа
     private string _expectedDataType = "single"; // Ожидаемый тип данных Матлаба
@@ -220,18 +220,38 @@ public sealed class CommunicationService : IDisposable
                     fullPacket[0] = 0xAA;
                     Buffer.BlockCopy(headerBuffer, 0, fullPacket, 1, 4);
 
+                    // ======================================================================
                     // 6. Вычитываем из порта саму полезную нагрузку (payload) + 1 байт CRC
+                    // ======================================================================
                     int targetBytesToRead = payloadSize + 1;
                     int totalBytesRead = 0;
 
                     while (totalBytesRead < targetBytesToRead)
                     {
                         int currentRead = await _serialPort.BaseStream.ReadAsync(fullPacket, 5 + totalBytesRead, targetBytesToRead - totalBytesRead);
-                        if (currentRead == 0) break;
+
+                        if (currentRead == 0)
+                        {
+                            // ЖЕЛЕЗОБЕТОННЫЙ ФИКС БАГА ШРЁДИНГЕРА:
+                            // Если виртуальный COM-порт кратковременно пуст, но соединение открыто — 
+                            // мы категорически НЕ делаем break! Мы вежливо уступаем микросекунду 
+                            // операционной системе Windows через Yield, давая USB-чипу время догрузить 
+                            // отставший хвост таблицы, и упорно продолжаем собирать кадр дальше!
+                            if (_serialPort != null && _serialPort.IsOpen)
+                            {
+                                await System.Threading.Tasks.Task.Yield();
+                                continue;
+                            }
+                            else
+                            {
+                                break; // Если порт реально закрыли физически — выходим
+                            }
+                        }
+
                         totalBytesRead += currentRead;
                     }
 
-                    if (totalBytesRead < targetBytesToRead) continue; // Пакет оборван на середине — сброс
+
 
                     // 7. РАСЧЕТ И ПРОВЕРКА КОНТРОЛЬНОЙ СУММЫ (CRC-8 SAE J1850)
                     byte receivedCrc = fullPacket[fullPacket.Length - 1];
@@ -242,9 +262,9 @@ public sealed class CommunicationService : IDisposable
                         string rxDesc = $"RX [CMD: 0x{cmd:X2}, VarId: {varId}, Len: {elementsCount}]";
                         WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDesc, fullPacket);
 
-                        // АСИНХРОННЫЙ ТРИГГЕР: Разблокируем шлагбаум очереди Диспетчера
+                        // АСИНХРОННЫЙ ТРИГГЕР: Разблокируем шлагбаум
                         var tcs = _responseCompletionSource;
-                        if (tcs != null && cmd == _expectedCmd && varId == _expectedVarId)
+                        if (tcs != null && (int)cmd == _expectedCmd && (int)varId == _expectedVarId)
                         {
                             tcs.TrySetResult(true);
                         }
@@ -436,16 +456,30 @@ public sealed class CommunicationService : IDisposable
             await SendPacketAsync(cmd.ModelId, (byte)cmd.Cmd, cmd.VarId, elementsCount, payloadBytes);
 
 
-            // 5. ТАЙМАУТ-ПРЕДОХРАНИТЕЛЬ: Ожидаем ответ 50 миллисекунд
-            var timeoutTask = System.Threading.Tasks.Task.Delay(50);
+            // 5. ДИНАМИЧЕСКИЙ ТАЙМАУТ-ПРЕДОХРАНИТЕЛЬ: 
+            // Вычисляем время ожидания на основе тяжести пакета.
+            // Базовые 60 мс на задержки ОС Windows + 1.5 мс на каждый элемент float/double в проводе.
+            int totalElements = cmd.Rows * cmd.Cols;
+            int dynamicTimeoutMs = 160 + (int)(totalElements * 1.5) + 300;
+
+            // На всякий случай ограничиваем максимальный таймаут сверху (например, 1.5 секунды), 
+            // чтобы при полном обрыве кабеля софт не зависал бесконечно.
+            if (dynamicTimeoutMs > 1500) dynamicTimeoutMs = 1500;
+
+            var timeoutTask = System.Threading.Tasks.Task.Delay(dynamicTimeoutMs);
             var completedTask = await System.Threading.Tasks.Task.WhenAny(_responseCompletionSource.Task, timeoutTask);
 
             if (completedTask == timeoutTask)
             {
-                string errDesc = $"[TIMEOUT] Отсутствует ответ от МК на команду {cmd.Cmd} (VarId: {cmd.VarId})";
+                // Случился АППАРАТНЫЙ ТАЙМАУТ (Плата или буфер Windows не успели за dynamicTimeoutMs)
+                string errDesc = $"[TIMEOUT] Отсутствует ответ от МК на команду {cmd.Cmd} (VarId: {cmd.VarId}) за {dynamicTimeoutMs}мс";
+
+                // Выводим красную строку в наш текстовый терминал пакетов
                 WpfCalibrator.Views.UartMonitorWindow.LogPacket("ERR !", "#FF5555", errDesc, Array.Empty<byte>());
-                return false;
+
+                return false; // Транзакция сорвалась
             }
+
 
             return true;
         }
