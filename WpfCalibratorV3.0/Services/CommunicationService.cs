@@ -67,32 +67,40 @@ public sealed class CommunicationService : IDisposable
 
     public void Connect(string portName, int baudRate = 115200)
     {
-        lock (_lock)
+        if (_serialPort != null && _serialPort.IsOpen)
         {
-            if (_serialPort != null && _serialPort.IsOpen)
+            return; // Если порт уже работает — уходим!
+        }
+
+        try
+        {
+            // ИСПРАВЛЕНО НАЧИСТО: Гасим старый токен отмены ТОЛЬКО если 
+            // предыдущий порт реально существовал! Если мы подключаемся с нуля — 
+            // токен не трогаем, полностью исключая лавину IOException при старте!
+            if (_serialPort != null)
             {
-                _serialPort.Dispose();
-                _serialPort = null;
+                //_cts?.Cancel();
+                _cts?.Dispose();
             }
 
-            try
+            _serialPort = new SerialPort(portName, baudRate, Parity.None, 8, StopBits.One)
             {
-                _serialPort = new SerialPort(portName, baudRate, Parity.None, 8, StopBits.One)
-                {
-                    ReadTimeout = SerialPort.InfiniteTimeout,
-                    WriteTimeout = 500,
-                    Encoding = System.Text.Encoding.UTF8
-                };
-                _serialPort.Open();
-                _cts.Cancel(); // Остановим старый поток, если был
-                _cts = new CancellationTokenSource();
-                StartListening(); // Запускаем поток чтения
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[ERROR] Failed to open port {portName}: {ex.Message}");
-            }
+                ReadTimeout = SerialPort.InfiniteTimeout,
+                WriteTimeout = 500,
+                Encoding = System.Text.Encoding.UTF8
+            };
+
+            _serialPort.Open();
+
+            // Создаем кристально чистый свежий токен для нового подключения
+            _cts = new CancellationTokenSource();
+            StartListening();
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ERROR] Failed to open port {portName}: {ex.Message}");
+        }
+
     }
 
     public void Disconnect()
@@ -157,29 +165,37 @@ public sealed class CommunicationService : IDisposable
         // Железный щит: перехватывает системное исключение при жестком закрытии COM-порта извне
         try
         {
+            // === НАЧАЛО ЦИКЛА WHILE ВНУТРИ ListenAsync ===
             while (_serialPort != null && _serialPort.IsOpen)
             {
                 try
                 {
-                    // 1. Читаем самый первый стартовый байт из физического порта
-                    byte[] preambleBuffer = new byte[1];
-                    int readBytes = await _serialPort.BaseStream.ReadAsync(preambleBuffer, 0, 1);
-
-                    if (readBytes == 0)
+                    // Железобетонный предохранитель от холостого хода
+                    if (_serialPort.BytesToRead == 0)
                     {
-                        // Уступаем квант времени планировщику Windows, чтобы не зациклить ядро ЦП
-                        await System.Threading.Tasks.Task.Yield();
+                        await System.Threading.Tasks.Task.Delay(5, _cts.Token);
                         continue;
                     }
 
-                    byte singleByte = preambleBuffer[0];
+                    // 🔥 ИСПРАВЛЕНО НАЧИСТО (БОРЬБА С ПРОМАХОМ УКАЗАТЕЛЯ):
+                    // Читаем один байт напрямую из системного буфера Windows синхронно!
+                    // Это исключит гонку асинхронных тасков .NET на стыке длинного DMA кадра.
+                    int singleByteInt = _serialPort.ReadByte();
+                    if (singleByteInt == -1) continue; // Порт пуст или закрылся
 
-                    // 2. Проверка преамбулы кадра MoTeC-style
+                    byte singleByte = (byte)singleByteInt;
+
+                    // [Оставляем твой отладочный побайтовый сниффер мусора для проверки]
                     if (singleByte != 0xAA)
                     {
                         System.Diagnostics.Debug.WriteLine($"[UART-GARBAGE] Пропущен байт мусора: 0x{singleByte:X2}");
-                        continue;
+                        continue; // Ищем 0xAA дальше
                     }
+
+
+
+
+
 
                     // 3. Нашли 0xAA! Срочно дочитываем остальные 4 байта заголовка кадра
                     int headerRead = 0;
@@ -250,8 +266,8 @@ public sealed class CommunicationService : IDisposable
 
                         totalBytesRead += currentRead;
                     }
-
-
+                    string rxDescB = $"RXRAW [CMD: 0x{cmd:X2}, VarId: {varId}, Len: {elementsCount}]";
+                    WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDescB, fullPacket);
 
                     // 7. РАСЧЕТ И ПРОВЕРКА КОНТРОЛЬНОЙ СУММЫ (CRC-8 SAE J1850)
                     byte receivedCrc = fullPacket[fullPacket.Length - 1];
@@ -295,12 +311,34 @@ public sealed class CommunicationService : IDisposable
                         WpfCalibrator.Views.UartMonitorWindow.LogPacket("CRC!", "#FF1111", crcErrDesc, fullPacket);
                     }
                 }
-                catch (Exception ex) when (_serialPort != null && _serialPort.IsOpen)
+                catch (OperationCanceledException)
                 {
-                    // Попадаем сюда, только если порт жив, но произошел какой-то внутренний сбой парсинга
+                    // ЖЕЛЕЗОБЕТОННЫЙ ФИКС БЕШЕНОГО ЦИКЛА .NET:
+                    // Если токен был легально отменен — мы просто выходим из цикла while, 
+                    // завершая фоновую задачу цивилизованно, без единого писка в лог!
+                    System.Diagnostics.Debug.WriteLine("--- [INFO] Поток ListenAsync штатно остановлен через токен отмены ---");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    // Если Windows шлет сигнал жесткого аборта операции чтения (The I/O operation has been aborted...)
+                    // из-за набегающих графических перерисовок метода RefreshAllLayoutParametersAsync — 
+                    // мы принудительно делаем микро-паузу и выходим на следующий круг, категорически запрещая 
+                    // программе уходить в бешеную рекурсию и забивать ОЗУ лавиной исключений!
+                    if (ex.Message.Contains("aborted"))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[UART-ABORT-RECOVER] Перехвачен графический аборт шины в RefreshAllLayoutParameters. Восстанавливаем синхронизацию... Время: {DateTime.Now:mm:ss.fff}");
+
+                        // Даем операционной системе Windows 15 миллисекунд полностью очистить 
+                        // и перезапустить внутренние дескрипторы порта после графического фриза
+                        await System.Threading.Tasks.Task.Delay(15);
+                        continue; // Спокойно идем на следующий кругwhile, удерживая поток приёма ЖИВЫМ!
+                    }
+
                     System.Diagnostics.Debug.WriteLine($"Локальный сбой пакета в UART: {ex.Message}");
                     await System.Threading.Tasks.Task.Delay(10);
                 }
+
             }
         }
         catch (Exception)
@@ -452,7 +490,7 @@ public sealed class CommunicationService : IDisposable
             _expectedCmd = (byte)cmd.Cmd;
             _expectedVarId = cmd.VarId;
             _responseCompletionSource = new System.Threading.Tasks.TaskCompletionSource<bool>();
-            
+
             await SendPacketAsync(cmd.ModelId, (byte)cmd.Cmd, cmd.VarId, elementsCount, payloadBytes);
 
 

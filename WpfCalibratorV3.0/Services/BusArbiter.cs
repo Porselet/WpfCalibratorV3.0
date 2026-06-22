@@ -31,6 +31,8 @@ namespace WpfCalibrator.Services
         // НОВОЕ: Открываем статус работы планировщика для вьюмоделей
         public bool IsRunning => _isRunning;
 
+        // Флаг-замок: блокирует фоновый опрос телеметрии на время прогрузки калибровочных таблиц
+        public bool IsLoadingParameters { get; set; } = false;
 
         // Закрытый конструктор, чтобы никто не мог создать Диспетчер через new()
         private BusArbiter()
@@ -252,6 +254,11 @@ namespace WpfCalibrator.Services
                 // ======================================================================
                 // 2. ЭТАП ТРАНСПОРТА: Физическая отправка и ожидание Handshake от платы
                 // ======================================================================
+
+                // ТЕСТОВЫЙ МАРКЕР ОЧЕРЕДИ: Печатаем в дебаг, кто именно летит в провод
+                System.Diagnostics.Debug.WriteLine($"[ARBITER-TX] Выстрел кадра! CMD: {nextCmd.Cmd}, VarId: {nextCmd.VarId}, Элементов: {nextCmd.Rows * nextCmd.Cols}. Время: {DateTime.Now:mm:ss.fff}");
+
+
                 // Используем наш глобальный Синглтон вместо удаленного локального поля!
                 bool isSuccess = await CommunicationService.Instance.ExecuteCommandAsync(nextCmd);
 

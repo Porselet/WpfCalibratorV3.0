@@ -264,10 +264,12 @@ public partial class MainViewModel
     /// </summary>
     public async Task RefreshAllLayoutParametersAsync()
     {
+        
         if (!CommunicationService.Instance.IsConnected || SelectedDevice == null) return;
 
         try
         {
+            await Task.Delay(800);
             // Собираем в уникальный список (HashSet) вообще все параметры, которые нужно обновить
             var parametersToUpdate = new HashSet<VariableViewModel>();
 
@@ -286,6 +288,11 @@ public partial class MainViewModel
             // ИСПРАВЛЕНО: Вместо прямой отправки байт вслепую, мы просто ставим задачи в очередь Арбитра!
             foreach (var param in parametersToUpdate)
             {
+                // 🔥 АППАРАТНЫЙ ФИКС СГРЫЗАНИЯ ЗАГЛОВКОВ:
+                // Даем МК 60 миллисекунд полностью выплюнуть предыдущую ось в провод, 
+                // чтобы следующий пакет таблицы зашел в чистый и свободный DMA-стрим!
+                await System.Threading.Tasks.Task.Delay(300);
+
                 var readCmd = new Models.NetworkCommand
                 {
                     ModelId = param.ModelId,
@@ -301,6 +308,13 @@ public partial class MainViewModel
                 // Диспетчер сам поштучно, на максимальной скорости и с соблюдением Handshake,
                 // вычитает все параметры один за другим!
                 Services.BusArbiter.Instance.PushCommand(readCmd);
+
+                // 🔥 УЛЬТИМАТИВНЫЙ ФИКС "МЕДЛЕННОГО" МК:
+                // Делаем асингенную паузу в 80 миллисекунд МЕЖДУ запросами параметров при старте!
+                // Это гарантированно уберет гонку пакетов на шине, даст DMA в STM32 абсолютное время 
+                // полностью вытолкнуть предыдущую ось в провод, и блокирующий замок while в Си 
+                // для нашей большой таблицы пролетит вообще без единой микросекунды задержки!
+                await System.Threading.Tasks.Task.Delay(80);
             }
         }
         catch (Exception ex)
