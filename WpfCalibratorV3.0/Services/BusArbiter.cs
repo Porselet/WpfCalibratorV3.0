@@ -158,6 +158,15 @@ namespace WpfCalibrator.Services
                     return _commandQueue.Dequeue();
                 }
 
+                // 🔥 ЖЕЛЕЗОБЕТОННЫЙ ШИННЫЙ ЗАМОК:
+                // Если приоритетных калибровок в очереди нет, но идет стартовая массовая вычитка 
+                // параметров (IsLoadingParameters == true) — мы категорически запрещаем фоновой телеметрии 
+                // лезть на шину UART! Возвращаем null, полностью освобождая шину для ответов таблиц.
+                if (IsLoadingParameters)
+                {
+                    return null;
+                }
+
                 // 2. ПРИОРИТЕТ №2: Если калибровок нет — берем следующий датчик из кольца телеметрии
                 if (_telemetryLoop.Count > 0)
                 {
@@ -179,6 +188,10 @@ namespace WpfCalibrator.Services
                 return null;
             }
         }
+
+
+
+
 
         /// <summary>
         /// Возвращает true, если кольцевой проход телеметрии завершен (нужно для окон тишины Task.Delay)

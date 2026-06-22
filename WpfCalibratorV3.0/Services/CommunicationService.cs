@@ -170,13 +170,14 @@ public sealed class CommunicationService : IDisposable
             {
                 try
                 {
+
                     // Железобетонный предохранитель от холостого хода
-                    if (_serialPort.BytesToRead == 0)
+                    /*if (_serialPort.BytesToRead == 0)
                     {
                         await System.Threading.Tasks.Task.Delay(5, _cts.Token);
                         continue;
                     }
-
+                    */
                     // 🔥 ИСПРАВЛЕНО НАЧИСТО (БОРЬБА С ПРОМАХОМ УКАЗАТЕЛЯ):
                     // Читаем один байт напрямую из системного буфера Windows синхронно!
                     // Это исключит гонку асинхронных тасков .NET на стыке длинного DMA кадра.
@@ -327,7 +328,7 @@ public sealed class CommunicationService : IDisposable
                     // программе уходить в бешеную рекурсию и забивать ОЗУ лавиной исключений!
                     if (ex.Message.Contains("aborted"))
                     {
-                        System.Diagnostics.Debug.WriteLine($"[UART-ABORT-RECOVER] Перехвачен графический аборт шины в RefreshAllLayoutParameters. Восстанавливаем синхронизацию... Время: {DateTime.Now:mm:ss.fff}");
+                        //System.Diagnostics.Debug.WriteLine($"[UART-ABORT-RECOVER] Перехвачен графический аборт шины в RefreshAllLayoutParameters. Восстанавливаем синхронизацию... Время: {DateTime.Now:mm:ss.fff}");
 
                         // Даем операционной системе Windows 15 миллисекунд полностью очистить 
                         // и перезапустить внутренние дескрипторы порта после графического фриза

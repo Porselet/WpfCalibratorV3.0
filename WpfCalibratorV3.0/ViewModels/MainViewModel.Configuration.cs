@@ -257,14 +257,9 @@ public partial class MainViewModel
 
 
 
-    // Метод последовательного и безопасного вычитывания всех параметров экрана из МК
-    /// <summary>
-    /// Массовая синхронизация: формирует высокоуровневые команды чтения для всех параметров 
-    /// на текущем экране и бережно заталкивает их в приоритетную очередь Диспетчера.
-    /// </summary>
     public async Task RefreshAllLayoutParametersAsync()
     {
-        
+
         if (!CommunicationService.Instance.IsConnected || SelectedDevice == null) return;
 
         try
@@ -326,7 +321,6 @@ public partial class MainViewModel
         // мы возвращаем пустой Task.CompletedTask, чтобы не ломать асинхронную сигнатуру Task.
         await Task.CompletedTask;
     }
-
 
     // 3. Метод создания нового экрана из кода или UI
     public void AddNewLayout(string name)
