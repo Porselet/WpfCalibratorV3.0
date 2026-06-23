@@ -1,0 +1,219 @@
+﻿<UserControl x:Class="WpfCalibrator.Views.WorkspaceCanvas"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+
+    <Border Background="#111111" Padding="10">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="📝 РАБОЧАЯ ОБЛАСТЬ КАЛИБРОВКИ И МОНИТОРИНГА" Style="{StaticResource BlockHeaderStyle}" Margin="10,5,0,10"/>
+
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <!-- Корневой холст рабочей области (Добавлен глобальный перехват кликов ячеек) -->
+                <!-- Корневой холст (Добавлен глобальный перехват клавиатуры) -->
+                <!-- Корневой холст рабочей области (Добавлено право на фокус ввода) -->
+                <Canvas Background="#050505" 
+        Width="2000" 
+        Height="2000" 
+        AllowDrop="True" 
+        Drop="Canvas_Drop"
+        Focusable="True" 
+        TextBox.PreviewMouseLeftButtonDown="GlobalMatrixTable_PreviewMouseLeftButtonDown"
+        >
+
+                    <ItemsControl ItemsSource="{Binding ActiveWidgets}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas IsItemsHost="True"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="Canvas.Left" Value="{Binding Left, Mode=TwoWay}"/>
+                                <Setter Property="Canvas.Top" Value="{Binding Top, Mode=TwoWay}"/>
+                                <Setter Property="Width" Value="{Binding Width, Mode=TwoWay}"/>
+                                <Setter Property="Height" Value="{Binding Height, Mode=TwoWay}"/>
+                                <!-- Добавляем внутрь стиля контейнера окон на холсте: -->
+                                <Setter Property="Panel.ZIndex" Value="{Binding ZIndex}"/>
+                                <!-- Добавьте этот Setter в общие свойства стиля вашего ContentPresenter / ListBoxItem -->
+                                <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                <!-- ДОБАВЛЯЕМ ВНУТРЬ СТИЛЯ ОБЕРТКИ ВИДЖЕТОВ НА ХОЛСТЕ: -->
+                                <Setter Property="ContextMenu">
+                                    <Setter.Value>
+                                        <!-- Стильное темно-серое гоночное меню -->
+                                        <!-- ИСПРАВЛЕННОЕ КОНТЕНСТНОЕ МЕНЮ С ПРОБРОСОМ ДАННЫХ -->
+                                        <ContextMenu Background="#1A1A1A" BorderBrush="#555555" BorderThickness="1">
+
+                                            <!-- Магия PlacementTarget.Tag: мы принудительно пробиваем изоляцию 
+                                            и достаем DataContext Главного Окна через элемент, который вызвал меню! -->
+                                            <MenuItem   Header="⚙ Настройки прибора..." 
+                                                        Foreground="White" FontFamily="Consolas" FontSize="12"
+                                                        Command="{Binding PlacementTarget.Tag.DataContext.OpenTableSettingsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                        CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+
+                                            <Separator Background="#333333"/>
+                                        </ContextMenu>
+
+                                    </Setter.Value>
+                                </Setter>
+
+
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type viewmodels:WidgetViewModel}">
+                                <Border x:Name="WidgetBorder" 
+                                        Background="#1E1E1E" 
+                                        BorderBrush="#007ACC" 
+                                        BorderThickness="1" 
+                                        CornerRadius="3">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- ШАПКА ВИДЖЕТА (ПЕРЕМЕЩЕНИЕ) -->
+                                        <!-- ШАПКА ВИДЖЕТА (ПЕРЕМЕЩЕНИЕ ИСПРАВЛЕНО: Убран Preview для Down и Up) -->
+                                        <Border Grid.Row="0" Background="#2D2D2D" Padding="6,4" Cursor="SizeAll"
+        MouseLeftButtonDown="WidgetHeader_MouseDown" 
+        MouseMove="WidgetHeader_MouseMove" 
+        MouseLeftButtonUp="WidgetHeader_MouseUp">
+
+                                            <Grid>
+                                                <TextBlock Text="{Binding DataSource.Name}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                <!-- КНОПКА ЗАКРЫТИЯ ВИДЖЕТА (ИСПРАВЛЕНА НА КОМАНДУ) -->
+                                                <Button Content="×" 
+        Background="Transparent" 
+        Foreground="Red" 
+        BorderThickness="0" 
+        HorizontalAlignment="Right" 
+        VerticalAlignment="Center" 
+        FontSize="10" 
+        Cursor="Hand"
+        Command="{Binding DataContext.DeleteWidgetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+        CommandParameter="{Binding}"/>
+
+
+
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- КОНТЕНТНАЯ ЗОНА -->
+                                        <!-- НАЧАЛО КОНТЕЙНЕРА ВЫВОДА ШАБЛОНОВ -->
+                                        <ContentControl Grid.Row="1" Content="{Binding}">
+                                            <ContentControl.Style>
+                                                <Style TargetType="ContentControl">
+                                                    <!-- БАЗОВОЕ ЗНАЧЕНИЕ ДЛЯ ЗАЩИТЫ ОТ СБОЯ INVALIDCASTEXCEPTION -->
+                                                    <Setter Property="ContentTemplate" Value="{StaticResource EmptyFallbackTemplate}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="TextBox">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource ScalarTextBoxTemplate}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="MatrixTable">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource MatrixTableTemplate}"/>
+                                                        </DataTrigger>
+
+                                                        <!-- ЦИФРОВОЙ ИНДИКАТОР ТЕЛЕМЕТРИИ -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="Digital">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetDigitalTemplate}"/>
+                                                        </DataTrigger>
+
+                                                        <!-- СЛАЙДЕРЫ (ГОРИЗОНТАЛЬНЫЙ И ВЕРТИКАЛЬНЫЙ) -->
+                                                        <!-- Мы завяжем их оба на наш обновленный шаблон слайдера, 
+                                                             а направление (Orientation) внутри шаблона настроим на следующем шаге -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="SliderHorizontal">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetSliderTemplate}"/>
+                                                        </DataTrigger>
+                                                        <!-- Переключаем на кастомный ВЕРТИКАЛЬНЫЙ слайдер-столбик -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="SliderVertical">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetVerticalSliderTemplate}"/>
+                                                        </DataTrigger>
+
+                                                        <!-- СТРЕЛОЧНЫЕ ПРИБОРЫ (270 И 120 ГРАДУСОВ) -->
+                                                        <!-- ИСПРАВЛЕНО: Указываем точный существующий ключ шаблона -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="GaugeCircular270">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetGaugeTemplate}"/>
+                                                        </DataTrigger>
+
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="GaugeArc120">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetArcGaugeTemplate}"/>
+                                                        </DataTrigger>
+
+                                                        <!-- Включаем полноценный живой график времени! -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="TimePlot">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource WidgetTimePlotTemplate}"/>
+                                                        </DataTrigger>
+
+
+                                                        <!-- АВИАЦИОННЫЙ СУБСЕТОЧНЫЙ ПРИЦЕЛ -->
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="RadarTracker">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource RadarTrackerTrackerTemplate}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+
+                                                </Style>
+                                            </ContentControl.Style>
+                                        </ContentControl>
+                                        <!-- КОНЕЦ КОНТЕЙНЕРА ВЫВОДА ШАБЛОНОВ -->
+
+                                        <!-- МАРКЕР ИЗМЕНЕНИЯ РАЗМЕРА (RESIZE) В ПРАВОМ НИЖНЕМ УГЛУ -->
+                                        <!-- МАРКЕР ИЗМЕНЕНИЯ РАЗМЕРА (RESIZE) В ПРАВОМ НИЖНЕМ УГЛУ -->
+                                        <Border Grid.Row="1" 
+        Panel.ZIndex="10"
+        Width="12" Height="12" 
+        HorizontalAlignment="Right" 
+        VerticalAlignment="Bottom" 
+        Cursor="SizeNWSE" 
+        Background="Transparent"
+        PreviewMouseLeftButtonDown="ResizeMarker_MouseDown"
+        MouseMove="ResizeMarker_MouseMove"
+        PreviewMouseLeftButtonUp="ResizeMarker_MouseUp">
+                                            <!-- Рисуем классические три диагональные насечки в углу окна -->
+                                            <Path Data="M 4,12 L 12,4 M 7,12 L 12,7 M 10,12 L 12,10" 
+          Stroke="#555555" 
+          StrokeThickness="1.5" 
+          Margin="0,0,2,2"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                                <!-- УМНЫЕ ТРИГГЕРЫ С ТРАДИЦИОННЫМ ОФОРМЛЕНИЕМ И ВЫДЕЛЕНИЕМ ТОЛЩИНОЙ -->
+                                <DataTemplate.Triggers>
+                                    <!-- 1. ПАРАМЕТР БЕЗ ФОКУСА (Выглядит как раньше) -->
+                                    <DataTrigger Binding="{Binding DataSource.IsParam}" Value="True">
+                                        <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#FF9100"/>
+                                        <Setter TargetName="WidgetBorder" Property="BorderThickness" Value="1"/>
+                                    </DataTrigger>
+
+                                    <!-- 2. СИГНАЛ ТЕЛЕМЕТРИИ (Всегда как раньше, так как Tab его обходит) -->
+                                    <DataTrigger Binding="{Binding DataSource.IsParam}" Value="False">
+                                        <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#007ACC"/>
+                                        <Setter TargetName="WidgetBorder" Property="BorderThickness" Value="1"/>
+                                    </DataTrigger>
+
+                                    <!-- 3. АКТИВНЫЙ ПАРАМЕТР В ФОКУСЕ (Становится жирным и ярким) -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsParam}" Value="True"/>
+                                            <Condition Binding="{Binding IsActiveWidget}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter TargetName="WidgetBorder" Property="BorderBrush" Value="#FFB300"/>
+                                        <Setter TargetName="WidgetBorder" Property="BorderThickness" Value="3"/>
+                                        <!-- Утолщенная рамка фокуса -->
+                                    </MultiDataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </Canvas>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>
