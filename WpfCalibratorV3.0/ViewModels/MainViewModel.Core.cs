@@ -123,7 +123,7 @@ public partial class MainViewModel : INotifyPropertyChanged
         RefreshAvailablePorts();
 
         // ИСПРАВЛЕНО: Привязываем обработчик пакетов к новому Синглтону!
-        CommunicationService.Instance.DataPacketReceived += OnUartPacketReceived;
+        CommunicationService.AsInterface.DataPacketReceived += OnUartPacketReceived;
 
         // ======================================================================
         // СВЯЗЫВАЕМ ДИСПЕТЧЕР ОБМЕНА С ГЛАВНЫМ ОКНОМ ДЛЯ СИНХРОНИЗАЦИИ ОЧЕРЕДЕЙ
@@ -192,7 +192,7 @@ public partial class MainViewModel : INotifyPropertyChanged
         }
 
         // 2. Если включено, запускаем опрос сигналов (polling)
-        if (_isPollingEnabled && CommunicationService.Instance.IsConnected)
+        if (_isPollingEnabled && CommunicationService.AsInterface.IsConnected)
         {
             //PollNextTelemetryVariable();
         }

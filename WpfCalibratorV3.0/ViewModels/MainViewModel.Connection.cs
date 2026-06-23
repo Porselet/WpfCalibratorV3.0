@@ -24,12 +24,12 @@ public partial class MainViewModel
     // 1. Логика подключения
     public void ToggleConnection()
     {
-        if (CommunicationService.Instance.IsConnected)
+        if (CommunicationService.AsInterface.IsConnected)
         {
             // Вежливо ОСТАНАВЛИВАЕМ фоновый планировщик обмена ПЕРЕД закрытием порта
             Services.BusArbiter.Instance.Stop();
 
-            CommunicationService.Instance.Disconnect();
+            CommunicationService.AsInterface.Disconnect();
             ConnectionStatusText = "❌ ПРИБОР ОТКЛЮЧЕН";
             ConnectionState = DeviceConnectionState.Disconnected;
         }
@@ -37,7 +37,7 @@ public partial class MainViewModel
         {
             try
             {
-                CommunicationService.Instance.Connect(SelectedPort, 115200);
+                CommunicationService.AsInterface.Connect(SelectedPort, 115200);
                 ConnectionStatusText = $"⚡ СВЯЗЬ УСТАНОВЛЕНА ({SelectedPort})";
 
                 // НОВОЕ: Передаем оригинальный список переменных из Матлаба прямо в парсер приемника!
@@ -46,7 +46,7 @@ public partial class MainViewModel
                 //CommunicationService.Instance.AllVariablesConfig = _configManager.CurrentConfig.Variables;
 
                 // 🔥 НОВОЕ: Безопасно, в UI-потоке, передаем живую карту выбранного прибора в сервис связи!
-                CommunicationService.Instance.CurrentDeviceConfig = SelectedDevice;
+                CommunicationService.AsInterface.CurrentDeviceConfig = SelectedDevice;
 
                 // Намертво запускаем бесконечный фоновый цикл планировщика пакетов
                 Services.BusArbiter.Instance.Start();

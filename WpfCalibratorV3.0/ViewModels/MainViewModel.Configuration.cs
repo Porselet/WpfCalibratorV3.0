@@ -243,7 +243,7 @@ public partial class MainViewModel
                 }
 */
                 // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
-                if (realVar.IsParam && CommunicationService.Instance.IsConnected)
+                if (realVar.IsParam && CommunicationService.AsInterface.IsConnected)
                 {
                     _ = RefreshAllLayoutParametersAsync();
                 }
@@ -260,7 +260,7 @@ public partial class MainViewModel
     public async Task RefreshAllLayoutParametersAsync()
     {
 
-        if (!CommunicationService.Instance.IsConnected || SelectedDevice == null) return;
+        if (!CommunicationService.AsInterface.IsConnected || SelectedDevice == null) return;
 
         try
         {

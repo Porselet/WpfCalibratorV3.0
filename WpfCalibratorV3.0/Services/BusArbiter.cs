@@ -280,7 +280,7 @@ namespace WpfCalibrator.Services
 
 
                 // Используем наш глобальный Синглтон вместо удаленного локального поля!
-                bool isSuccess = await CommunicationService.Instance.ExecuteCommandAsync(nextCmd);
+                bool isSuccess = await CommunicationService.AsInterface.ExecuteCommandAsync(nextCmd);
 
                 // Если транзакция сорвалась (например, обрыв связи или таймаут), 
                 // делаем микро-паузу и идем на следующий круг цикла

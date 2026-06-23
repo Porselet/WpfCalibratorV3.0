@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using WpfCalibrator.Services;
 
 namespace WpfCalibrator.Views
 {
@@ -27,6 +28,14 @@ namespace WpfCalibrator.Views
         public UartMonitorWindow()
         {
             InitializeComponent();
+
+            CommunicationService.AsInterface.OnLogPacket += (prefix, color, description, packet) =>
+            {
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    LogPacket(prefix, color, description, packet);
+                });
+            };
         }
 
         /// <summary>

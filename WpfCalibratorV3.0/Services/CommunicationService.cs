@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace WpfCalibrator.Services;
 /// <summary> 100626
 /// Сервис для управления коммуникацией с устройством через COM-порт.
 /// </summary>
-public sealed class CommunicationService : IDisposable
+public sealed class CommunicationService : ICommunicationService, IDisposable
 {
     // ======================================================================
     // СИНГЛТОН: Единая, потокобезопасная точка доступа к транспорту
@@ -16,7 +17,9 @@ public sealed class CommunicationService : IDisposable
     private static readonly Lazy<CommunicationService> _instance =
         new Lazy<CommunicationService>(() => new CommunicationService());
 
-    public static CommunicationService Instance => _instance.Value;
+    //public static CommunicationService Instance => _instance.Value;
+
+    public static ICommunicationService AsInterface => _instance.Value;
 
     // Приватный конструктор — закрывает создание экземпляров извне
     private CommunicationService()
@@ -28,6 +31,7 @@ public sealed class CommunicationService : IDisposable
     // Ссылка на полный плоский список переменных из JSON Матлаба (для динамического расчета размера пакетов RX)
     public List<Models.VariableConfig>? AllVariablesConfig { get; set; }
 
+    public event Action<string, string, string, byte[]>? OnLogPacket;
 
     private SerialPort? _serialPort;
     private CancellationTokenSource _cts = new(); // Убираем readonly
@@ -49,6 +53,7 @@ public sealed class CommunicationService : IDisposable
     private volatile byte _expectedCmd;
     private volatile byte _expectedVarId;
     private volatile int _expectedElementSize = 4; // НОВОЕ: Ожидаемый размер одного элемента в байтах
+
     private int _expectedRows = 1; // Ожидаемое количество строк матрицы ответа
     private int _expectedCols = 1; // Ожидаемое количество колонок матрицы ответа
     private string _expectedDataType = "single"; // Ожидаемый тип данных Матлаба
@@ -151,8 +156,8 @@ public sealed class CommunicationService : IDisposable
         // ВНУТРИ МЕТОДА SendPacketAsync ПЕРЕД ЗАПИСЬЮ В ПОРТ:
 
         string txDesc = $"TX [CMD: 0x{cmd:X2}, VarId: {varId}]";
-        WpfCalibrator.Views.UartMonitorWindow.LogPacket("TX -->", "#007ACC", txDesc, packet);
-
+        //WpfCalibrator.Views.UartMonitorWindow.LogPacket("TX -->", "#007ACC", txDesc, packet);
+        OnLogPacket?.Invoke("TX -->", "#007ACC", txDesc, packet);
         // 4. Отправка в физический порт
         _serialPort.Write(packet, 0, packet.Length);
     }
@@ -239,8 +244,8 @@ public sealed class CommunicationService : IDisposable
                 if (calculatedCrc == receivedCrc)
                 {
                     string rxDesc = $"RX [CMD: 0x{cmd:X2}, VarId: {varId}, Len: {elementsCount}]";
-                    WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDesc, fullPacket);
-
+                    //WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDesc, fullPacket);
+                    OnLogPacket?.Invoke("<-- RX", "#00FF00", rxDesc, fullPacket);
                     // АСИНХРОННЫЙ ТРИГГЕР: Разблокируем шлагбаум
                     var tcs = _responseCompletionSource;
                     if (tcs != null && (int)cmd == _expectedCmd && (int)varId == _expectedVarId)
@@ -378,7 +383,7 @@ public sealed class CommunicationService : IDisposable
     /// Высокуровневый конвейер: принимает команду от Диспетчера, пакует, 
     /// отправляет в порт и асинхронно ждет зеркальный ответ от STM32 с таймаутом 50мс.
     /// </summary>
-    internal async System.Threading.Tasks.Task<bool> ExecuteCommandAsync(Models.NetworkCommand cmd)
+    public async System.Threading.Tasks.Task<bool> ExecuteCommandAsync(Models.NetworkCommand cmd)
     {
         if (cmd == null) return false;
 
@@ -446,8 +451,8 @@ public sealed class CommunicationService : IDisposable
                 string errDesc = $"[TIMEOUT] Отсутствует ответ от МК на команду {cmd.Cmd} (VarId: {cmd.VarId}) за {dynamicTimeoutMs}мс";
 
                 // Выводим красную строку в наш текстовый терминал пакетов
-                WpfCalibrator.Views.UartMonitorWindow.LogPacket("ERR !", "#FF5555", errDesc, Array.Empty<byte>());
-
+                //WpfCalibrator.Views.UartMonitorWindow.LogPacket("ERR !", "#FF5555", errDesc, Array.Empty<byte>());
+                OnLogPacket?.Invoke("ERR !", "#FF5555", errDesc, Array.Empty<byte>());
                 return false; // Транзакция сорвалась
             }
 
@@ -457,7 +462,8 @@ public sealed class CommunicationService : IDisposable
         catch (Exception ex)
         {
             string critDesc = $"[CRIT ERROR] Сбой транзакции: {ex.Message}";
-            WpfCalibrator.Views.UartMonitorWindow.LogPacket("EXCP", "#FF0000", critDesc, Array.Empty<byte>());
+            //WpfCalibrator.Views.UartMonitorWindow.LogPacket("EXCP", "#FF0000", critDesc, Array.Empty<byte>());
+            OnLogPacket?.Invoke("EXCP", "#FF0000", critDesc, Array.Empty<byte>());
             return false;
         }
         finally
