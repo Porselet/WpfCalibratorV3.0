@@ -31,7 +31,7 @@ namespace WpfCalibrator.Views
 
             CommunicationService.AsInterface.OnLogPacket += (prefix, color, description, packet) =>
             {
-                App.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
                 {
                     LogPacket(prefix, color, description, packet);
                 });

@@ -8,19 +8,14 @@ namespace WpfCalibrator.Services;
 
 public sealed partial class CommunicationService : ICommunicationService, IDisposable
 {
+
+
     // Сюда переносим из основного файла:
     // - Метод ExecuteCommandAsync
     // - Метод SerializeCommand (или как у тебя называется сборка пакета)
     // - Переменные _expectedCmd, _expectedVarId, _currentTransactionTcs
     // Технические переменные для контроля: какой именно зеркальный ответ мы сейчас ждем от STM32
-    private volatile byte _expectedCmd;
-    private volatile byte _expectedVarId;
-    private volatile int _expectedElementSize = 4; // НОВОЕ: Ожидаемый размер одного элемента в байтах
 
-
-    private int _expectedRows = 1; // Ожидаемое количество строк матрицы ответа
-    private int _expectedCols = 1; // Ожидаемое количество колонок матрицы ответа
-    private string _expectedDataType = "single"; // Ожидаемый тип данных Матлаба
     /// <summary>
     /// Высокуровневый конвейер: принимает команду от Диспетчера, пакует, 
     /// отправляет в порт и асинхронно ждет зеркальный ответ от STM32 с таймаутом 50мс.
@@ -158,7 +153,136 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
         _serialPort.Write(packet, 0, packet.Length);
     }
 
+    public void Dispose()
+    {
+        _cts.Cancel();
+        _serialPort?.Dispose();
+    }
 
+
+
+    // 3. Прием пакетов (фоновый поток)
+
+    /// <summary>
+    /// Бесконечный фоновый поток вычерпывания физического буфера COM-порта.
+    /// Полностью переведен на неблокирующий стерильный конвейер WaitForBytesAsync.
+    /// </summary>
+    /// <summary>
+    /// Бесконечный фоновый поток вычерпывания физического буфера COM-порта.
+    /// Полностью переведен на неблокирующий стерильный конвейер WaitForBytesAsync.
+    /// </summary>
+    /// <summary>
+    /// Бесконечный фоновый поток вычерпывания физического буфера COM-порта.
+    /// Полностью переведен на неблокирующий стерильный конвейер WaitForBytesAsync.
+    /// </summary>
+    private async System.Threading.Tasks.Task ListenAsync()
+    {
+        while (_serialPort != null && _serialPort.IsOpen)
+        {
+            try
+            {
+                // ======================================================================
+                // 1. ИЩЕМ ПРЕАМБУЛУ 0xAA (Жестко ждем 1 байт маркера старта)
+                // ======================================================================
+                byte[]? preambleResult = await WaitForBytesAsync(1, 300);
+                if (preambleResult == null) continue;
+
+                byte singleByte = preambleResult[0];
+
+                if (singleByte != 0xAA)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UART-GARBAGE] Пропущен байт мусора: 0x{singleByte:X2}");
+                    continue;
+                }
+
+                // ======================================================================
+                // 2. СТЕРИЛЬНЫЙ ПЕРЕХВАТ ЗАГЛОВКА (Жестко дочитываем остальные 4 байта)
+                // ======================================================================
+                byte[]? headerResult = await WaitForBytesAsync(4, 100);
+                if (headerResult == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[UART-ERROR] Обрыв кадра: заголовок не долетел.");
+                    continue;
+                }
+
+                byte modelId = headerResult[0];
+                byte cmd = headerResult[1];
+                byte varId = headerResult[2];
+                byte elementsCount = headerResult[3];
+
+                // Рассчитываем точную геометрию кадра полезной нагрузки
+                int payloadSize = elementsCount * _expectedElementSize;
+                int totalPacketSize = 5 + payloadSize + 1; // 5 байт заголовка + payload + 1 байт CRC
+
+                // Выделяем монолитный буфер под весь пакет и упаковываем туда заголовок
+                byte[] fullPacket = new byte[totalPacketSize];
+                fullPacket[0] = 0xAA;
+                System.Array.Copy(headerResult, 0, fullPacket, 1, 4);
+
+                // ======================================================================
+                // 3. СТЕРИЛЬНЫЙ ПЕРЕХВАТ ДАННЫХ И CRC (Жестко ждем весь остаток кадра куском!)
+                // ======================================================================
+                byte[]? payloadResult = await WaitForBytesAsync(payloadSize + 1, 400);
+                if (payloadResult == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UART-ERROR] Обрыв кадра: данные VarId {varId} не долетели по таймауту.");
+                    continue;
+                }
+
+                // Допаковываем прилетевшие данные float и CRC в наш полный пакет
+                System.Array.Copy(payloadResult, 0, fullPacket, 5, payloadResult.Length);
+
+                // Извлекаем финальный байт контрольной суммы кадра
+                byte receivedCrc = fullPacket[fullPacket.Length - 1];
+
+                // ======================================================================
+                // 4. МАТЕМАТИЧЕСКАЯ ВАЛИДАЦИЯ ТВОИМ РОДНЫМ МЕТОДОМ CalculateCRC8_SAE_J1850
+                // ======================================================================
+                byte calculatedCrc = CalculateCRC8_SAE_J1850(fullPacket, fullPacket.Length - 1);
+
+                if (calculatedCrc == receivedCrc)
+                {
+                    string rxDesc = $"RX [CMD: 0x{cmd:X2}, VarId: {varId}, Len: {elementsCount}]";
+                    //WpfCalibrator.Views.UartMonitorWindow.LogPacket("<-- RX", "#00FF00", rxDesc, fullPacket);
+                    OnLogPacket?.Invoke("<-- RX", "#00FF00", rxDesc, fullPacket);
+                    // АСИНХРОННЫЙ ТРИГГЕР: Разблокируем шлагбаум
+                    var tcs = _responseCompletionSource;
+                    if (tcs != null && (int)cmd == _expectedCmd && (int)varId == _expectedVarId)
+                    {
+                        tcs.TrySetResult(true);
+                    }
+
+                    // 1. Распаковываем сырые байты полезной нагрузки в чистый плоский double[]
+                    double[] decodedData = DeserializeResponsePayload(varId, elementsCount, fullPacket, payloadSize);
+
+                    // 2. СИММЕТРИЧНЫЙ ОТВЕТ: Собираем чистый объект команды на основе сохраненных ожиданий!
+                    var responseCommand = new Models.NetworkCommand
+                    {
+                        ModelId = modelId,
+                        Cmd = (Models.LinkCommand)cmd,
+                        VarId = varId,
+                        DataType = _expectedDataType,
+                        Rows = _expectedRows,
+                        Cols = _expectedCols,
+                        PayloadData = decodedData
+                    };
+
+                    // 3. Выстреливаем объект наверх в MainViewModel.OnUartPacketReceived
+                    DataPacketReceived?.Invoke(responseCommand);
+                }
+                else
+                {
+                    string crcErrDesc = $"[CRC ERROR] Заголовок VarId: {varId}, CMD: {cmd}. Ожидалось: 0x{calculatedCrc:X2}, Пришло: 0x{receivedCrc:X2}";
+                    System.Diagnostics.Debug.WriteLine(crcErrDesc);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UART-CRITICAL-EXCEPTION]: {ex.Message}");
+                await System.Threading.Tasks.Task.Delay(20);
+            }
+        }
+    }
 
 }
 

@@ -53,7 +53,7 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
             {
                 // Если буфер Windows пуст — вежливо уступаем 1 мс операционной системе,
                 // полностью разгружая процессор и давая USB-чипу время подгрузить байты.
-                await System.Threading.Tasks.Task.Delay(1, _cts.Token);
+                await System.Threading.Tasks.Task.Delay(10, _cts.Token);
             }
         }
 
