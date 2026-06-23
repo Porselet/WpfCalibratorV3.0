@@ -8,13 +8,20 @@ namespace WpfCalibrator.Services;
 
 public sealed partial class CommunicationService : ICommunicationService, IDisposable
 {
-    // Сюда переносим:
-    // - Метод фонового чтения (ListenAsync / ReadLoop)
-    // - Метод WaitForBytesAsync (если он пока остается)
-    // - Логику валидации CRC8 и вызова событий
 
-
-
+    /// <summary>
+    /// Ожидает накопления и считывает из входного буфера заданное количество байт.
+    /// Использует неблокирующий опрос свойства BytesToRead. Если буфер пуст, поток временно 
+    /// уступает квант времени операционной системе через Task.Delay, что предотвращает 
+    /// избыточную нагрузку на центральный процессор и исключает возникновение аппаратных 
+    /// исключений ввода-вывода (IOException) из-за таймаутов на уровне драйвера Windows.
+    /// </summary>
+    /// <param name="count">Количество байт, необходимое для восстановления или сохранения целостности кадра.</param>
+    /// <param name="timeoutMs">Максимально допустимое время ожидания данных в миллисекундах.</param>
+    /// <returns>
+    /// Монолитный массив byte[] заданного размера в случае успешного чтения; 
+    /// null — в случае превышения таймаута, закрытия COM-порта или отмены текущей сессии связи.
+    /// </returns>
     private async System.Threading.Tasks.Task<byte[]?> WaitForBytesAsync(int count, int timeoutMs)
     {
         byte[] buffer = new byte[count];
@@ -59,16 +66,25 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
 
         return buffer; // УСПЕХ: Ровно count байт монолитно собраны в ОЗУ компьютера!
     }
+    
+    /// <summary>
+    /// Вычисляет 8-битную контрольную сумму (CRC-8) для заданного массива данных.
+    /// Реализует стандарт SAE J1850 с порождающим полиномом 0x1D и начальным значением 0x00.
+    /// Алгоритм выполняет побайтовую обработку массива с последовательным побитовым сдвигом 
+    /// влево и наложением маски XOR при наличии флага переноса в старшем бите.
+    /// </summary>
+    /// <param name="data">Исходный массив байт, для которого вычисляется контрольная сумма.</param>
+    /// <param name="length">Количество байт в массиве, подлежащих обработке (исключая байт самой CRC).</param>
+    /// <returns>Результирующее значение контрольной суммы в формате byte.</returns>
 
     private byte CalculateCRC8_SAE_J1850(byte[] data, int length)
     {
-        byte crc = 0x00; // Начальное значение совпадает
+        byte crc = 0x00; 
         for (int i = 0; i < length; i++)
         {
             crc ^= data[i];
             for (int bit = 0; bit < 8; bit++)
             {
-                // СТРОГО КАК В СИ: Сначала сдвигаем, а потом применяем XOR!
                 if ((crc & 0x80) != 0)
                 {
                     crc = (byte)((crc << 1) ^ 0x1D);
@@ -82,9 +98,17 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
         return crc;
     }
     /// <summary>
-    /// Универсальный демаршалер: распаковывает сырые байты ответа STM32 в массив double[] 
-    /// строго по правилам матлабовских типов и с учетом Column-Major структуры 2D-таблиц.
+    /// Выполняет демаршалинг и преобразование сырого байтового потока полезной нагрузки в массив чисел с плавающей точкой.
+    /// Метод извлекает бинарные данные из общего кадра, преобразует четырехбайтовые последовательности (Single-precision float) 
+    /// согласно стандарту IEEE 754 с учетом порядка байт Little-Endian, и возвращает плоский массив double[] для корректной 
+    /// привязки данных к визуальным компонентам холста и таблиц калибратора.
     /// </summary>
+    /// <param name="varId">Глобальный идентификатор переменной или таблицы в Си-структуре прошивки микроконтроллера.</param>
+    /// <param name="elementsCount">Общее количество элементов (размерность матрицы), содержащихся в принятом пакете.</param>
+    /// <param name="fullPacket">Полный массив байт принятого UART-кадра, включающий преамбулу, заголовок и полезную нагрузку.</param>
+    /// <param name="payloadSize">Рассчитанный размер полезной нагрузки в байтах (эквивалентен elementsCount * 4).</param>
+    /// <returns>Массив элементов типа double[], готовый для передачи в графический слой MainViewModel.</returns>
+
     private double[] DeserializeResponsePayload(byte varId, byte elementsCount, byte[] fullPacket, int payloadSize)
     {
         if (payloadSize == 0) return Array.Empty<double>();
@@ -136,11 +160,13 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
         return resultPayload;
     }
 
+
     /// <summary>
-    /// Универсальный маршалер: пакует массив double[] из C# в сырые байты для STM32 
-    /// строго по правилам матлабовской функции GetTypeSizeInBytes и Column-Major структуры 2D-таблиц.
+    /// Выполняет маршалинг и преобразование массива чисел двойной точности в сырой байтовый поток полезной нагрузки.
     /// </summary>
-    public byte[] SerializeCommandPayload(Models.NetworkCommand cmd)
+    /// <param name="cmd">Объект команды, содержащий метаданные переменной и исходный массив данных типа double[].</param>
+    /// <returns>Массив байт byte[] рассчитанного размера для включения в структуру отправляемого TX-кадра.</returns>
+    private byte[] SerializeCommandPayload(Models.NetworkCommand cmd)
     {
         // ЖЕЛЕЗОБЕТОННЫЙ ФИКС: Если команда идет на Чтение (VarRead) — payload обязан быть пустым!
         if (cmd.Cmd == Models.LinkCommand.VarRead || cmd.PayloadData == null || cmd.PayloadData.Length == 0)
