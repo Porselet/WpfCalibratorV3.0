@@ -31,6 +31,7 @@ public partial class MainViewModel
 
             CommunicationService.Instance.Disconnect();
             ConnectionStatusText = "❌ ПРИБОР ОТКЛЮЧЕН";
+            ConnectionState = DeviceConnectionState.Disconnected;
         }
         else
         {
@@ -49,7 +50,7 @@ public partial class MainViewModel
 
                 // Намертво запускаем бесконечный фоновый цикл планировщика пакетов
                 Services.BusArbiter.Instance.Start();
-
+                ConnectionState = DeviceConnectionState.Connected;
                 _ = RefreshAllLayoutParametersAsync();
             }
 

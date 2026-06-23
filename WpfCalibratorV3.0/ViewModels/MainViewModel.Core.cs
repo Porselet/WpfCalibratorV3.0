@@ -71,7 +71,12 @@ public partial class MainViewModel : INotifyPropertyChanged
     }
 
 
-
+    public enum DeviceConnectionState
+    {
+        Disconnected,       // 🔴 Отключено (Физический порт закрыт)
+        Connected,          // 🟢 Подключено (Пакеты летят идеально)
+        AlertReconnecting   // 🟡 Связь потеряна! (МК молчит, идет авто-реконнект)
+    }
 
 
     // Текущие выбранные элементы
@@ -124,6 +129,34 @@ public partial class MainViewModel : INotifyPropertyChanged
         // СВЯЗЫВАЕМ ДИСПЕТЧЕР ОБМЕНА С ГЛАВНЫМ ОКНОМ ДЛЯ СИНХРОНИЗАЦИИ ОЧЕРЕДЕЙ
         // ======================================================================
         Services.BusArbiter.Instance.Initialize(this);
+
+        // Подписываемся на аппаратный детектор обрыва связи MoTeC-style
+        Services.BusArbiter.OnConnectionStatusChanged += (bool isCommOk) =>
+        {
+            // Через асинхронный Dispatcher плавно и безопасно переключаем UI-поток
+            System.Windows.Application.Current?.Dispatcher.BeginInvoke(new System.Action(() =>
+            {
+                if (isCommOk)
+                {
+                    // Если связь восстановилась и МК ответил — зажигаем зелёный!
+                    if (ConnectionState == DeviceConnectionState.AlertReconnecting)
+                    {
+                        ConnectionState = DeviceConnectionState.Connected;
+                    }
+                }
+                else
+                {
+                    // Если поймали 3 таймаута подряд — переходим в режим тревоги (жёлтый)
+                    if (ConnectionState == DeviceConnectionState.Connected)
+                    {
+                        ConnectionState = DeviceConnectionState.AlertReconnecting;
+                    }
+                }
+            }));
+        };
+
+
+
     }
 
 
@@ -184,6 +217,52 @@ public partial class MainViewModel : INotifyPropertyChanged
             SelectedPort = AvailablePorts.FirstOrDefault() ?? "COM1";
         }
     }
+
+
+    // 1. Главное состояние связи в ОЗУ
+    private DeviceConnectionState _connectionState = DeviceConnectionState.Disconnected;
+
+    /// <summary>
+    /// Текущее физическое состояние подключения к плате в ОЗУ.
+    /// </summary>
+    public DeviceConnectionState ConnectionState
+    {
+        get => _connectionState;
+        set
+        {
+            if (_connectionState == value) return;
+            _connectionState = value;
+            OnPropertyChanged(nameof(ConnectionState));
+
+            // Автоматически уведомляем WPF об изменении уникальных статусных свойств
+            OnPropertyChanged(nameof(DeviceStatusText));
+            OnPropertyChanged(nameof(DeviceStatusColor));
+        }
+    }
+
+    /// <summary>
+    /// УНИКАЛЬНОЕ ИМЯ: Текстовое описание состояния железа под кнопкой.
+    /// </summary>
+    public string DeviceStatusText => _connectionState switch
+    {
+        DeviceConnectionState.Disconnected => "Отключено",
+        DeviceConnectionState.Connected => "Подключено к МК",
+        DeviceConnectionState.AlertReconnecting => "СВЯЗЬ ПОТЕРЯНА! Восстановление...",
+        _ => "Неизвестно"
+    };
+
+    /// <summary>
+    /// УНИКАЛЬНОЕ ИМЯ: Цвет светодиода для кружка под кнопкой.
+    /// </summary>
+    public string DeviceStatusColor => _connectionState switch
+    {
+        DeviceConnectionState.Disconnected => "#FF3B30", // Сочный Автоспортивный Красный
+        DeviceConnectionState.Connected => "#34C759", // Яркий Гоночный Зелёный
+        DeviceConnectionState.AlertReconnecting => "#FFCC00", // Предупреждающий Сигнальный Жёлтый
+        _ => "#8E8E93"  // Серый
+    };
+
+
 
 
 }

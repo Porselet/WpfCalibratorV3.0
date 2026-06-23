@@ -60,7 +60,45 @@
                 </Grid>
 
                 <!-- Строка статуса (Выводит твою строку ConnectionStatusText: "СВЯЗЬ УСТАНОВЛЕНА" и т.д.) -->
-                <TextBlock Text="{Binding ConnectionStatusText}" Foreground="#FF9100" FontSize="11" FontWeight="Bold" FontFamily="Consolas" Margin="0,8,0,0" TextWrapping="Wrap"/>
+
+                <!-- ====================================================================== -->
+                <!-- АВТОСПОРТИВНЫЙ ИНДИКАТОР СТАТУСА СВЯЗИ С ЖЕЛЕЗОМ (BlackPill)          -->
+                <!-- ====================================================================== -->
+                <!-- ====================================================================== -->
+                <!-- ОБНОВЛЕННЫЙ ВЕРТИКАЛЬНЫЙ ИНДИКАТОР СТАТУСА СВЯЗИ (КРУПНЫЙ ШРИФТ)       -->
+                <!-- ====================================================================== -->
+                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0,12,0,8">
+
+                    <!-- Крупный физический светодиод (увеличили до 16x16 под стать шрифту) -->
+                    <Ellipse Width="16" 
+                     Height="16" 
+                     HorizontalAlignment="Center"
+                     Margin="0,0,0,10">
+                        <Ellipse.Fill>
+                            <Binding Path="DeviceStatusColor" FallbackValue="#FF3B30"/>
+                        </Ellipse.Fill>
+                        <Ellipse.Effect>
+                            <DropShadowEffect BlurRadius="8" 
+                                      ShadowDepth="0" 
+                                      Color="{Binding DeviceStatusColor, FallbackValue=#FF3B30}"/>
+                        </Ellipse.Effect>
+                    </Ellipse>
+
+                    <!-- Крупная текстовая подпись с автоматическим переносом на 2 строки -->
+                    <TextBlock Text="{Binding DeviceStatusText, FallbackValue=Отключено}" 
+                       FontSize="22" 
+                       FontWeight="SemiBold"
+                       Foreground="#FFFFFF" 
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       MaxWidth="220"
+                       HorizontalAlignment="Center"/>
+
+                </StackPanel>
+
+
+
+                <!--<TextBlock Text="{Binding ConnectionStatusText}" Foreground="#FF9100" FontSize="11" FontWeight="Bold" FontFamily="Consolas" Margin="0,8,0,0" TextWrapping="Wrap"/> -->
             </StackPanel>
 
             <!-- ==================== ДЕРЕВО НАВИГАЦИИ (СДВИГНУТО ВНИЗ) ==================== -->

@@ -34,6 +34,13 @@ namespace WpfCalibrator.Services
         // Флаг-замок: блокирует фоновый опрос телеметрии на время прогрузки калибровочных таблиц
         public bool IsLoadingParameters { get; set; } = false;
 
+        private int _consecutiveTimeouts = 0; // Счетчик последовательных таймаутов
+
+        // Событие для уведомления MainViewModel об изменении состояния связи:
+        // true = связь есть, false = связь потеряна
+        public static event Action<bool>? OnConnectionStatusChanged;
+
+
         // Закрытый конструктор, чтобы никто не мог создать Диспетчер через new()
         private BusArbiter()
         {
@@ -269,7 +276,7 @@ namespace WpfCalibrator.Services
                 // ======================================================================
 
                 // ТЕСТОВЫЙ МАРКЕР ОЧЕРЕДИ: Печатаем в дебаг, кто именно летит в провод
-                System.Diagnostics.Debug.WriteLine($"[ARBITER-TX] Выстрел кадра! CMD: {nextCmd.Cmd}, VarId: {nextCmd.VarId}, Элементов: {nextCmd.Rows * nextCmd.Cols}. Время: {DateTime.Now:mm:ss.fff}");
+                //System.Diagnostics.Debug.WriteLine($"[ARBITER-TX] Выстрел кадра! CMD: {nextCmd.Cmd}, VarId: {nextCmd.VarId}, Элементов: {nextCmd.Rows * nextCmd.Cols}. Время: {DateTime.Now:mm:ss.fff}");
 
 
                 // Используем наш глобальный Синглтон вместо удаленного локального поля!
@@ -277,11 +284,39 @@ namespace WpfCalibrator.Services
 
                 // Если транзакция сорвалась (например, обрыв связи или таймаут), 
                 // делаем микро-паузу и идем на следующий круг цикла
+                // ======================================================================
+                // ПРОВЕРКА УСПЕХА ТРАНСАКЦИИ С АВТО-РЕКОННЕКТОМ
+                // ======================================================================
                 if (!isSuccess)
                 {
-                    await System.Threading.Tasks.Task.Delay(20);
+                    _consecutiveTimeouts++;
+
+                    // Если плата молчит уже 3 пакета подряд — объявляем аварию на шине!
+                    if (_consecutiveTimeouts == 3)
+                    {
+                        System.Diagnostics.Debug.WriteLine("🚨 [BUS-ALERT] Связь с МК потеряна! Переходим в режим авто-восстановления...");
+
+                        // Стреляем событием наверх в MainViewModel (пусть перекрасит UI в желтый/красный)
+                        OnConnectionStatusChanged?.Invoke(false);
+                    }
+
+                    // В режиме аварии увеличиваем паузу между попытками до 100 мс, 
+                    // чтобы не насиловать процессор и дать Windows время очухаться
+                    await System.Threading.Tasks.Task.Delay(100);
                     continue;
                 }
+
+                // ЕСЛИ ПАКЕТ ПРИЛЕТЕЛ УСПЕШНО:
+                if (_consecutiveTimeouts >= 3)
+                {
+                    System.Diagnostics.Debug.WriteLine("🏁 [BUS-RECOVER] Связь с МК успешно восстановлена в рантайме!");
+
+                    // Возвращаем статус "Все ОК" (зеленый свет в UI)
+                    OnConnectionStatusChanged?.Invoke(true);
+                }
+
+                _consecutiveTimeouts = 0; // Кристально обнуляем счетчик аварий
+
 
 
                 // ======================================================================
