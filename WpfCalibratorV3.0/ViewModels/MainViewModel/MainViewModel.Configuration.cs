@@ -302,7 +302,7 @@ public partial class MainViewModel
                 // Заталкиваем команду в приоритетную очередь калибровок Диспетчера.
                 // Диспетчер сам поштучно, на максимальной скорости и с соблюдением Handshake,
                 // вычитает все параметры один за другим!
-                Services.BusArbiter.Instance.PushCommand(readCmd);
+                Services.BusArbiter.AsInterface.PushCommand(readCmd);
 
                 // 🔥 УЛЬТИМАТИВНЫЙ ФИКС "МЕДЛЕННОГО" МК:
                 // Делаем асингенную паузу в 80 миллисекунд МЕЖДУ запросами параметров при старте!

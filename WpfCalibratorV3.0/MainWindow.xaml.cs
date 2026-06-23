@@ -225,7 +225,7 @@ public partial class MainWindow : Window
                 };
 
                 // Отправляем транзакцию на конвейер Диспетчера
-                WpfCalibrator.Services.BusArbiter.Instance.PushCommand(writeCmd);
+                WpfCalibrator.Services.BusArbiter.AsInterface.PushCommand(writeCmd);
             }
 
             handled = true;

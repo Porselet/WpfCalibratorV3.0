@@ -285,7 +285,7 @@ public partial class WorkspaceCanvas : UserControl
             };
 
             // Заталкиваем команду в приоритетную очередь Арбитра
-            WpfCalibrator.Services.BusArbiter.Instance.PushCommand(readCmd);
+            WpfCalibrator.Services.BusArbiter.AsInterface.PushCommand(readCmd);
         }
 
     }

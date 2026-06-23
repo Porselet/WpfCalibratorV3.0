@@ -551,7 +551,7 @@ public class WidgetViewModel : INotifyPropertyChanged
         };
 
         // Заталкиваем команду в приоритетную очередь Арбитра
-        Services.BusArbiter.Instance.PushCommand(writeCmd);
+        Services.BusArbiter.AsInterface.PushCommand(writeCmd);
 
     }
 
@@ -586,7 +586,7 @@ public class WidgetViewModel : INotifyPropertyChanged
         };
 
         // Заталкиваем команду в приоритетную очередь Арбитра
-        Services.BusArbiter.Instance.PushCommand(writeCmd);
+        Services.BusArbiter.AsInterface.PushCommand(writeCmd);
 
     }
 

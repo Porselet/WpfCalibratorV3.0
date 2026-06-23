@@ -27,7 +27,7 @@ public partial class MainViewModel
         if (CommunicationService.AsInterface.IsConnected)
         {
             // Вежливо ОСТАНАВЛИВАЕМ фоновый планировщик обмена ПЕРЕД закрытием порта
-            Services.BusArbiter.Instance.Stop();
+            Services.BusArbiter.AsInterface.Stop();
 
             CommunicationService.AsInterface.Disconnect();
             ConnectionStatusText = "❌ ПРИБОР ОТКЛЮЧЕН";
@@ -49,7 +49,7 @@ public partial class MainViewModel
                 CommunicationService.AsInterface.CurrentDeviceConfig = SelectedDevice;
 
                 // Намертво запускаем бесконечный фоновый цикл планировщика пакетов
-                Services.BusArbiter.Instance.Start();
+                Services.BusArbiter.AsInterface.Start();
                 ConnectionState = DeviceConnectionState.Connected;
                 _ = RefreshAllLayoutParametersAsync();
             }
@@ -89,7 +89,7 @@ public partial class MainViewModel
         if (response.PayloadData == null || response.PayloadData.Length == 0) return;
 
         // Принудительно переносим обновление графики в главный UI-поток Windows!
-        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
         {
             if (response.PayloadData.Length == 1)
             {

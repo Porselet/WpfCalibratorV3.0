@@ -21,7 +21,7 @@ namespace WpfCalibrator.ViewModels
 
                 MatrixData[row, col] = newValue; // Записали в массив памяти C#, только если число РЕАЛЬНО новое!
 
-                if (IsParam && !IsUpdatingFromNetwork && Services.BusArbiter.Instance.IsRunning)
+                if (IsParam && !IsUpdatingFromNetwork && Services.BusArbiter.AsInterface.IsRunning)
                 {
                     // Вытаскиваем всю двухмерную матрицу MatrixData в плоский массив double[]
                     double[] flatPayload = new double[Rows * Cols];
@@ -45,7 +45,7 @@ namespace WpfCalibrator.ViewModels
                         PayloadData = flatPayload
                     };
 
-                    Services.BusArbiter.Instance.PushCommand(writeCmd);
+                    Services.BusArbiter.AsInterface.PushCommand(writeCmd);
                 }
             }
         }

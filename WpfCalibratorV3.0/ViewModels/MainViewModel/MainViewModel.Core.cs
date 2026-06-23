@@ -128,7 +128,7 @@ public partial class MainViewModel : INotifyPropertyChanged
         // ======================================================================
         // СВЯЗЫВАЕМ ДИСПЕТЧЕР ОБМЕНА С ГЛАВНЫМ ОКНОМ ДЛЯ СИНХРОНИЗАЦИИ ОЧЕРЕДЕЙ
         // ======================================================================
-        Services.BusArbiter.Instance.Initialize(this);
+        Services.BusArbiter.AsInterface.Initialize(this);
 
         // Подписываемся на аппаратный детектор обрыва связи MoTeC-style
         Services.BusArbiter.OnConnectionStatusChanged += (bool isCommOk) =>

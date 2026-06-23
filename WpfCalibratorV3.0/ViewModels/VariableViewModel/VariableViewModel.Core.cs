@@ -518,7 +518,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
 
             // 4. ПУШ В ОЧЕРЕДЬ: Заталкиваем калибровку в приоритетную очередь Арбитра.
             // Он мгновенно приостановит фоновую телеметрию и выстрелит этот пакет следующим!
-            Services.BusArbiter.Instance.PushCommand(writeCmd);
+            Services.BusArbiter.AsInterface.PushCommand(writeCmd);
         }
 
     }
@@ -588,7 +588,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
 
             // 4. ПУШ В ОЧЕРЕДЬ: Заталкиваем калибровку в приоритетную очередь Арбитра.
             // Он мгновенно приостановит фоновую телеметрию и выстрелит этот пакет следующим!
-            Services.BusArbiter.Instance.PushCommand(writeCmd);
+            Services.BusArbiter.AsInterface.PushCommand(writeCmd);
         }
 
     }
