@@ -7,7 +7,7 @@ namespace WpfCalibrator.ViewModels
         private ObservableCollection<MatrixCellViewModel> _matrixCells = new();
         public ObservableCollection<MatrixCellViewModel> MatrixCells => _matrixCells;
 
-        public void UpdateMatrixValue(int row, int col, float newValue)
+        public void UpdateMatrixValue(int row, int col, double newValue)
         {
             if (row >= 0 && row < Rows && col >= 0 && col < Cols)
             {
@@ -105,19 +105,27 @@ namespace WpfCalibrator.ViewModels
                         cell.IsActive = shouldBeActive;
                     }
 
+
+
                     // Вычисляем условия защиты
                     bool isCurrentCellBeingEdited = IsEditing && (r == SelectedRow && c == SelectedCol);
-                    bool isCellSelected = cell.IsSelected; // Используем уже извлеченную ячейку cell!
+                    bool isCellSelected = cell.IsSelected;
 
-                    // БРОНЕБОЙНАЯ ЗАЩИТА: Щит от затирания включается ТОЛЬКО если данные прилетели из UART!
-                    bool shouldProtectFromUart = isCurrentCellBeingEdited || (isFromUart && isCellSelected);
+                    // 🔥 УНИВЕРСАЛЬНЫЙ СИШНЫЙ ЩИТ:
+                    // Если инженер сейчас набирает цифры руками (IsEditing), мы ЖЕСТКО защищаем от затирания
+                    // как текущую ячейку под курсором, так и ВООБЩЕ ВСЕ выделенные ячейки прямоугольника (isCellSelected),
+                    // независимо от того, откуда вызван метод — от фонового таймера экрана или из UART!
+                    bool shouldProtectFromUart = isCurrentCellBeingEdited ||
+                                                 (IsEditing && isCellSelected) ||
+                                                 (isFromUart && isCellSelected);
 
                     // Если щит активен, мы Пропускаем обновление текста (continue), 
-                    // сохраняя ручной ввод или инкремент от затирания фоновой телеметрией
+                    // сохраняя ручной набор цифр от затирания фоновыми перерисовками
                     if (shouldProtectFromUart)
                     {
                         continue;
                     }
+
 
                     // Если мы сами нажали PageUp (isFromUart == false), или ячейка вне группы — 
                     // спокойно и плавно обновляем текст на экране из ОЗУ матрицы!

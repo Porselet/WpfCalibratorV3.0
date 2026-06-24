@@ -33,9 +33,57 @@ public partial class VariableViewModel : INotifyPropertyChanged
     public int TotalBytes => TotalElements * ElementSize;
     // Настройки отображения (из user_view_config.json)
     public string ControlView { get; set; } = "TextBox"; // Тип виджета: TextBox, Graph, Gauge...
-    public float MinValue { get; set; } = 0.0f; // Для слайдеров
-    public float MaxValue { get; set; } = 100.0f;
+    public float MinValue { get; set; } = float.MinValue; // Для слайдеров
+    public float MaxValue { get; set; } = float.MaxValue;
 
+    private string _inputBuffer = string.Empty;
+    private string _currentValueText = "0";
+
+    /// <summary>
+    /// Текстовый буфер для бесфокусного набора цифр с клавиатуры.
+    /// </summary>
+    public string InputBuffer
+    {
+        get => _inputBuffer;
+        set
+        {
+            if (_inputBuffer == value) return;
+            _inputBuffer = value;
+            OnPropertyChanged();
+
+            // Автоматически взводим твой существующий флаг IsEditing:
+            // Если в буфере есть текст — значит, идет редактирование и UART заблокирован!
+            IsEditing = !string.IsNullOrEmpty(_inputBuffer);
+
+            // Уведомляем интерфейс, что текст на экране обновился
+            OnPropertyChanged(nameof(CurrentValueText));
+        }
+    }
+
+    /// <summary>
+    /// Универсальное свойство отображения для TextBox скаляров и логов.
+    /// Заменяет собой дёрганую привязку к float.
+    /// </summary>
+    public string CurrentValueText
+    {
+        get
+        {
+            // Если инженер сейчас набирает цифры руками — жестко выводим буфер ввода
+            if (IsEditing && !string.IsNullOrEmpty(_inputBuffer))
+            {
+                return _inputBuffer;
+            }
+
+            // В режиме покоя — выводим наше стандартное число из UART с красивым гоночным форматом
+            return CurrentValue.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        set
+        {
+            // Этот сеттер будет вызываться только при инициализации, его не трогаем
+            _currentValueText = value;
+            OnPropertyChanged();
+        }
+    }
 
 
     // ======================================================================
@@ -126,8 +174,10 @@ public partial class VariableViewModel : INotifyPropertyChanged
     public float MinLimit
     {
         get => _minLimit;
-        set { if (_minLimit != value) 
-            { 
+        set
+        {
+            if (_minLimit != value)
+            {
                 _minLimit = value;
                 // ДОБАВЬТЕ ВНУТРЬ СЕТТЕРОВ СВОЙСТВ MinLimit И MaxLimit (прямо под OnPropertyChanged();):
                 OnPropertyChanged(nameof(SliderTicks)); // Заставляем риски на слайдере перерисоваться!
@@ -146,8 +196,10 @@ public partial class VariableViewModel : INotifyPropertyChanged
     public float MaxLimit
     {
         get => _maxLimit;
-        set { if (_maxLimit != value) 
-            { 
+        set
+        {
+            if (_maxLimit != value)
+            {
                 _maxLimit = value;
                 // ДОБАВЬТЕ ВНУТРЬ СЕТТЕРОВ СВОЙСТВ MinLimit И MaxLimit (прямо под OnPropertyChanged();):
                 OnPropertyChanged(nameof(SliderTicks)); // Заставляем риски на слайдере перерисоваться!
@@ -158,21 +210,26 @@ public partial class VariableViewModel : INotifyPropertyChanged
         }
     }
 
-    private float _scaleMin = 0f;
+    private float _scaleMin = float.MinValue;
     /// <summary>
     /// Минимальное отображаемое значение на шкале прибора (левая граница / старт)
     /// </summary>
     public float ScaleMin
     {
         get => _scaleMin;
-        set { if (_scaleMin != value) { _scaleMin = value; OnPropertyChanged();
+        set
+        {
+            if (_scaleMin != value)
+            {
+                _scaleMin = value; OnPropertyChanged();
                 // Добавь внутрь set каждого из этих 4-х свойств (прямо под OnPropertyChanged();):
                 OnPropertyChanged(nameof(MinAlarmPercent));
                 OnPropertyChanged(nameof(MaxAlarmPercent));
-            } }
+            }
+        }
     }
 
-    private float _scaleMax = 100f;
+    private float _scaleMax = float.MaxValue;
     /// <summary>
     /// Максимальное отображаемое значение на шкале прибора (правая граница / финиш)
     /// </summary>
@@ -203,12 +260,12 @@ public partial class VariableViewModel : INotifyPropertyChanged
     }
 
     // Добавляем недостающие свойства
-    private float[,] _matrixData = new float[0, 0];
+    private double[,] _matrixData = new double[0, 0];
 
     /// <summary>
     /// Двумерный массив данных (строки х столбцы) для отображения в DataGrid.
     /// </summary>
-    public float[,] MatrixData
+    public double[,] MatrixData
     {
         get => _matrixData;
         set
@@ -250,7 +307,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
 
         if (this.Rows > 0 && this.Cols > 0)
         {
-            this.MatrixData = new float[this.Rows, this.Cols];
+            this.MatrixData = new double[this.Rows, this.Cols];
 
             // Сразу вызываем твой метод перестройки ячеек, чтобы в Cells появилось нужное кол-во объектов MatrixCellViewModel
             // (Убедись, что метод RebuildMatrixCells() в твоем файле Cells.cs доступен для вызова)
@@ -458,10 +515,10 @@ public partial class VariableViewModel : INotifyPropertyChanged
         if (!IsParam) return;
 
         // Проверяем статус клавиши CTRL для форсажа x10
-        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
-                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
-
-        float delta = customStep * (isCtrlPressed ? 10f : 1f);
+        /*        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
+                                     System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
+        */
+        float delta = customStep;//s * (isCtrlPressed ? 10f : 1f);
         bool hasChanges = false;
 
         // Бежим циклом по всей двухмерной матрице калибровок
@@ -473,11 +530,11 @@ public partial class VariableViewModel : INotifyPropertyChanged
                 var cell = MatrixCells.FirstOrDefault(m => m.Row == r && m.Col == c);
                 if (cell != null && cell.IsSelected)
                 {
-                    float newValue = MatrixData[r, c] + delta;
+                    double newValue = MatrixData[r, c] + delta;
 
                     // Защита от дурака: удерживаем значение каждой ячейки в границах шкалы
-                    if (newValue > ScaleMax) newValue = ScaleMax;
-                    if (newValue < ScaleMin) newValue = ScaleMin;
+                    if (newValue > MaxValue) newValue = MaxValue;
+                    if (newValue < MinValue) newValue = MinValue;
 
                     MatrixData[r, c] = newValue;
                     hasChanges = true;
@@ -529,11 +586,11 @@ public partial class VariableViewModel : INotifyPropertyChanged
     public void DecrementSelectedCell(float customStep)
     {
         if (!IsParam) return;
-
-        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
-                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
-
-        float delta = customStep * (isCtrlPressed ? 10f : 1f);
+        /*
+                bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
+                                     System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
+        */
+        float delta = customStep;// * (isCtrlPressed ? 10f : 1f);
         bool hasChanges = false;
 
         for (int r = 0; r < Rows; r++)
@@ -543,7 +600,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
                 var cell = MatrixCells.FirstOrDefault(m => m.Row == r && m.Col == c);
                 if (cell != null && cell.IsSelected)
                 {
-                    float newValue = MatrixData[r, c] - delta;
+                    double newValue = MatrixData[r, c] - delta;
 
                     if (newValue > ScaleMax) newValue = ScaleMax;
                     if (newValue < ScaleMin) newValue = ScaleMin;

@@ -18,6 +18,11 @@ public class MatrixCellViewModel : INotifyPropertyChanged
 
     // Текущее значение ячейки (строка для отображения)
     private string _valueText = string.Empty;
+
+    /// <summary>
+    /// Строковое представление значения ячейки для отображения в TextBox.
+    /// Выполняет роль чистого контейнера данных, исключая ложные триггеры UART.
+    /// </summary>
     public string ValueText
     {
         get => _valueText;
@@ -28,15 +33,11 @@ public class MatrixCellViewModel : INotifyPropertyChanged
                 _valueText = value;
                 OnPropertyChanged();
 
-                // Передаем измененное инженером число обратно в главную матрицу переменной
-                string normalizedValue = value.Replace('.', ',');
-                if (float.TryParse(normalizedValue, out float numericValue))
-                {
-                    Parent?.UpdateMatrixValue(Row, Col, numericValue);
-                }
+
             }
         }
     }
+
 
     private bool _isSelected;
     public bool IsSelected

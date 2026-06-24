@@ -5,7 +5,7 @@ namespace WpfCalibrator.ViewModels;
 public partial class VariableViewModel
 {
     // Логика подсветки для таблиц
-    public void CalculateWorkingPoint(double currentInputX, double currentInputY, float[] axisXData, float[] axisYData)
+    public void CalculateWorkingPoint(double currentInputX, double currentInputY, double[] axisXData, double[] axisYData)
     {
         // Проверка: если это не таблица, или нет привязок, или массивы осей не совпадают по размерам
         if (!IsLutLinked || axisXData.Length != Cols || axisYData.Length != Rows)
@@ -90,19 +90,19 @@ public partial class VariableViewModel
         // Расчет отклонения по горизонтали (Обороты) относительно выбранного узла colIdx
         if (colIdx >= 0 && colIdx < Cols)
         {
-            float currentXNode = axisXData[colIdx];
+            double currentXNode = axisXData[colIdx];
 
             if (currentInputX > currentXNode && colIdx < Cols - 1)
             {
                 // Сигнал ушел вправо, к следующему узлу
-                float nextXNode = axisXData[colIdx + 1];
+                double nextXNode = axisXData[colIdx + 1];
                 if (nextXNode > currentXNode)
                     shiftX = ((currentInputX - currentXNode) / (nextXNode - currentXNode)) * maxPixelDev;
             }
             else if (currentInputX < currentXNode && colIdx > 0)
             {
                 // Сигнал ушел влево, к предыдущему узлу (дельта со знаком минус)
-                float prevXNode = axisXData[colIdx - 1];
+                double prevXNode = axisXData[colIdx - 1];
                 if (currentXNode > prevXNode)
                     shiftX = ((currentInputX - currentXNode) / (currentXNode - prevXNode)) * maxPixelDev;
             }
@@ -111,19 +111,19 @@ public partial class VariableViewModel
         // Расчет отклонения по вертикали (Давление) относительно выбранного узла rowIdx
         if (rowIdx >= 0 && rowIdx < Rows)
         {
-            float currentYNode = axisYData[rowIdx];
+            double currentYNode = axisYData[rowIdx];
 
             if (currentInputY > currentYNode && rowIdx < Rows - 1)
             {
                 // Сигнал ушел вниз, к следующей строке
-                float nextYNode = axisYData[rowIdx + 1];
+                double nextYNode = axisYData[rowIdx + 1];
                 if (nextYNode > currentYNode)
                     shiftY = ((currentInputY - currentYNode) / (nextYNode - currentYNode)) * maxPixelDev;
             }
             else if (currentInputY < currentYNode && rowIdx > 0)
             {
                 // Сигнал ушел вверх, к предыдущей строке (дельта со знаком минус)
-                float prevYNode = axisYData[rowIdx - 1];
+                double prevYNode = axisYData[rowIdx - 1];
                 if (currentYNode > prevYNode)
                     shiftY = ((currentInputY - currentYNode) / (currentYNode - prevYNode)) * maxPixelDev;
             }

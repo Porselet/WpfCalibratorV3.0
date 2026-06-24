@@ -18,6 +18,8 @@ public partial class VariableViewModel
                 OnPropertyChanged(nameof(CurrentValue));
                 CheckAlarmStatus();
                 OnPropertyChanged(nameof(LedStates));
+                OnPropertyChanged(nameof(CurrentValueText)); // Чтобы скаляр обновлял текст при прилёте телеметрии
+
                 if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
                 {
                     // ИСПРАВЛЕНО: Находим ВСЕ виджеты на холсте, которые отображают этот датчик!

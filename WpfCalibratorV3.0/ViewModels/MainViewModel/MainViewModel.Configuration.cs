@@ -214,40 +214,21 @@ public partial class MainViewModel
 
                 ActiveWidgets.Add(widgetVm);
 
-                // СРАЗУ ПОСЛЕ СТРОКИ: ActiveWidgets.Add(widgetVm);
 
-                // АВТО-РОЖДЕНИЕ ПРИЦЕЛА ПРИ СТАРТЕ: 
-                // Если загруженный виджет — это MatrixTable, и у его таблицы сохранен флаг Радара
-/*                if (info.ControlView == "MatrixTable" && realVar.ShowRadarTracker)
-                {
-                    // Проверяем на всякий случай, не создали ли мы его уже
-                    var existingRadar = ActiveWidgets.FirstOrDefault(w =>
-                        w.ControlView == "RadarTracker" && w.DataSource?.Name == realVar.Name);
-
-                    if (existingRadar == null)
-                    {
-                        var radarWidget = new WidgetViewModel
-                        {
-                            DataSource = realVar, // Связываем с данными этой же таблицы
-                            ControlView = "RadarTracker",
-                            Left = widgetVm.Left + widgetVm.Width + 20, // Ставим аккуратно справа
-                            Top = widgetVm.Top,
-                            Width = 220, // Компактные стартовые размеры (Viewbox сам смасштабирует!)
-                            Height = 220,
-                            IncrementStep = widgetVm.IncrementStep
-                        };
-
-                        // Добавляем радар на холст прямо в процессе загрузки экрана!
-                        ActiveWidgets.Add(radarWidget);
-                    }
-                }
-*/
                 // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
                 if (realVar.IsParam && CommunicationService.AsInterface.IsConnected)
                 {
                     _ = RefreshAllLayoutParametersAsync();
                 }
             }
+            var firstParam = ActiveWidgets?.FirstOrDefault(w => w.DataSource != null && w.DataSource.IsParam);
+
+            if (firstParam != null)
+            {
+                // Жестко взводим ему неоновый фокус активности в ОЗУ!
+                firstParam.IsActiveWidget = true;
+            }
+
         }
 
         // Возвращаем опрос телеметрии в исходное состояние

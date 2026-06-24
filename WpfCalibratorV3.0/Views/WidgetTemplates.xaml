@@ -98,8 +98,11 @@
                                Margin="10,0"/>
 
                     <!-- Поле ввода TextBox -->
+                    <!-- Поле ввода TextBox скаляра (Бесфокусный режим) -->
                     <TextBox Grid.Column="1" 
-                             Text="{Binding DataSource.CurrentValue, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 
+                             Text="{Binding DataSource.CurrentValueText, Mode=OneWay}" 
+                             Focusable="False"
+                             IsReadOnly="True"
                              Background="#222222" 
                              Foreground="White" 
                              FontFamily="Consolas" 
@@ -110,6 +113,7 @@
                              HorizontalContentAlignment="Center" 
                              VerticalContentAlignment="Center" 
                              Margin="10,0"/>
+
                 </Grid>
             </Viewbox>
         </Grid>
@@ -198,8 +202,17 @@
                                 <DataTemplate>
                                     <!-- Стили берутся из самого верха файла, всё стабильно! -->
                                     <Border Style="{StaticResource MatrixCellBorderStyle}" Margin="1">
-                                        <TextBox Text="{Binding ValueText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" 
-                                                 Style="{StaticResource MatrixCellTextBoxStyle}"/>
+                                        <!-- Ячейка 2D-матрицы (Бесфокусный режим) -->
+                                        <TextBox Text="{Binding ValueText, Mode=OneWay}"
+                                             Focusable="False"
+                                             IsReadOnly="True"
+                                             Background="Transparent"
+                                             Foreground="White"
+                                             BorderThickness="0"
+                                             HorizontalContentAlignment="Center"
+                                             VerticalContentAlignment="Center"
+                                             FontFamily="Consolas"
+                                             FontSize="14"/>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

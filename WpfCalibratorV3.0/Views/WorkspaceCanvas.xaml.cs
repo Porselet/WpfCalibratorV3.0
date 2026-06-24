@@ -184,45 +184,6 @@ public partial class WorkspaceCanvas : UserControl
 
 
 
-    private void ShowWidgetSelectorMenu(Canvas canvas, MainViewModel vm, VariableConfig variable, double x, double y)
-    {
-        // Создаем меню и сразу красим его подложку в глубокий серый цвет
-        var menu = new ContextMenu
-        {
-            Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1E1E1E")),
-            BorderBrush = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#555555")),
-            BorderThickness = new Thickness(1)
-        };
-
-        // Вспомогательная сишная лямбда-функция для быстрой штамповки контрастных пунктов меню
-        MenuItem CreateDarkMenuItem(string header, RoutedEventHandler clickHandler)
-        {
-            var item = new MenuItem
-            {
-                Header = header,
-                Foreground = System.Windows.Media.Brushes.White, // Белый контрастный текст
-                Background = new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#1E1E1E")),
-                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
-                FontSize = 13,
-                Padding = new Thickness(10, 6, 20, 6)
-            };
-            item.Click += clickHandler;
-            return item;
-        }
-
-        // Собираем пункты меню через наш темный шаблон
-        var itemDisplay = CreateDarkMenuItem("🔢 Крупные цифры", (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Digital"));
-        var itemSlider = CreateDarkMenuItem("📊 Линейный индикатор (Слайдер)", (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Slider"));
-        var itemGauge = CreateDarkMenuItem("🧭 Стрелочный прибор (Gauge)", (s, e) => CreateWidgetOnWorkspace(vm, variable, x, y, "Gauge"));
-
-        menu.Items.Add(itemDisplay);
-        menu.Items.Add(itemSlider);
-        menu.Items.Add(itemGauge);
-
-        // Открываем строго под курсором мыши
-        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.MousePoint;
-        menu.IsOpen = true;
-    }
 
 
     private async void CreateWidgetOnWorkspace(MainViewModel vm, VariableConfig variable, double x, double y, string viewType)

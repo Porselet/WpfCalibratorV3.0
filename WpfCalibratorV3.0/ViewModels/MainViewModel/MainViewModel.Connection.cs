@@ -62,16 +62,6 @@ public partial class MainViewModel
     }
 
 
-
-
-
-
-
-
-
-
-
-
     private void OnUartPacketReceived(NetworkCommand response)
     {
         // 1. Ищем переменную в нашей живой программе по её VarId

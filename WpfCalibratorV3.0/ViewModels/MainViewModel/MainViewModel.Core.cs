@@ -179,12 +179,12 @@ public partial class MainViewModel : INotifyPropertyChanged
         {
             if (param.IsLutLinked)
             {
-                var axisXValues = param.BoundAxisX!.MatrixData.Cast<float>().ToArray();
-                var axisYValues = param.BoundAxisY!.MatrixData.Cast<float>().ToArray();
+                var axisXValues = param.BoundAxisX!.MatrixData.Cast<double>().ToArray();
+                var axisYValues = param.BoundAxisY!.MatrixData.Cast<double>().ToArray();
 
                 param.CalculateWorkingPoint(
-                    (float)param.BoundInputX!.CurrentValue,
-                    (float)param.BoundInputY!.CurrentValue,
+                    param.BoundInputX!.CurrentValue,
+                    param.BoundInputY!.CurrentValue,
                     axisXValues,
                     axisYValues
                 );

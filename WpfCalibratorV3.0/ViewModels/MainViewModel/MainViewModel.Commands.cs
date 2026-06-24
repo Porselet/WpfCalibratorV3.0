@@ -22,6 +22,9 @@ public partial class MainViewModel
         }
     }
 
+
+
+
     // 2. Конкретная реализация команды для подключения/отключения UART
     private class ToggleConnectionCommandImpl : BaseCommand
     {
@@ -78,6 +81,53 @@ public partial class MainViewModel
             }
         }
     }
+
+
+    private ICommand? _saveToFlashCommand;
+
+    /// <summary>
+    /// Ручка управления: отправляет в контроллер STM32 команду-триггер персистентного сохранения калибровок во флеш-память.
+    /// </summary>
+    public ICommand SaveToFlashCommand => _saveToFlashCommand ??= new SaveToFlashCommandInternal(this);
+
+
+    /// <summary>
+    /// Внутренний сишный драйвер команды сохранения во флеш-память МК.
+    /// Наследует абстрактный BaseCommand с полной реализацией контракта.
+    /// </summary>
+    private class SaveToFlashCommandInternal : BaseCommand
+    {
+        private readonly MainViewModel _vm;
+        public SaveToFlashCommandInternal(MainViewModel vm) => _vm = vm;
+
+        // Обязательный метод контракта: кнопка активна всегда, когда запущен софт
+        public override bool CanExecute(object? parameter)
+        {
+            return true;
+        }
+
+        // Физика выстрела пакета в медь провода
+        public override void Execute(object? parameter)
+        {
+            if (Services.BusArbiter.AsInterface.IsRunning)
+            {
+                // Твой идеальный сишный кадр: xAA x00 x03 x00 x00
+                var flashSaveCmd = new Models.NetworkCommand
+                {
+                    ModelId = 0,                             // Общий уровень
+                    Cmd = Models.LinkCommand.FlashSave,       // Команда записи/управления (0x03)
+                    VarId = 0,                               // Глобальный триггер
+                    PayloadData = Array.Empty<double>(),     // Длина 0 (пустой payload)
+                    Rows = 0,
+                    Cols = 0
+                };
+
+                // Выстреливаем команду в приоритетную очередь Арбитра
+                Services.BusArbiter.AsInterface.PushCommand(flashSaveCmd);
+            }
+        }
+    }
+
 
 
 
@@ -228,6 +278,8 @@ public partial class MainViewModel
             }
         }
     }
+
+
 
 
 }
