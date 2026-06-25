@@ -233,6 +233,16 @@ public partial class MainViewModel
                 // Жестко взводим ему неоновый фокус активности в ОЗУ!
                 firstParam.IsActiveWidget = true;
             }
+            // ... внутри метода SwitchToLayout, после очистки и заполнения ActiveWidgets:
+            foreach (var widget in ActiveWidgets)
+            {
+                if (widget.DataSource != null && widget.DataSource.IsParam)
+                {
+                    // Сбрасываем старый 3D-масштаб ТОЛЬКО при физическом переключении вкладок оператором
+                    widget.DataSource.Reset3DScale();
+                }
+            }
+
         }
 
         // Возвращаем опрос телеметрии в исходное состояние

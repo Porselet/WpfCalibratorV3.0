@@ -105,6 +105,7 @@ public partial class MainViewModel
 
                 // Перерисовываем ячейки таблицы на экране ноутбука
                 targetVariable.RebuildMatrixCells(true);
+                targetVariable.Rebuild3DSurfaceMesh();
 
                 // Опускаем щит
                 targetVariable.IsUpdatingFromNetwork = false;

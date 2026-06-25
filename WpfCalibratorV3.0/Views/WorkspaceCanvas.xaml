@@ -156,6 +156,10 @@
                                                         <DataTrigger Binding="{Binding ControlView}" Value="RadarTracker">
                                                             <Setter Property="ContentTemplate" Value="{StaticResource RadarTrackerTrackerTemplate}"/>
                                                         </DataTrigger>
+
+                                                        <DataTrigger Binding="{Binding ControlView}" Value="Matrix3DSurface">
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource Matrix3DSurfaceTemplate}"/>
+                                                        </DataTrigger>
                                                     </Style.Triggers>
 
                                                 </Style>

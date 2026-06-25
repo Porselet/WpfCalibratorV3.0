@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Windows.Media.Media3D; // Обязательно проверь наличие этого using вверху файла!
 
 namespace WpfCalibrator.ViewModels
 {
@@ -261,69 +262,6 @@ namespace WpfCalibrator.ViewModels
                 }
             }
         }
-
-
-
-        // Готовая 3D-сетка треугольников для аппаратного рендеринга Helix
-        private System.Windows.Media.Media3D.MeshGeometry3D? _matrixMesh3D;
-        public System.Windows.Media.Media3D.MeshGeometry3D? MatrixMesh3D
-        {
-            get => _matrixMesh3D;
-            set { _matrixMesh3D = value; OnPropertyChanged(); }
-        }
-
-        /// <summary>
-        /// МАРШАЛЕР ОЗУ: Переводит двухмерный массив калибровок C# в монолитную 3D-сетку треугольников для Helix.
-        /// </summary>
-        public void Rebuild3DSurfaceMesh()
-        {
-            if (TotalElements <= 1) return;
-
-            var mesh = new System.Windows.Media.Media3D.MeshGeometry3D();
-
-            // 1. ГЕНЕРАЦИЯ ВЕРШИН (ОБЛАКА ТОЧЕК)
-            for (int r = 0; r < Rows; r++)
-            {
-                for (int c = 0; c < Cols; c++)
-                {
-                    // Масштабируем индексы ячеек для красивого отображения в 3D-пространстве
-                    double x = c * 10.0;
-                    double y = r * 10.0;
-                    double z = MatrixData[r, c] * 2.0; // Множитель высоты для наглядности рельефа
-
-                    mesh.Positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
-                }
-            }
-
-            // 2. СБОРКА ТРЕУГОЛЬНИКОВ (Связываем точки линиями в полигоны)
-            for (int r = 0; r < Rows - 1; r++)
-            {
-                for (int c = 0; c < Cols - 1; c++)
-                {
-                    int index0 = (r * Cols) + c;
-                    int index1 = index0 + 1;
-                    int index2 = ((r + 1) * Cols) + c;
-                    int index3 = index2 + 1;
-
-                    // Первый треугольник ячейки сетки
-                    mesh.TriangleIndices.Add(index0);
-                    mesh.TriangleIndices.Add(index2);
-                    mesh.TriangleIndices.Add(index1);
-
-                    // Второй треугольник ячейки сетки
-                    mesh.TriangleIndices.Add(index1);
-                    mesh.TriangleIndices.Add(index2);
-                    mesh.TriangleIndices.Add(index3);
-                }
-            }
-
-            // Замораживаем объект для повышения производительности рендеринга в GPU
-            //////mesh.Freeze();
-
-            // Передаем сетку на экран
-            MatrixMesh3D = mesh;
-        }
-
 
 
     }
