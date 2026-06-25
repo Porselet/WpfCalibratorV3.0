@@ -119,15 +119,38 @@
         </Grid>
     </DataTemplate>
     <!-- ШАБЛОН 3D-ТАБЛИЦЫ (ВЕКТОРНЫЙ И ЧИСТЫЙ) -->
+    <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ (МАТРИЦ И ВЕКТОРОВ С ОСЯМИ) -->
+    <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ (МАТРИЦ И ВЕКТОРОВ С ОСЯМИ) -->
+    <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ (МАТРИЦ И ВЕКТОРОВ С ОСЯМИ) -->
     <DataTemplate x:Key="MatrixTableTemplate">
         <Grid Margin="5">
             <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <Grid Width="500" Height="280">
+                <!-- Убираем жесткий Height="280" и переносим управление высотой в Стиль -->
+                <Grid Width="500" x:Name="MainTableGrid">
+                    <Grid.Style>
+                        <Style TargetType="Grid">
+                            <!-- Дефолтное значение для многострочных 3D-карт -->
+                            <Setter Property="Height" Value="280"/>
+                            <Style.Triggers>
+                                <!-- 🔥 ГОНОЧНЫЙ АВТО-МАСШТАБ: Если в таблице всего 1 строка (одномерный вектор) -->
+                                <DataTrigger Binding="{Binding DataSource.Rows}" Value="1">
+                                    <!-- Схлопываем весь контейнер по высоте, чтобы не раздувать столбы, 
+                                         при этом оси X и Y сожмутся синхронно и пропорционально! -->
+                                    <Setter Property="Height" Value="65"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Grid.Style>
+
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
+
+                    <!-- ... Весь остальной твой XAML осей и ItemsControl остается абсолютно без изменений ... -->
+
+
 
                     <!-- ШАПКА ТАБЛИЦЫ -->
                     <Grid Grid.Row="0" Margin="0,0,0,5">
@@ -179,13 +202,13 @@
                         <ItemsControl Grid.Column="0" ItemsSource="{Binding DataSource.BoundAxisY.MatrixCells}" Margin="0,0,2,0">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <UniformGrid Columns="1" Rows="{Binding DataSource.Rows}"/>
+                                    <UniformGrid Columns="1" Rows="{Binding DataSource.Rows}" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="#252525" BorderBrush="#333333" BorderThickness="1" Margin="0,1">
-                                        <TextBlock Text="{Binding ValueText}" Foreground="#FFFF00" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,2"/>
+                                        <TextBlock Text="{Binding ValueText}" Foreground="#FFFF00" FontSize="12" FontWeight="Bold"  HorizontalAlignment="Right"  Padding="4,2"/>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -195,7 +218,7 @@
                         <ItemsControl Grid.Column="1" ItemsSource="{Binding DataSource.MatrixCells}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <UniformGrid Rows="{Binding DataSource.Rows}" Columns="{Binding DataSource.Cols}"/>
+                                    <UniformGrid Rows="{Binding DataSource.Rows}" Columns="{Binding DataSource.Cols}" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -208,9 +231,7 @@
                                              IsReadOnly="True"
                                              Background="Transparent"
                                              Foreground="White"
-                                             MaxHeight="28" 
                                              Height="28"
-                                             VerticalAlignment="Center"
                                              BorderThickness="0"
                                              HorizontalContentAlignment="Center"
                                              VerticalContentAlignment="Center"
