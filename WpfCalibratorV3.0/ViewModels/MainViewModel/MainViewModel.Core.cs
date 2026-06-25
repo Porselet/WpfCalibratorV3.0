@@ -92,7 +92,7 @@ public partial class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _selectedPort = "COM1";
+    private string _selectedPort = "COM4";
     public string SelectedPort
     {
         get => _selectedPort;

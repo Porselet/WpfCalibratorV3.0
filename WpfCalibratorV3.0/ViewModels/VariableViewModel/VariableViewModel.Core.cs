@@ -100,6 +100,18 @@ public partial class VariableViewModel : INotifyPropertyChanged
         set { if (_showRadarTracker != value) { _showRadarTracker = value; OnPropertyChanged(); } }
     }
 
+    private bool _show3DSurface = false;
+
+    /// <summary>
+    /// Системный флаг: активна ли для данной переменной параллельная 3D-панель визуализации Helix.
+    /// </summary>
+    public bool Show3DSurface
+    {
+        get => _show3DSurface;
+        set { _show3DSurface = value; OnPropertyChanged(); }
+    }
+
+
     private bool _isVertical = false;
     /// <summary>
     /// Флаг вертикальной ориентации (только для одномерных осей и 1-LUT таблиц)

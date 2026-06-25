@@ -115,6 +115,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="10"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="10"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- ОСЬ X -->
@@ -142,6 +144,9 @@
             <!-- НОВОЕ: Добавили x:Name="LabelShowRadar" -->
             <TextBlock x:Name="LabelShowRadar" Grid.Row="7" Grid.Column="0" Text="Прицел-Радар:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
             <CheckBox Grid.Row="7" Grid.Column="1" x:Name="CheckShowRadar" Content="Вывести плавающий прицел" Foreground="White" FontFamily="Consolas" FontSize="12" VerticalAlignment="Center"/>
+            <!-- КОМПОНЕНТ ДЛЯ ВЫВОДА ТРЕХМЕРНОЙ ПОВЕРХНОСТИ -->
+            <TextBlock x:Name="LabelShow3D" Grid.Row="9" Grid.Column="0" Text="3D Поверхность:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
+            <CheckBox Grid.Row="9" Grid.Column="1" x:Name="CheckShow3D" Content="Вывести 3D-поверхность Helix" Foreground="White" FontFamily="Consolas" FontSize="12" VerticalAlignment="Center"/>
 
 
             <!-- ВЫБОР ОРИЕНТАЦИИ -->

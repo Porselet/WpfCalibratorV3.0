@@ -57,5 +57,6 @@ namespace WpfCalibrator.Models
         public string InputY_VarName { get; set; } = "";
         // НОВОЕ: Флаг необходимости вывода плавающего прицела-радара для этой таблицы
         public bool ShowRadarTracker { get; set; } = false;
+        public bool Show3DSurface { get; set; }
     }
 }

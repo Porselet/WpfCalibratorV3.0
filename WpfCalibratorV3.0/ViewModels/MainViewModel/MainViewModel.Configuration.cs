@@ -83,7 +83,7 @@ public partial class MainViewModel
         // Загружаем актуальный файл конфигурации устройства с диска
         var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath) ?? new UserViewConfig();
 
-        currentConfig.LastUsedComPort = SelectedPort ?? "COM1";
+        currentConfig.LastUsedComPort = SelectedPort ?? "COM4";
         currentConfig.ActiveLayoutName = CurrentLayoutName;
 
         // Формируем список виджетов, открытых прямо сейчас на холсте
@@ -124,7 +124,9 @@ public partial class MainViewModel
                     InputY_VarName = widget.DataSource.BoundInputY?.Name ?? "",
 
                     // НОВОЕ: Передаем состояние флага Радара из вьюмодели таблицы в JSON
-                    ShowRadarTracker = widget.DataSource.ShowRadarTracker
+                    ShowRadarTracker = widget.DataSource.ShowRadarTracker,
+                    Show3DSurface    = widget.DataSource.Show3DSurface,
+
                 }
             });
         }
@@ -152,33 +154,29 @@ public partial class MainViewModel
         {
             foreach (var info in savedWidgets)
             {
-                // ВНУТРИ ЦИКЛА МЕТОДА SwitchToLayout ЗАМЕНИ СТРОКУ ПОИСКА ПЕРЕМЕННОЙ:
-                // Ищем переменную, у которой совпадает и Имя, и Идентификатор МК!
-                // ВНУТРИ ЦИКЛА МЕТОДА SwitchToLayout:
                 // Используем твой родной рабочий метод поиска по имени
                 var realVar = FindVariable(info.VarName);
 
                 // Дополнительная проверка безопасности: если переменная нашлась, 
-                // но её ModelId не совпадает с дисковым (параметр от другой платы) — пропускаем её
+                // но её ModelId не совпадает с дисковым — пропускаем её
                 if (realVar != null && realVar.ModelId != info.ModelId)
                 {
-                    // Пытаемся найти её в общей структуре (если FindVariable искал только в активном устройстве)
-                    // Но для стабильности пока просто страхуемся, чтобы не перепутать платы
                     realVar = null;
                 }
 
-
-
                 if (realVar == null) continue;
-                // НОВОЕ: Восстанавливаем сохраненные масштабы шкал и алармы из JSON прямо в переменную!
+
+                // Восстанавливаем сохраненные масштабы шкал и алармы из JSON прямо в переменную!
                 realVar.ScaleMin = info.ScaleMin;
                 realVar.ScaleMax = info.ScaleMax;
                 realVar.MinLimit = info.MinLimit;
                 realVar.MaxLimit = info.MaxLimit;
 
-                // ТИХАЯ ЗАЩИТА ОТ ДУБЛИКАТОВ (Оставляем для таблиц и скаляров)
-                if (info.ControlView != "RadarTracker" && realVar.IsParam &&
-                    ActiveWidgets.Any(w => w.DataSource != null && w.DataSource.Name == realVar.Name && w.ControlView != "RadarTracker"))
+                // ТИХАЯ ЗАЩИТА ОТ ДУБЛИКАТОВ: 
+                // Теперь мы зряче разрешаем одновременное существование на холсте и таблицы (MatrixTable), 
+                // и её 3D-копии (Matrix3DSurface), привязанных к одной переменной!
+                if (info.ControlView != "RadarTracker" && info.ControlView != "Matrix3DSurface" && realVar.IsParam &&
+                    ActiveWidgets.Any(w => w.DataSource != null && w.DataSource.Name == realVar.Name && w.ControlView != "RadarTracker" && w.ControlView != "Matrix3DSurface"))
                 {
                     continue;
                 }
@@ -193,19 +191,13 @@ public partial class MainViewModel
                     Width = info.Width,
                     Height = info.Height,
                     IncrementStep = info.IncrementStep,
-                    // НОВОЕ: Достаем флаг вертикальной ориентации из JSON обратно в ОЗУ виджета!
                     IsVertical = info.IsVertical,
-
-                    // НОВОЕ: Восстанавливаем флаг разрешения визуального аларма из JSON!
                     EnableVisualAlarm = info.EnableVisualAlarm
-
-
                 };
 
-                // 🔥 УЛЬТИМАТИВНЫЙ ФИКС ОДНОМЕРНЫХ ОСЕЙ:
-                // Заменяем слепую проверку флага HasBindings на зрячую проверку наличия имён осей.
+                // 🔥 УЛЬТИМАТИВНЫЙ ФИКС ОСЕЙ (Для MatrixTable и Matrix3DSurface):
                 // Если в JSON сохранены имена осей — принудительно восстанавливаем их в ОЗУ, 
-                // независимо от количества строк (Rows) в калибровочной таблице!
+                // независимо от того, в каком графическом виде отображается прибор!
                 if (info.TableBindings != null)
                 {
                     if (!string.IsNullOrEmpty(info.TableBindings.AxisX_VarName))
@@ -221,11 +213,12 @@ public partial class MainViewModel
                         realVar.BoundInputY = FindVariable(info.TableBindings.InputY_VarName);
 
                     realVar.ShowRadarTracker = info.TableBindings.ShowRadarTracker;
+
+                    // Также восстанавливаем флаг в ядро переменной, чтобы галочка в настройках была синхронизирована
+                    realVar.Show3DSurface = info.TableBindings.Show3DSurface;
                 }
 
-
                 ActiveWidgets.Add(widgetVm);
-
 
                 // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
                 if (realVar.IsParam && CommunicationService.AsInterface.IsConnected)
@@ -233,14 +226,13 @@ public partial class MainViewModel
                     _ = RefreshAllLayoutParametersAsync();
                 }
             }
-            var firstParam = ActiveWidgets?.FirstOrDefault(w => w.DataSource != null && w.DataSource.IsParam);
 
+            var firstParam = ActiveWidgets?.FirstOrDefault(w => w.DataSource != null && w.DataSource.IsParam);
             if (firstParam != null)
             {
                 // Жестко взводим ему неоновый фокус активности в ОЗУ!
                 firstParam.IsActiveWidget = true;
             }
-
         }
 
         // Возвращаем опрос телеметрии в исходное состояние

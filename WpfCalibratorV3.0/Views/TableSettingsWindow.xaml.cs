@@ -44,6 +44,8 @@ namespace WpfCalibrator.Views
 
             // 1. ВНУТРИ КОНСТРУКТОРА TableSettingsWindow (в самый конец, под шаг):
             CheckShowRadar.IsChecked = _targetTable.ShowRadarTracker;
+
+            CheckShow3D.IsChecked    = _targetTable.Show3DSurface;
             // ВНУТРИ МЕТОДА ИНИЦИАЛИЗАЦИИ ДАННЫХ ОКНА:
             if (_targetWidget.IsVertical)
             {
@@ -83,6 +85,8 @@ namespace WpfCalibrator.Views
 
             CheckShowRadar.Visibility = Visibility.Collapsed;
             LabelShowRadar.Visibility = Visibility.Collapsed;    // Гасим надпись радара
+            CheckShow3D.Visibility = Visibility.Collapsed;
+            LabelShow3D.Visibility = Visibility.Collapsed;    // Гасим надпись 3d
 
             // Гасим новые блоки стилей и лимитов
             LabelStyle.Visibility = Visibility.Collapsed; ComboStyle.Visibility = Visibility.Collapsed;
@@ -115,8 +119,12 @@ namespace WpfCalibrator.Views
                     LabelAxisY.Visibility = Visibility.Visible; ComboAxisY.Visibility = Visibility.Visible;
                     LabelInputY.Visibility = Visibility.Visible; ComboInputY.Visibility = Visibility.Visible;
                     TextIncrementStep.Visibility = Visibility.Visible;
+                    LabelIncrementStep.Visibility = Visibility.Visible;
+                    LabelShowRadar.Visibility = Visibility.Visible;
                     CheckShowRadar.Visibility = Visibility.Visible;
-                    this.Height = 360;
+                    CheckShow3D.Visibility = Visibility.Visible;
+                    LabelShow3D.Visibility = Visibility.Visible;    // Гасим надпись 3d
+                    this.Height = 400;
                 }
                 else if ((_targetTable.Rows == 1 && _targetTable.Cols > 1) || (_targetTable.Rows > 1 && _targetTable.Cols == 1))
                 {
@@ -212,46 +220,77 @@ namespace WpfCalibrator.Views
             _targetTable.BoundAxisY = ComboAxisY.SelectedItem as VariableViewModel;
             _targetTable.BoundInputY = ComboInputY.SelectedItem as VariableViewModel;
 
+            // АВТОМАТИЗАЦИЯ ПРИЦЕЛА: Находим MainViewModel через главное окно
+            // 1. Извлекаем главный контекст данных (MainViewModel) один раз в самом верху метода
+            var mainVm = Application.Current?.MainWindow?.DataContext as ViewModels.MainViewModel;
+            if (mainVm == null) return;
+
+            // ======================================================================
+            // БЛОК А: СУЩЕСТВУЮЩАЯ АВТОМАТИЗАЦИЯ ПРИЦЕЛА-РАДАРА (Твой оригинальный код)
+            // ======================================================================
             _targetTable.ShowRadarTracker = CheckShowRadar.IsChecked == true;
 
-            // СРАЗУ ПОСЛЕ СТРОКИ: _targetTable.ShowRadarTracker = CheckShowRadar.IsChecked == true;
+            var existingRadar = mainVm.ActiveWidgets?
+                .FirstOrDefault(w => w.DataSource == _targetTable && w.ControlView == "RadarTracker");
 
-            // АВТОМАТИЗАЦИЯ ПРИЦЕЛА: Находим MainViewModel через главное окно
-            if (Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
+            if (_targetTable.ShowRadarTracker)
             {
-                // Ищем, выведен ли уже радар для этой таблицы на рабочий стол
-                var existingRadar = mainVm.ActiveWidgets.FirstOrDefault(w =>
-                    w.ControlView == "RadarTracker" && w.DataSource?.Name == _targetTable.Name);
-
-                if (_targetTable.ShowRadarTracker)
+                if (existingRadar == null)
                 {
-                    // Если галочка поставлена, а радара на столе еще нет — создаем его!
-                    if (existingRadar == null)
+                    var radarWidget = new ViewModels.WidgetViewModel
                     {
-                        var radarWidget = new WidgetViewModel
-                        {
-                            DataSource = _targetTable, // Прицел жестко связан с данными этой таблицы
-                            ControlView = "RadarTracker", // Специальный тип отображения
-                            Left = _targetWidget.Left + _targetWidget.Width + 20, // Появляется справа от таблицы
-                            Top = _targetWidget.Top,
-                            Width = 220,  // Компактный квадратный прицел-радар
-                            Height = 220,
-                            IncrementStep = _targetWidget.IncrementStep
-                        };
-
-                        mainVm.ActiveWidgets.Add(radarWidget);
-                    }
-                }
-                else
-                {
-                    // Если галочку убрали — молча стираем прицел-радар с рабочего стола
-                    if (existingRadar != null)
-                    {
-                        mainVm.ActiveWidgets.Remove(existingRadar);
-                    }
+                        DataSource = _targetTable,
+                        ControlView = "RadarTracker",
+                        Left = _targetWidget.Left + _targetWidget.Width + 20,
+                        Width = 220,
+                        Height = 220
+                    };
+                    mainVm.ActiveWidgets.Add(radarWidget);
                 }
             }
-            // ВНУТРИ МЕТОДА ApplyButton_Click (в самый конец, перед DialogResult = true;):
+            else
+            {
+                if (existingRadar != null) mainVm.ActiveWidgets.Remove(existingRadar);
+            }
+
+            // ======================================================================
+            // БЛОК Б: АВТОМАТИЗАЦИЯ 3D-ВИДЖЕТА ПОВЕРХНОСТИ (Наш новый узел)
+            // ======================================================================
+
+            _targetTable.Show3DSurface = CheckShow3D.IsChecked == true;
+
+            _targetTable.Show3DSurface = CheckShow3D.IsChecked == true;
+
+            // Ищем, нет ли уже на холсте 3D-панели для этой конкретной переменной
+            var existing3D = mainVm.ActiveWidgets?
+                .FirstOrDefault(w => w.DataSource == _targetTable && w.ControlView == "Matrix3DSurface");
+
+            if (_targetTable.Show3DSurface)
+            {
+                // Если галочка взведена, а виджета на холсте нет — создаем его в ОЗУ!
+                if (existing3D == null)
+                {
+                    var surfaceWidget = new ViewModels.WidgetViewModel
+                    {
+                        DataSource = _targetTable,
+                        ControlView = "Matrix3DSurface", // Наш новый шаблон из WidgetTemplates.xaml
+                        Left = _targetWidget.Left,       // Смещаем ровно под цифровую таблицу
+                        Top = _targetWidget.Top + _targetWidget.Height + 20,
+                        Width = 400,
+                        Height = 300
+                    };
+
+                    mainVm.ActiveWidgets.Add(surfaceWidget);
+                }
+            }
+            else
+            {
+                // Если галочку сняли — жестко вычищаем 3D-панель с экрана
+                if (existing3D != null)
+                {
+                    mainVm.ActiveWidgets.Remove(existing3D);
+                }
+            }            // ВНУТРИ МЕТОДА ApplyButton_Click (в самый конец, перед DialogResult = true;):
             if (!_targetTable.IsParam)
             {
                 // Безопасно парсим МИНИМУМ. Если поле пустое или ввели мусор — возвращаем минус бесконечность
@@ -287,6 +326,10 @@ namespace WpfCalibrator.Views
                 _targetWidget.EnableVisualAlarm = CheckEnableVisualAlarm.IsChecked == true;
 
             }
+
+
+
+
 
 
             // ВНУТРИ МЕТОДА ApplyButton_Click (перед самым закрытием диалога):

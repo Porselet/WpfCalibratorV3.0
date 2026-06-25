@@ -73,6 +73,7 @@ namespace WpfCalibrator.Services
                     if (variable.IsEditing)
                     {
                         variable.ApplyEditing();
+
                     }
 
                     switch (e.Key)
