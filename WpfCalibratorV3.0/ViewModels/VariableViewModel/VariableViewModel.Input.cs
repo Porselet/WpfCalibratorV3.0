@@ -150,5 +150,113 @@ namespace WpfCalibrator.ViewModels
             }
         }
 
+
+        /// <summary>
+        /// ДИСПЕТЧЕР: Запускает горизонтальную интерполяцию по строкам для выделенной области.
+        /// </summary>
+        public void InterpolateHorizontal()
+        {
+            if (TotalElements <= 1 || MatrixCells == null) return;
+
+            // Построчно обходим всю матрицу
+            for (int r = 0; r < Rows; r++)
+            {
+                // Выделяем из ОЗУ ячейки только для текущей строки, которые выбраны инженером
+                var selectedInRow = MatrixCells
+                    .Where(c => c.Row == r && c.IsSelected)
+                    .OrderBy(c => c.Col)
+                    .ToList();
+
+                // Вызываем мелкий математический метод сглаживания одной строки
+                InterpolateSingleRow(r, selectedInRow);
+            }
+        }
+
+        /// <summary>
+        /// МАТЕМАТИКА СТРОКИ: Сглаживает одну конкретную строку между крайними выделенными колонками.
+        /// </summary>
+        private void InterpolateSingleRow(int r, System.Collections.Generic.List<MatrixCellViewModel> selectedCells)
+        {
+            // Если в строке выделено меньше 2 ячеек — строить градиент не между чем, выходим
+            if (selectedCells.Count < 2) return;
+
+            int startCol = selectedCells.First().Col;
+            int endCol = selectedCells.Last().Col;
+            int deltaCols = endCol - startCol;
+
+            double startValue = MatrixData[r, startCol];
+            double endValue = MatrixData[r, endCol];
+            double stepDelta = (endValue - startValue) / deltaCols;
+
+            // Сишный заполняющий цикл градиента по колонкам
+            for (int c = startCol; c <= endCol; c++)
+            {
+                double calculatedValue = startValue + (stepDelta * (c - startCol));
+
+                MatrixData[r, c] = calculatedValue;
+
+                // Находим визуальную ячейку и обновляем экран
+                var cell = MatrixCells.FirstOrDefault(m => m.Row == r && m.Col == c);
+                if (cell != null)
+                {
+                    cell.ValueText = calculatedValue.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+        }
+
+        /// <summary>
+        /// ДИСПЕТЧЕР: Запускает вертикальную интерполяцию по колонкам для выделенной области.
+        /// </summary>
+        public void InterpolateVertical()
+        {
+            if (TotalElements <= 1 || MatrixCells == null) return;
+
+            // Поколоночно обходим всю матрицу
+            for (int c = 0; c < Cols; c++)
+            {
+                // Выделяем из ОЗУ ячейки только для текущей колонки, которые выбраны инженером
+                var selectedInCol = MatrixCells
+                    .Where(cell => cell.Col == c && cell.IsSelected)
+                    .OrderBy(cell => cell.Row)
+                    .ToList();
+
+                // Вызываем мелкий математический метод сглаживания одной колонки
+                InterpolateSingleColumn(c, selectedInCol);
+            }
+        }
+
+        /// <summary>
+        /// МАТЕМАТИКА КОЛОНКИ: Сглаживает одну конкретную колонку между крайними выделенными строками.
+        /// </summary>
+        private void InterpolateSingleColumn(int c, System.Collections.Generic.List<MatrixCellViewModel> selectedCells)
+        {
+            // Если в колонке выделено меньше 2 ячеек — выходим
+            if (selectedCells.Count < 2) return;
+
+            int startRow = selectedCells.First().Row;
+            int endRow = selectedCells.Last().Row;
+            int deltaRows = endRow - startRow;
+
+            double startValue = MatrixData[startRow, c];
+            double endValue = MatrixData[endRow, c];
+            double stepDelta = (endValue - startValue) / deltaRows;
+
+            // Сишный заполняющий цикл градиента по строкам
+            for (int r = startRow; r <= endRow; r++)
+            {
+                double calculatedValue = startValue + (stepDelta * (r - startRow));
+
+                MatrixData[r, c] = calculatedValue;
+
+                var cell = MatrixCells.FirstOrDefault(m => m.Row == r && m.Col == c);
+                if (cell != null)
+                {
+                    cell.ValueText = calculatedValue.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                }
+            }
+        }
+
+
+
     }
 }

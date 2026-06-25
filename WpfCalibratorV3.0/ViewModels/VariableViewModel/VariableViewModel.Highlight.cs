@@ -7,8 +7,13 @@ public partial class VariableViewModel
     // Логика подсветки для таблиц
     public void CalculateWorkingPoint(double currentInputX, double currentInputY, double[] axisXData, double[] axisYData)
     {
-        // Проверка: если это не таблица, или нет привязок, или массивы осей не совпадают по размерам
-        if (!IsLutLinked || axisXData.Length != Cols || axisYData.Length != Rows)
+        // 🔥 ЖЕЛЕЗНЫЙ МАТЕМАТИЧЕСКИЙ ЩИТ:
+        // Проверяем наличие оси X (она обязана быть всегда). 
+        // Но ось Y требуем ТОЛЬКО если таблица многострочная (Rows > 1)!
+        bool hasValidAxisX = BoundAxisX != null && axisXData != null && axisXData.Length == Cols;
+        bool hasValidAxisY = Rows > 1 ? (BoundAxisY != null && axisYData != null && axisYData.Length == Rows) : true;
+
+        if (!hasValidAxisX || !hasValidAxisY)
         {
             ActiveRowIndex = -1;
             ActiveColIndex = -1;

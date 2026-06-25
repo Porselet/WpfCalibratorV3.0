@@ -202,15 +202,27 @@ public partial class MainViewModel
 
                 };
 
-                // Восстанавливаем привязки Look-Up осей
-                if (info.TableBindings != null && info.TableBindings.HasBindings)
+                // 🔥 УЛЬТИМАТИВНЫЙ ФИКС ОДНОМЕРНЫХ ОСЕЙ:
+                // Заменяем слепую проверку флага HasBindings на зрячую проверку наличия имён осей.
+                // Если в JSON сохранены имена осей — принудительно восстанавливаем их в ОЗУ, 
+                // независимо от количества строк (Rows) в калибровочной таблице!
+                if (info.TableBindings != null)
                 {
-                    realVar.BoundAxisX = FindVariable(info.TableBindings.AxisX_VarName);
-                    realVar.BoundAxisY = FindVariable(info.TableBindings.AxisY_VarName);
-                    realVar.BoundInputX = FindVariable(info.TableBindings.InputX_VarName);
-                    realVar.BoundInputY = FindVariable(info.TableBindings.InputY_VarName);
+                    if (!string.IsNullOrEmpty(info.TableBindings.AxisX_VarName))
+                        realVar.BoundAxisX = FindVariable(info.TableBindings.AxisX_VarName);
+
+                    if (!string.IsNullOrEmpty(info.TableBindings.AxisY_VarName))
+                        realVar.BoundAxisY = FindVariable(info.TableBindings.AxisY_VarName);
+
+                    if (!string.IsNullOrEmpty(info.TableBindings.InputX_VarName))
+                        realVar.BoundInputX = FindVariable(info.TableBindings.InputX_VarName);
+
+                    if (!string.IsNullOrEmpty(info.TableBindings.InputY_VarName))
+                        realVar.BoundInputY = FindVariable(info.TableBindings.InputY_VarName);
+
                     realVar.ShowRadarTracker = info.TableBindings.ShowRadarTracker;
                 }
+
 
                 ActiveWidgets.Add(widgetVm);
 

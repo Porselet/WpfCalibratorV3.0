@@ -167,6 +167,30 @@ namespace WpfCalibrator.Services
                 return true; // Прерываем событие Windows, чтобы фокус не улетал в системные кнопки
             }
 
+            // ======================================================================
+            // БЛОК 4.7: ГОРЯЧИЕ КЛАВИШИ ИНТЕРПОЛЯЦИИ ТАБЛИЦ (Клавиши H и V)
+            // ======================================================================
+            if (!variable.IsEditing && activeWidget.ControlView == "MatrixTable")
+            {
+                // Перехват клавиши H (Horizontal - Горизонтальное сглаживание)
+                if (e.Key == Key.H)
+                {
+                    variable.InterpolateHorizontal(); // 💾 Обновили локальное ОЗУ
+                    SendBulkUpdateToNetwork(activeWidget);
+                    //variable.UpdateMatrixValue(-1, -1, -1.0f); // 🚀 ОДИН залповый выстрел Bulk-пакета в UART!
+                    return true;
+                }
+
+                // Перехват клавиши V (Vertical - Вертикальное сглаживание)
+                if (e.Key == Key.V)
+                {
+                    variable.InterpolateVertical(); // 💾 Обновили локальное ОЗУ
+                    SendBulkUpdateToNetwork(activeWidget);
+                    return true;
+                }
+            }
+
+
 
             // 5. ПЕРЕХВАТ ЦИФР И СИМВОЛОВ (Твой Блок №7 из Пастбина — Накопление в InputBuffer)
             string pressedChar = ConvertKeyToChar(e.Key);

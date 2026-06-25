@@ -174,17 +174,31 @@ public partial class MainViewModel : INotifyPropertyChanged
     // 1. Обработчик тика таймера (обновление прицела и polling)
     private void UpdateTimer_Tick(object? sender, EventArgs e)
     {
-        // 1. Обновляем координаты прицела для всех таблиц
+        // 1. ОБНОВЛЕНИЕ КООРДИНАТ ПРИЦЕЛА (Для 3D-матриц и 1D-векторов)
         foreach (var param in ParameterVariables)
         {
-            if (param.IsLutLinked)
-            {
-                var axisXValues = param.BoundAxisX!.MatrixData.Cast<double>().ToArray();
-                var axisYValues = param.BoundAxisY!.MatrixData.Cast<double>().ToArray();
+            // Проверяем базовые условия для одномерной оси X (она обязана быть всегда)
+            bool hasAxisX = param.BoundAxisX != null && param.BoundInputX != null;
 
+            // Для оси Y: если строк больше 1, требуем наличие оси Y, иначе (для вектора) — игнорируем её
+            bool hasAxisY = param.Rows > 1 ? (param.BoundAxisY != null && param.BoundInputY != null) : true;
+
+            if (hasAxisX && hasAxisY)
+            {
+                // Извлекаем массив оси X (работает всегда)
+                var axisXValues = param.BoundAxisX.MatrixData.Cast<double>().ToArray();
+
+                // Извлекаем массив оси Y: для многострочных карт — честные данные,
+                // а для одномерных векторов — суррогатный массив из одного нуля,
+                // чтобы исключить взрыв калькулятора по ошибке IndexOutOfRangeException!
+                var axisYValues = param.Rows > 1
+                    ? param.BoundAxisY!.MatrixData.Cast<double>().ToArray()
+                    : new double[] { 0.0 };
+
+                // Загоняем текущие значения в калькулятор рабочей точки
                 param.CalculateWorkingPoint(
-                    param.BoundInputX!.CurrentValue,
-                    param.BoundInputY!.CurrentValue,
+                    param.BoundInputX.CurrentValue,
+                    param.Rows > 1 ? param.BoundInputY!.CurrentValue : 0.0, // Для вектора Y-вход обнуляем
                     axisXValues,
                     axisYValues
                 );
