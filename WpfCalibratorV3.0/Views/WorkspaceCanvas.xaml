@@ -43,14 +43,10 @@
                                 <!-- Добавьте этот Setter в общие свойства стиля вашего ContentPresenter / ListBoxItem -->
                                 <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
                                 <!-- ДОБАВЛЯЕМ ВНУТРЬ СТИЛЯ ОБЕРТКИ ВИДЖЕТОВ НА ХОЛСТЕ: -->
-                                <Setter Property="ContextMenu">
+                                <!--<Setter Property="ContextMenu">
                                     <Setter.Value>
-                                        <!-- Стильное темно-серое гоночное меню -->
-                                        <!-- ИСПРАВЛЕННОЕ КОНТЕНСТНОЕ МЕНЮ С ПРОБРОСОМ ДАННЫХ -->
                                         <ContextMenu Background="#1A1A1A" BorderBrush="#555555" BorderThickness="1">
 
-                                            <!-- Магия PlacementTarget.Tag: мы принудительно пробиваем изоляцию 
-                                            и достаем DataContext Главного Окна через элемент, который вызвал меню! -->
                                             <MenuItem   Header="⚙ Настройки прибора..." 
                                                         Foreground="White" FontFamily="Consolas" FontSize="12"
                                                         Command="{Binding PlacementTarget.Tag.DataContext.OpenTableSettingsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
@@ -60,7 +56,7 @@
                                         </ContextMenu>
 
                                     </Setter.Value>
-                                </Setter>
+                                </Setter> -->
 
 
                             </Style>

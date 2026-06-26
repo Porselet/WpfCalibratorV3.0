@@ -1037,20 +1037,44 @@
                 <ModelVisual3D>
                     <ModelVisual3D.Content>
                         <GeometryModel3D Geometry="{Binding DataSource.SurfaceMesh}">
+
+                            <!-- 1. ЛИЦЕВОЙ МАТЕРИАЛ (Верх карты) -->
                             <GeometryModel3D.Material>
                                 <DiffuseMaterial>
                                     <DiffuseMaterial.Brush>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                            <GradientStop Color="#FF0000" Offset="0.0"/>
-                                            <GradientStop Color="#FF7F00" Offset="0.2"/>
-                                            <GradientStop Color="#FFFF00" Offset="0.4"/>
-                                            <GradientStop Color="#00FF00" Offset="0.6"/>
-                                            <GradientStop Color="#00FFFF" Offset="0.8"/>
-                                            <GradientStop Color="#0000FF" Offset="1.0"/>
+                                            <!-- Пики - Приглушенный благородный бордово-красный -->
+                                            <GradientStop Color="#C84B4B" Offset="0.0"/>
+                                            <!-- Средне-высокие - Мягкий песочно-желтый -->
+                                            <GradientStop Color="#D2B446" Offset="0.3"/>
+                                            <!-- Середина - Матовый, спокойный травяной зеленый (Не слепит!) -->
+                                            <GradientStop Color="#559664" Offset="0.6"/>
+                                            <!-- Низкие и ямы - Глубокий, спокойный стальной сине-серый -->
+                                            <GradientStop Color="#46648C" Offset="1.0"/>
                                         </LinearGradientBrush>
                                     </DiffuseMaterial.Brush>
                                 </DiffuseMaterial>
                             </GeometryModel3D.Material>
+
+                            <!-- 2. 🔥 ИЗНАНОЧНЫЙ МАТЕРИАЛ (Низ карты) -->
+                            <!-- Сделали его точно таким же сочным, чтобы при любом вывороте осей Y карта сияла цветами! -->
+                            <GeometryModel3D.BackMaterial>
+                                <DiffuseMaterial>
+                                    <DiffuseMaterial.Brush>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <!-- Пики - Приглушенный благородный бордово-красный -->
+                                            <GradientStop Color="#C84B4B" Offset="0.0"/>
+                                            <!-- Средне-высокие - Мягкий песочно-желтый -->
+                                            <GradientStop Color="#D2B446" Offset="0.3"/>
+                                            <!-- Середина - Матовый, спокойный травяной зеленый (Не слепит!) -->
+                                            <GradientStop Color="#559664" Offset="0.6"/>
+                                            <!-- Низкие и ямы - Глубокий, спокойный стальной сине-серый -->
+                                            <GradientStop Color="#46648C" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </DiffuseMaterial.Brush>
+                                </DiffuseMaterial>
+                            </GeometryModel3D.BackMaterial>
+
                         </GeometryModel3D>
                     </ModelVisual3D.Content>
                 </ModelVisual3D>
@@ -1066,28 +1090,40 @@
                                  Thickness="1.5"/>
 
                 <!-- ==================== 4. ДИНАМИЧЕСКИЕ БИЛБОРД-ПОДПИСИ ШКАЛ И ОСЕЙ ==================== -->
-
-                <!-- Главное название оси X (Динамически берет имя из привязанной LUT-оси X) -->
+                <!-- ==================== 4. ДИНАМИЧЕСКИЕ БИЛБОРД-ПОДПИСИ ОСЕЙ ==================== -->
+                <!-- Главное название оси X (Обороты) -->
                 <helix:BillboardTextVisual3D Position="0,-48,-3" 
-                                         Text="{Binding DataSource.BoundAxisX.Name, FallbackValue='ОСЬ X'}" 
+                                         Text="{Binding DataSource.BoundAxisX.Name, FallbackValue='ОБОРОТЫ (RPM)'}" 
                                          Foreground="#FFFF00" FontSize="12" FontWeight="Bold" FontFamily="Consolas"/>
 
-                <!-- Главное название оси Y (Динамически берет имя из привязанной LUT-оси Y) -->
+                <!-- Главное название оси Y (Нагрузка) -->
                 <helix:BillboardTextVisual3D Position="48,0,-3" 
-                                         Text="{Binding DataSource.BoundAxisY.Name, FallbackValue='ОСЬ Y'}" 
+                                         Text="{Binding DataSource.BoundAxisY.Name, FallbackValue='НАГРУЗКА (%)'}" 
                                          Foreground="#FFFF00" FontSize="12" FontWeight="Bold" FontFamily="Consolas"/>
 
-                <!-- Название текущей калибровочной карты на вершине куба Z -->
+                <!-- Название текущей калибровочной карты Z -->
                 <helix:BillboardTextVisual3D Position="45,45,34" 
                                          Text="{Binding DataSource.Name, FallbackValue='ЗНАЧЕНИЕ'}" 
                                          Foreground="#00FF00" FontSize="12" FontWeight="Bold" FontFamily="Consolas"/>
 
-                <!-- Оцифровка уровней высоты Z куба (Остается стабильной) -->
+
+                <!-- ==================== 5. 🔥 АВТОСПОРТИВНАЯ ОЦИФРОВКА ШКАЛ (Паттерн Чистый XAML) ==================== -->
+                <!-- Оцифровка уровней высоты куба Z (Оставляем аккуратные фиксированные билборды) -->
                 <helix:BillboardTextVisual3D Position="39,39,0" Text="МИН" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
                 <helix:BillboardTextVisual3D Position="39,39,7.5" Text="25%" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
                 <helix:BillboardTextVisual3D Position="39,39,15" Text="50%" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
                 <helix:BillboardTextVisual3D Position="39,39,22.5" Text="75%" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
                 <helix:BillboardTextVisual3D Position="39,39,30" Text="МАКС" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
+
+                <!-- 6. 🔥 ФИНАЛЬНЫЙ ВОЗВРАТ ЦИФР: Выводим список 3D-билбордов шкал из C# -->
+
+
+                <!-- 6. СЛЕДЯЩИЙ СКВОЗНОЙ ЛАЗЕРНЫЙ ЛУЧ (Маклауд-Стайл) -->
+                <!-- Биндимся на LaserBeamPoints, задаем толщину (3.0) и ядовито-неоновый зеленый цвет -->
+                <helix:LinesVisual3D Points="{Binding DataSource.LaserBeamPoints}" 
+                                 Color="#00FF00" 
+                                 Thickness="6.0"/>
+
 
 
             </helix:HelixViewport3D>

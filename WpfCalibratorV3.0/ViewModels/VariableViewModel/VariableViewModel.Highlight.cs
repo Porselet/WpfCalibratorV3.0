@@ -5,169 +5,140 @@ namespace WpfCalibrator.ViewModels;
 public partial class VariableViewModel
 {
     // Логика подсветки для таблиц
+
+    // ...
     public void CalculateWorkingPoint(double currentInputX, double currentInputY, double[] axisXData, double[] axisYData)
     {
-        // 🔥 ЖЕЛЕЗНЫЙ МАТЕМАТИЧЕСКИЙ ЩИТ:
-        // Проверяем наличие оси X (она обязана быть всегда). 
-        // Но ось Y требуем ТОЛЬКО если таблица многострочная (Rows > 1)!
+        // 1. Железный щит валидации размеров
+        if (!ValidateAxes(axisXData, axisYData)) return;
+
+        // 2. Поиск базовых индексов и узлов квадранта
+        FindBaseIndices(currentInputX, currentInputY, axisXData, axisYData,
+            out int colIdx, out int rowIdx, out int baseColIdx, out int baseRowIdx);
+
+        // 3. Расчет дельт для плоского авиаприцела-радара
+        CalculateRadarOffsets(currentInputX, currentInputY, axisXData, axisYData, colIdx, rowIdx);
+
+        // 4. Расчет точной плавной интерполяции для 3D лазера Маклауда
+        Calculate3DLaserPosition(currentInputX, currentInputY, axisXData, axisYData, baseColIdx, baseRowIdx);
+
+        // 5. Синхронизация неона двумерной таблицы ячеек
+        ActiveRowIndex = rowIdx;
+        ActiveColIndex = colIdx;
+        RebuildMatrixCells();
+    }
+    /// <summary>
+    /// Шаг 1: Проверка наличия и валидности размеров осей X и Y
+    /// </summary>
+    private bool ValidateAxes(double[] axisXData, double[] axisYData)
+    {
         bool hasValidAxisX = BoundAxisX != null && axisXData != null && axisXData.Length == Cols;
         bool hasValidAxisY = Rows > 1 ? (BoundAxisY != null && axisYData != null && axisYData.Length == Rows) : true;
 
-        if (!hasValidAxisX || !hasValidAxisY)
-        {
-            ActiveRowIndex = -1;
-            ActiveColIndex = -1;
-            return;
-        }
-
-        // Переменные для субсеточного расчета радара (индексы левого/верхнего узла квадранта)
-        int baseColIdx = 0;
-        int baseRowIdx = 0;
-
-        // 1. Нахождение ближайшей точки по оси X
-        int colIdx = 0;
-        if (currentInputX <= axisXData[0])
-        {
-            colIdx = 0;
-            baseColIdx = 0;
-        }
+        return hasValidAxisX && hasValidAxisY;
+    }
+    /// <summary>
+    /// Шаг 2: Поиск базовых индексов ячеек и узлов квадранта
+    /// </summary>
+    private void FindBaseIndices(double currentInputX, double currentInputY, double[] axisXData, double[] axisYData,
+        out int colIdx, out int rowIdx, out int baseColIdx, out int baseRowIdx)
+    {
+        colIdx = 0;
+        baseColIdx = 0;
+        if (currentInputX <= axisXData[0]) { /* уже 0 */ }
         else if (currentInputX >= axisXData[Cols - 1])
         {
             colIdx = Cols - 1;
-            baseColIdx = Cols - 2; // Фиксируем на предклипповом узле для дельты
+            baseColIdx = Cols - 2;
         }
         else
         {
-            // Ищем, между какими двумя точками находится сигнал
             for (int i = 0; i < Cols - 1; i++)
             {
                 if (currentInputX >= axisXData[i] && currentInputX <= axisXData[i + 1])
                 {
-                    baseColIdx = i; // Нашли базовый левый узел квадранта для радара!
-
-                    // Ваша эталонная логика: округляем к ближайшей точке для неона таблицы
-                    double distToLeft = Math.Abs(currentInputX - axisXData[i]);
-                    double distToRight = Math.Abs(axisXData[i + 1] - currentInputX);
-                    colIdx = distToLeft < distToRight ? i : i + 1;
+                    baseColIdx = i;
+                    colIdx = Math.Abs(currentInputX - axisXData[i]) < Math.Abs(axisXData[i + 1] - currentInputX) ? i : i + 1;
                     break;
                 }
             }
         }
-
-        // 2. Аналогично для оси Y
-        int rowIdx = 0;
-        if (currentInputY <= axisYData[0])
+        rowIdx = 0;
+        baseRowIdx = 0;
+        if (Rows > 1 && axisYData != null)
         {
-            rowIdx = 0;
-            baseRowIdx = 0;
-        }
-        else if (currentInputY >= axisYData[Rows - 1])
-        {
-            rowIdx = Rows - 1;
-            baseRowIdx = Rows - 2;
-        }
-        else
-        {
-            for (int i = 0; i < Rows - 1; i++)
+            if (currentInputY <= axisYData[0]) { /* уже 0 */ }
+            else if (currentInputY >= axisYData[Rows - 1])
             {
-                if (currentInputY >= axisYData[i] && currentInputY <= axisYData[i + 1])
+                rowIdx = Rows - 1;
+                baseRowIdx = Rows - 2;
+            }
+            else
+            {
+                for (int i = 0; i < Rows - 1; i++)
                 {
-                    baseRowIdx = i; // Нашли базовый верхний узел квадранта для радара!
-
-                    double distToLeft = Math.Abs(currentInputY - axisYData[i]);
-                    double distToRight = Math.Abs(axisYData[i + 1] - currentInputY);
-                    rowIdx = distToLeft < distToRight ? i : i + 1;
-                    break;
+                    if (currentInputY >= axisYData[i] && currentInputY <= axisYData[i + 1])
+                    {
+                        baseRowIdx = i;
+                        rowIdx = Math.Abs(currentInputY - axisYData[i]) < Math.Abs(axisYData[i + 1] - currentInputY) ? i : i + 1;
+                        break;
+                    }
                 }
             }
         }
 
-        // ======================================================================
-        // 3. МАТЕМАТИКА АВИАЦИОННОГО ПРИЦЕЛА-РАДАРА (Перенос дельт в виджет)
-        // ======================================================================
-        // ======================================================================
-        // 3. МАТЕМАТИКА СУБСЕТОЧНОЙ ЛУПЫ ЯЧЕЙКИ (Прямое позиционирование прицела)
-        // ======================================================================
-        double shiftX = 0.0;
-        double shiftY = 0.0;
-        const double maxPixelDev = 100.0; // Максимальное отклонение от центра до края окна в пикселях
+    }
 
-        // Расчет отклонения по горизонтали (Обороты) относительно выбранного узла colIdx
-        if (colIdx >= 0 && colIdx < Cols)
-        {
-            double currentXNode = axisXData[colIdx];
+    private void CalculateRadarOffsets(double inputX, double inputY, double[] axX, double[] axY, int cIdx, int rIdx)
+    {
+        // Логика расчета смещения (sX/sY) внутри ячейки сетки (maxDev = 100px)
+        double sX = 0.0, sY = 0.0;
+        const double maxDev = 100.0;
 
-            if (currentInputX > currentXNode && colIdx < Cols - 1)
-            {
-                // Сигнал ушел вправо, к следующему узлу
-                double nextXNode = axisXData[colIdx + 1];
-                if (nextXNode > currentXNode)
-                    shiftX = ((currentInputX - currentXNode) / (nextXNode - currentXNode)) * maxPixelDev;
-            }
-            else if (currentInputX < currentXNode && colIdx > 0)
-            {
-                // Сигнал ушел влево, к предыдущему узлу (дельта со знаком минус)
-                double prevXNode = axisXData[colIdx - 1];
-                if (currentXNode > prevXNode)
-                    shiftX = ((currentInputX - currentXNode) / (currentXNode - prevXNode)) * maxPixelDev;
-            }
-        }
+        // Расчет для X
+        if (cIdx >= 0 && cIdx < Cols - 1)
+            sX = ((inputX - axX[cIdx]) / (axX[cIdx + 1] - axX[cIdx])) * maxDev;
 
-        // Расчет отклонения по вертикали (Давление) относительно выбранного узла rowIdx
-        if (rowIdx >= 0 && rowIdx < Rows)
-        {
-            double currentYNode = axisYData[rowIdx];
+        // Расчет для Y
+        if (rIdx >= 0 && rIdx < Rows - 1 && axY != null)
+            sY = ((inputY - axY[rIdx]) / (axY[rIdx + 1] - axY[rIdx])) * maxDev;
 
-            if (currentInputY > currentYNode && rowIdx < Rows - 1)
-            {
-                // Сигнал ушел вниз, к следующей строке
-                double nextYNode = axisYData[rowIdx + 1];
-                if (nextYNode > currentYNode)
-                    shiftY = ((currentInputY - currentYNode) / (nextYNode - currentYNode)) * maxPixelDev;
-            }
-            else if (currentInputY < currentYNode && rowIdx > 0)
-            {
-                // Сигнал ушел вверх, к предыдущей строке (дельта со знаком минус)
-                double prevYNode = axisYData[rowIdx - 1];
-                if (currentYNode > prevYNode)
-                    shiftY = ((currentInputY - currentYNode) / (currentYNode - prevYNode)) * maxPixelDev;
-            }
-        }
-
-        // Переносим рассчитанные сдвиги напрямую во вьюмодель виджета радара
+        // Обновление ViewModel (UI) через Dispatcher
         if (System.Windows.Application.Current.MainWindow?.DataContext is MainViewModel mainVm)
         {
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                var radarWidget = mainVm.ActiveWidgets.FirstOrDefault(w =>
-                    w.ControlView == "RadarTracker" && w.DataSource != null && w.DataSource.Name == this.Name);
-
-                if (radarWidget != null)
+                var widget = mainVm.ActiveWidgets.FirstOrDefault(w => w.ControlView == "RadarTracker" && w.DataSource?.Name == this.Name);
+                if (widget != null)
                 {
-                    // Записываем чистые смещения от центра. Линза полетит в правильную сторону!
-                    radarWidget.RadarGridOffsetX = shiftX;
-
-                    // Инвертируем Y, так как в WPF координата Y растет сверху вниз, 
-                    // а для инженера рост давления должен двигать прицел вверх!
-                    radarWidget.RadarGridOffsetY = -shiftY;
+                    widget.RadarGridOffsetX = sX;
+                    widget.RadarGridOffsetY = -sY; // Инверсия Y для экрана
                 }
             });
         }
-        // ======================================================================
-
-        // 4. Обновляем индексы подсветки неона таблицы
-        ActiveRowIndex = rowIdx;
-        ActiveColIndex = colIdx;
-
-        // 5. Перегенерируем коллекцию ячеек с новой подсветкой
-        RebuildMatrixCells();
-        // ======================================================================
-
-        // 4. Обновляем индексы подсветки неона таблицы
-        ActiveRowIndex = rowIdx;
-        ActiveColIndex = colIdx;
-
-        // 5. Перегенерируем коллекцию ячеек с новой подсветкой
-        RebuildMatrixCells();
     }
+    private void Calculate3DLaserPosition(double inputX, double inputY, double[] axX, double[] axY, int bCol, int bRow)
+    {
+        double exactCol = bCol;
+        double exactRow = bRow;
+
+        // Считаем дробную долю по оси X (Обороты)
+        if (bCol >= 0 && bCol < Cols - 1 && axX[bCol + 1] > axX[bCol])
+        {
+            double factorX = (inputX - axX[bCol]) / (axX[bCol + 1] - axX[bCol]);
+            exactCol += Math.Max(0.0, Math.Min(1.0, factorX)); // Зажимаем в границы [0..1]
+        }
+
+        // Считаем дробную долю по оси Y (Нагрузка)
+        if (bRow >= 0 && bRow < Rows - 1 && axY != null && axY[bRow + 1] > axY[bRow])
+        {
+            double factorY = (inputY - axY[bRow]) / (axY[bRow + 1] - axY[bRow]);
+            exactRow += Math.Max(0.0, Math.Min(1.0, factorY)); // Зажимаем в границы [0..1]
+        }
+
+        // 🔥 Пинаем наш 3D-движок в VariableViewModel.3d.cs для отрисовки лазера!
+        UpdateLaserBeamPosition(exactCol, exactRow);
+    }
+
+
 }

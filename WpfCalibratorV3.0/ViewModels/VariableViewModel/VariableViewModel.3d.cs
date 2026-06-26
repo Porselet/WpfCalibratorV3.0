@@ -1,8 +1,9 @@
-﻿using System;
+﻿using HelixToolkit.Wpf;
+using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
-using System.Collections.Generic;
 
 
 // ... внутри partial класса VariableViewModel ...
@@ -25,7 +26,57 @@ namespace WpfCalibrator.ViewModels
         }
 
 
-        private MeshGeometry3D _surfaceMesh = new MeshGeometry3D();
+        private Point3DCollection _laserBeamPoints = new Point3DCollection();
+        /// <summary>
+        /// Две 3D-точки вертикального лазерного луча: [0] - Старт на полу (Z=0), [1] - Финиш в небе (Z=60)
+        /// </summary>
+        public Point3DCollection LaserBeamPoints
+        {
+            get => _laserBeamPoints;
+            set
+            {
+                _laserBeamPoints = value;
+                OnPropertyChanged(nameof(LaserBeamPoints));
+            }
+        }
+
+
+        // ... внутри класса VariableViewModel ...
+
+        public class ScreenTextLabel
+    {
+        public double ScreenX { get; set; }
+        public double ScreenY { get; set; }
+        public string Text { get; set; }
+}
+
+private List<ScreenTextLabel> _numericScreenLabels = new List<ScreenTextLabel>();
+        public List<ScreenTextLabel> NumericScreenLabels
+        {
+            get => _numericScreenLabels;
+            set { _numericScreenLabels = value; OnPropertyChanged(nameof(NumericScreenLabels)); }
+        }
+
+
+        // ... внутри класса VariableViewModel ...
+
+        private List<Visual3D> _numeric3DLabels = new List<Visual3D>();
+    public List<Visual3D> Numeric3DLabels
+    {
+        get => _numeric3DLabels;
+        set { _numeric3DLabels = value; OnPropertyChanged(nameof(Numeric3DLabels)); }
+    }
+
+    // ... внутри класса VariableViewModel ...
+
+    private List<BillboardTextItem> _numericLabels = new List<BillboardTextItem>();
+    public List<BillboardTextItem> NumericLabels
+    {
+        get => _numericLabels;
+        set { _numericLabels = value; OnPropertyChanged(nameof(NumericLabels)); }
+    }
+
+    private MeshGeometry3D _surfaceMesh = new MeshGeometry3D();
         public MeshGeometry3D SurfaceMesh
         {
             get => _surfaceMesh;
@@ -67,6 +118,14 @@ namespace WpfCalibrator.ViewModels
             public Point3D Position { get; set; }
             public string Text { get; set; }
         }
+
+        private System.Windows.Media.Media3D.ContainerUIElement3D _numericLabelsContainer = new System.Windows.Media.Media3D.ContainerUIElement3D();
+        public System.Windows.Media.Media3D.ContainerUIElement3D NumericLabelsContainer
+        {
+            get => _numericLabelsContainer;
+            set { _numericLabelsContainer = value; OnPropertyChanged(nameof(NumericLabelsContainer)); }
+        }
+
 
 
 
@@ -136,6 +195,8 @@ namespace WpfCalibrator.ViewModels
                 OnPropertyChanged(nameof(SurfaceLines));
                 OnPropertyChanged(nameof(BoundingBoxLines));
                 OnPropertyChanged(nameof(AxisLabelsContainer));
+                OnPropertyChanged(nameof(NumericLabelsContainer));
+
             });
         }
 
@@ -176,7 +237,10 @@ namespace WpfCalibrator.ViewModels
                 {
                     double val = MatrixData[r, c];
                     double x = (c * StepX) - halfWidth;
-                    double y = (r * StepY) - halfLength;
+                    //double y = (r * StepY) - halfLength;
+
+                    // Строка r=0 таблицы получит максимальный Y (улетит на дальний край сцены, наверх)
+                    double y = ((Rows - 1 - r) * StepY) - halfLength;
                     double z = (val - minVal) * scaleZ;
 
                     positions.Add(new Point3D(x, y, z));
@@ -319,110 +383,105 @@ namespace WpfCalibrator.ViewModels
         /// </summary>
         private void BuildAxisLabels(double minVal, double maxVal, double delta, double halfWidth, double halfLength)
         {
-            return;
-            var group = new Model3DGroup();
+            // Создаем чистый список для визуальных 3D объектов
+            var list = new List<Visual3D>();
 
-            // 1. ОЦИФРОВКА ОСИ X (Колонки - например, Обороты / RPM)
+            // 1. ОЦИФРОВКА ОСИ X (Шаги по колонкам - например, Обороты RPM)
             for (int c = 0; c < Cols; c++)
             {
                 double x = (c * StepX) - halfWidth;
-                string txt = (c + 1).ToString(); // Дефолтное значение
+                string txt = (c + 1).ToString(); // Дефолт
 
-                // Безопасное извлечение данных из оси X
                 if (BoundAxisX != null && BoundAxisX.MatrixData != null)
                 {
                     int axisRows = BoundAxisX.MatrixData.GetLength(0);
                     int axisCols = BoundAxisX.MatrixData.GetLength(1);
 
-                    // Если ось лежит как строка [1, N]
                     if (axisRows == 1 && c < axisCols)
                         txt = BoundAxisX.MatrixData[0, c].ToString("F0");
-                    // Если ось лежит как столбец [N, 1]
                     else if (axisCols == 1 && c < axisRows)
                         txt = BoundAxisX.MatrixData[c, 0].ToString("F0");
-                    // На крайний случай плоского индекса
-                    else if (c < BoundAxisX.MatrixData.Length)
-                        txt = BoundAxisX.MatrixData[c % axisRows, c / axisRows].ToString("F0");
                 }
 
-                var textModel = HelixToolkit.Wpf.TextCreator.CreateTextLabelModel3D(
-                    txt, Brushes.DarkGray, false, 10,
-                    new Point3D(x, -halfLength - 6.0, -1.5), new Vector3D(1, 0, 0), new Vector3D(0, 1, 0)
-                );
-                if (textModel != null) group.Children.Add(textModel);
+                // Создаем легкий текстовый билборд
+                var billboard = new HelixToolkit.Wpf.BillboardTextVisual3D
+                {
+                    Position = new Point3D(x, -halfLength - 6.0, -1.0), // Перед кубом на полу
+                    Text = txt,
+                    Foreground = System.Windows.Media.Brushes.DarkGray,
+                    FontFamily = new System.Windows.Media.FontFamily("Consolas"),
+                    FontSize = 10
+                };
+                list.Add(billboard);
             }
 
-            // НАЗВАНИЕ ОСИ X
-            string labelX = !string.IsNullOrEmpty(BoundAxisX?.Name) ? BoundAxisX.Name : "Ось X";
-            var labelXModel = HelixToolkit.Wpf.TextCreator.CreateTextLabelModel3D(
-                labelX.ToUpper(), new SolidColorBrush(Color.FromRgb(255, 255, 0)), false, 12,
-                new Point3D(0, -halfLength - 14.0, -3.0), new Vector3D(1, 0, 0), new Vector3D(0, 1, 0)
-            );
-            if (labelXModel != null) group.Children.Add(labelXModel);
-
-
-            // 2. ОЦИФРОВКА ОСИ Y (Строки - например, Дроссель % / Нагрузка)
+            // 2. ОЦИФРОВКА ОСИ Y (Шаги по строкам - например, Дроссель % / Давление)
             for (int r = 0; r < Rows; r++)
             {
-                double y = (r * StepY) - halfLength;
-                string txt = (r + 1).ToString(); // Дефолтное значение
+                // Твоя утренняя инвертированная формула Y, чтобы цифры совпали с рельефом!
+                double y = ((Rows - 1 - r) * StepY) - halfLength;
+                string txt = (r + 1).ToString();
 
-                // Безопасное извлечение данных из оси Y
                 if (BoundAxisY != null && BoundAxisY.MatrixData != null)
                 {
                     int axisRows = BoundAxisY.MatrixData.GetLength(0);
                     int axisCols = BoundAxisY.MatrixData.GetLength(1);
 
-                    // Если ось лежит как столбец [N, 1]
                     if (axisCols == 1 && r < axisRows)
                         txt = BoundAxisY.MatrixData[r, 0].ToString("F1");
-                    // Если ось лежит как строка [1, N]
                     else if (axisRows == 1 && r < axisCols)
                         txt = BoundAxisY.MatrixData[0, r].ToString("F1");
-                    // На крайний случай
-                    else if (r < BoundAxisY.MatrixData.Length)
-                        txt = BoundAxisY.MatrixData[r % axisRows, r / axisRows].ToString("F1");
                 }
 
-                var textModelY = HelixToolkit.Wpf.TextCreator.CreateTextLabelModel3D(
-                    txt, Brushes.DarkGray, false, 10,
-                    new Point3D(-halfWidth - 9.0, y, -1.5), new Vector3D(1, 0, 0), new Vector3D(0, 1, 0)
-                );
-                if (textModelY != null) group.Children.Add(textModelY);
+                var billboard = new HelixToolkit.Wpf.BillboardTextVisual3D
+                {
+                    Position = new Point3D(-halfWidth - 8.0, y, -1.0), // Слева от куба
+                    Text = txt,
+                    Foreground = System.Windows.Media.Brushes.DarkGray,
+                    FontFamily = new System.Windows.Media.FontFamily("Consolas"),
+                    FontSize = 10
+                };
+                list.Add(billboard);
             }
 
-            // НАЗВАНИЕ ОСИ Y
-            string labelY = !string.IsNullOrEmpty(BoundAxisY?.Name) ? BoundAxisY.Name : "Ось Y";
-            var labelYModel = HelixToolkit.Wpf.TextCreator.CreateTextLabelModel3D(
-                labelY.ToUpper(), new SolidColorBrush(Color.FromRgb(255, 255, 0)), false, 12,
-                new Point3D(-halfWidth - 19.0, 0, -3.0), new Vector3D(0, 1, 0), new Vector3D(-1, 0, 0)
-            );
-            if (labelYModel != null) group.Children.Add(labelYModel);
-
-
-            // 3. ОЦИФРОВКА ОСИ Z (Высота калибровок) - тут зависимости от осей нет, код безопасен
-            int heightLevels = 5;
-            for (int i = 0; i <= heightLevels; i++)
-            {
-                double z = (MaxHeightZ / heightLevels) * i;
-                double realVal = minVal + (delta / heightLevels) * i;
-
-                var textModelZ = HelixToolkit.Wpf.TextCreator.CreateTextLabelModel3D(
-                    realVal.ToString("F1"), Brushes.LightGray, false, 10,
-                    new Point3D(-halfWidth - 6.0, -halfLength - 6.0, z), new Vector3D(1, 0, 0), new Vector3D(0, 0, 1)
-                );
-                if (textModelZ != null) group.Children.Add(textModelZ);
-            }
-
-            // НАЗВАНИЕ КАРТЫ НА ВЕРШИНЕ ОСИ Z
-            var labelZModel = HelixToolkit.Wpf.TextCreator.CreateTextLabelModel3D(
-                Name.ToUpper(), new SolidColorBrush(Color.FromRgb(0, 255, 0)), false, 13,
-                new Point3D(-halfWidth - 8.0, -halfLength - 8.0, MaxHeightZ + 4.0), new Vector3D(1, 0, 0), new Vector3D(0, 0, 1)
-            );
-            if (labelZModel != null) group.Children.Add(labelZModel);
-
-            //sgroup.Freeze();
-            AxisLabelsContainer = group;
+            // Пушим готовый список объектов в свойство
+            Numeric3DLabels = list;
         }
+
+        /// <summary>
+        /// Обновляет 3D-координаты сквозного лазерного луча на основе плавных (дробных) координат радара
+        /// </summary>
+        public void UpdateLaserBeamPosition(double exactColIndex, double exactRowIndex)
+        {
+            // Жестко синхронизируем шаги и размеры с геометрией 3D-карты
+            double halfWidth = ((Cols - 1) * StepX) / 2.0;
+            double halfLength = ((Rows - 1) * StepY) / 2.0;
+
+            // 1. Рассчитываем плавную координату X на экране
+            double laserX = (exactColIndex * StepX) - halfWidth;
+
+            // 2. Рассчитываем плавную координату Y на экране (с учетом утренней инверсии строк)
+            double laserY = ((Rows - 1 - exactRowIndex) * StepY) - halfLength;
+
+            // 3. Формируем две точки сквозного луча Маклауда
+            var beam = new Point3DCollection();
+
+            // Точка 1: Старт на стальном полу коробки (Z = 0)
+            beam.Add(new Point3D(laserX, laserY, 0.0));
+
+            // Точка 2: Финиш высоко в небе над картой (Z = 60.0)
+            beam.Add(new Point3D(laserX, laserY, 60.0));
+
+            // Замораживаем для GPU
+            beam.Freeze();
+
+            // 4. Безопасно пушим готовый луч в UI-поток
+            System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                LaserBeamPoints = beam;
+            });
+        }
+
+
     }
 }
