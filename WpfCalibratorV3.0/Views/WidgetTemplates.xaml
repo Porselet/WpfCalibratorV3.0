@@ -1118,11 +1118,49 @@
                 <!-- 6. 🔥 ФИНАЛЬНЫЙ ВОЗВРАТ ЦИФР: Выводим список 3D-билбордов шкал из C# -->
 
 
-                <!-- 6. СЛЕДЯЩИЙ СКВОЗНОЙ ЛАЗЕРНЫЙ ЛУЧ (Маклауд-Стайл) -->
-                <!-- Биндимся на LaserBeamPoints, задаем толщину (3.0) и ядовито-неоновый зеленый цвет -->
-                <helix:LinesVisual3D Points="{Binding DataSource.LaserBeamPoints}" 
-                                 Color="#00FF00" 
-                                 Thickness="6.0"/>
+                <!-- 2. 🔥 ОБЪЕМНЫЙ КИБЕРПАНК-ЛАЗЕР (Честный 3D-цилиндр) -->
+                <!-- Биндимся на LaserBeamMesh, накладываем самосветящийся неоновый зеленый материал -->
+                <ModelVisual3D>
+                    <ModelVisual3D.Content>
+                        <GeometryModel3D Geometry="{Binding DataSource.LaserBeamMesh}">
+                            <GeometryModel3D.Material>
+                                <MaterialGroup>
+                                    <!-- Базовый матовый зеленый цвет для объема граней -->
+                                    <DiffuseMaterial Brush="#00AA00"/>
+                                    <!-- Мощное неоновое свечение, чтобы столб горел в темноте -->
+                                    <EmissiveMaterial Brush="#00FF00"/>
+                                </MaterialGroup>
+                            </GeometryModel3D.Material>
+                        </GeometryModel3D>
+                    </ModelVisual3D.Content>
+                </ModelVisual3D>
+
+                <!-- 3. ОБЪЕМНАЯ КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Честные матовые сферы) -->
+                <ModelVisual3D>
+                    <ModelVisual3D.Content>
+                        <GeometryModel3D Geometry="{Binding DataSource.AllSpheresMesh}">
+                            <GeometryModel3D.Material>
+                                <DiffuseMaterial Brush="#2A3D54"/>
+                            </GeometryModel3D.Material>
+                        </GeometryModel3D>
+                    </ModelVisual3D.Content>
+                </ModelVisual3D>
+
+                <!-- 4. ГЛЯНЦЕВЫЙ НЕОНОВЫЙ КУРСОР ВЫДЕЛЕНИЯ (3D-Шары с бликами MoTeC-Style) -->
+                <ModelVisual3D>
+                    <ModelVisual3D.Content>
+                        <GeometryModel3D Geometry="{Binding DataSource.SelectedSpheresMesh}">
+                            <GeometryModel3D.Material>
+                                <MaterialGroup>
+                                    <DiffuseMaterial Brush="#0080FF"/>
+                                    <SpecularMaterial Brush="#FFFFFF" SpecularPower="40"/>
+                                </MaterialGroup>
+                            </GeometryModel3D.Material>
+                        </GeometryModel3D>
+                    </ModelVisual3D.Content>
+                </ModelVisual3D>
+
+
 
 
 

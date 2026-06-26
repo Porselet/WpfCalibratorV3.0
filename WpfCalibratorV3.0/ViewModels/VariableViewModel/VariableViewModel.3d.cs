@@ -24,7 +24,15 @@ namespace WpfCalibrator.ViewModels
                 OnPropertyChanged(nameof(SurfaceLines));
             }
         }
-
+        private MeshGeometry3D _laserBeamMesh = new MeshGeometry3D();
+        /// <summary>
+        /// Единая 3D-геометрия объемного лазерного цилиндра Маклауда
+        /// </summary>
+        public MeshGeometry3D LaserBeamMesh
+        {
+            get => _laserBeamMesh;
+            set { _laserBeamMesh = value; OnPropertyChanged(nameof(LaserBeamMesh)); }
+        }
 
         private Point3DCollection _laserBeamPoints = new Point3DCollection();
         /// <summary>
@@ -44,39 +52,49 @@ namespace WpfCalibrator.ViewModels
         // ... внутри класса VariableViewModel ...
 
         public class ScreenTextLabel
-    {
-        public double ScreenX { get; set; }
-        public double ScreenY { get; set; }
-        public string Text { get; set; }
-}
-
-private List<ScreenTextLabel> _numericScreenLabels = new List<ScreenTextLabel>();
-        public List<ScreenTextLabel> NumericScreenLabels
         {
-            get => _numericScreenLabels;
-            set { _numericScreenLabels = value; OnPropertyChanged(nameof(NumericScreenLabels)); }
+            public double ScreenX { get; set; }
+            public double ScreenY { get; set; }
+            public string Text { get; set; }
         }
+
 
 
         // ... внутри класса VariableViewModel ...
 
-        private List<Visual3D> _numeric3DLabels = new List<Visual3D>();
-    public List<Visual3D> Numeric3DLabels
-    {
-        get => _numeric3DLabels;
-        set { _numeric3DLabels = value; OnPropertyChanged(nameof(Numeric3DLabels)); }
-    }
+        private MeshGeometry3D _allSpheresMesh = new MeshGeometry3D();
+        /// <summary>
+        /// Единая 3D-геометрия всех фоновых шариков кристаллической решетки
+        /// </summary>
+        public MeshGeometry3D AllSpheresMesh
+        {
+            get => _allSpheresMesh;
+            set { _allSpheresMesh = value; OnPropertyChanged(nameof(AllSpheresMesh)); }
+        }
 
-    // ... внутри класса VariableViewModel ...
+        private MeshGeometry3D _selectedSpheresMesh = new MeshGeometry3D();
+        /// <summary>
+        /// Единая 3D-геометрия ярких синих шаров выделенного курсора
+        /// </summary>
+        public MeshGeometry3D SelectedSpheresMesh
+        {
+            get => _selectedSpheresMesh;
+            set { _selectedSpheresMesh = value; OnPropertyChanged(nameof(SelectedSpheresMesh)); }
+        }
 
-    private List<BillboardTextItem> _numericLabels = new List<BillboardTextItem>();
-    public List<BillboardTextItem> NumericLabels
-    {
-        get => _numericLabels;
-        set { _numericLabels = value; OnPropertyChanged(nameof(NumericLabels)); }
-    }
 
-    private MeshGeometry3D _surfaceMesh = new MeshGeometry3D();
+
+
+        // ... внутри класса VariableViewModel ...
+
+        private List<BillboardTextItem> _numericLabels = new List<BillboardTextItem>();
+        public List<BillboardTextItem> NumericLabels
+        {
+            get => _numericLabels;
+            set { _numericLabels = value; OnPropertyChanged(nameof(NumericLabels)); }
+        }
+
+        private MeshGeometry3D _surfaceMesh = new MeshGeometry3D();
         public MeshGeometry3D SurfaceMesh
         {
             get => _surfaceMesh;
@@ -119,12 +137,6 @@ private List<ScreenTextLabel> _numericScreenLabels = new List<ScreenTextLabel>()
             public string Text { get; set; }
         }
 
-        private System.Windows.Media.Media3D.ContainerUIElement3D _numericLabelsContainer = new System.Windows.Media.Media3D.ContainerUIElement3D();
-        public System.Windows.Media.Media3D.ContainerUIElement3D NumericLabelsContainer
-        {
-            get => _numericLabelsContainer;
-            set { _numericLabelsContainer = value; OnPropertyChanged(nameof(NumericLabelsContainer)); }
-        }
 
 
 
@@ -195,7 +207,8 @@ private List<ScreenTextLabel> _numericScreenLabels = new List<ScreenTextLabel>()
                 OnPropertyChanged(nameof(SurfaceLines));
                 OnPropertyChanged(nameof(BoundingBoxLines));
                 OnPropertyChanged(nameof(AxisLabelsContainer));
-                OnPropertyChanged(nameof(NumericLabelsContainer));
+                UpdateCursorVerticesHighlight(positions);
+
 
             });
         }
@@ -445,41 +458,189 @@ private List<ScreenTextLabel> _numericScreenLabels = new List<ScreenTextLabel>()
             }
 
             // Пушим готовый список объектов в свойство
-            Numeric3DLabels = list;
+            //Numeric3DLabels = list;
         }
 
         /// <summary>
         /// Обновляет 3D-координаты сквозного лазерного луча на основе плавных (дробных) координат радара
         /// </summary>
+        /// <summary>
+        /// Обновляет 3D-геометрию объемного лазерного цилиндра на основе плавных координат радара
+        /// </summary>
         public void UpdateLaserBeamPosition(double exactColIndex, double exactRowIndex)
         {
-            // Жестко синхронизируем шаги и размеры с геометрией 3D-карты
             double halfWidth = ((Cols - 1) * StepX) / 2.0;
             double halfLength = ((Rows - 1) * StepY) / 2.0;
 
-            // 1. Рассчитываем плавную координату X на экране
+            // 1. Находим точные плавно скользящие координаты центра луча
             double laserX = (exactColIndex * StepX) - halfWidth;
-
-            // 2. Рассчитываем плавную координату Y на экране (с учетом утренней инверсии строк)
             double laserY = ((Rows - 1 - exactRowIndex) * StepY) - halfLength;
 
-            // 3. Формируем две точки сквозного луча Маклауда
-            var beam = new Point3DCollection();
+            // 2. Строим объемную трубу (Цилиндр)
+            var mesh = new MeshGeometry3D();
 
-            // Точка 1: Старт на стальном полу коробки (Z = 0)
-            beam.Add(new Point3D(laserX, laserY, 0.0));
+            // Параметры цилиндра: радиус трубы (0.6) и количество граней круга (12 для идеальной окружности)
+            double radius = 0.6;
+            int segments = 12;
+            double heightStart = 0.0;  // Пол куба
+            double heightEnd = 60.0;  // Небо над картой
 
-            // Точка 2: Финиш высоко в небе над картой (Z = 60.0)
-            beam.Add(new Point3D(laserX, laserY, 60.0));
+            // Генерируем вершины нижнего и верхнего оснований + нормали
+            for (int i = 0; i <= segments; i++)
+            {
+                double theta = 2.0 * Math.PI * i / segments;
+                double cos = Math.Cos(theta);
+                double sin = Math.Sin(theta);
 
-            // Замораживаем для GPU
-            beam.Freeze();
+                // Вектор нормали смотрит строго вбок от центральной оси цилиндра
+                var normal = new Vector3D(cos, sin, 0);
 
-            // 4. Безопасно пушим готовый луч в UI-поток
+                // Нижняя точка окружности
+                mesh.Positions.Add(new Point3D(laserX + radius * cos, laserY + radius * sin, heightStart));
+                mesh.Normals.Add(normal);
+
+                // Верхняя точка окружности
+                mesh.Positions.Add(new Point3D(laserX + radius * cos, laserY + radius * sin, heightEnd));
+                mesh.Normals.Add(normal);
+            }
+
+            // Собираем боковые стенки цилиндра из треугольников
+            for (int i = 0; i < segments; i++)
+            {
+                int bL = i * 2;       // Bottom Left
+                int tL = bL + 1;      // Top Left
+                int bR = bL + 2;      // Bottom Right
+                int tR = bL + 3;      // Top Right
+
+                // Первый треугольник грани (TL -> BL -> TR)
+                mesh.TriangleIndices.Add(tL);
+                mesh.TriangleIndices.Add(bL);
+                mesh.TriangleIndices.Add(tR);
+
+                // Второй треугольник грани (TR -> BL -> BR)
+                mesh.TriangleIndices.Add(tR);
+                mesh.TriangleIndices.Add(bL);
+                mesh.TriangleIndices.Add(bR);
+            }
+
+            mesh.Freeze();
+
+            // 3. Безопасно пушаем готовый меш лазера в UI-поток
             System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
             {
-                LaserBeamPoints = beam;
+                LaserBeamMesh = mesh;
             });
+        }
+
+
+
+        /// <summary>
+        /// Обновляет кристаллическую решетку и подсвечивает синим цветом вершины под курсором таблицы
+        /// </summary>
+        public void UpdateCursorVerticesHighlight(Point3DCollection sourcePositions)
+        {
+            if (sourcePositions == null || sourcePositions.Count == 0) return;
+
+            var allMesh = new MeshGeometry3D();
+            var selectedMesh = new MeshGeometry3D();
+
+            // 1. ГЕНЕРИРУЕМ ФОНОВУЮ РЕШЕТКУ ШАРОВ (Радиус 0.4 единицы)
+            foreach (var pt in sourcePositions)
+            {
+                AddSphereToMesh(allMesh, pt, 0.4);
+            }
+            allMesh.Freeze();
+
+            // 2. ГЕНЕРИРУЕМ ЖИРНЫЕ ШАРЫ ДЛЯ КУРСОРНОГО ВЫДЕЛЕНИЯ (Радиус 1.0)
+            int minRow = Math.Max(0, Math.Min(AnchorRow, SelectedRow));
+            int maxRow = Math.Min(Rows - 1, Math.Max(AnchorRow, SelectedRow));
+            int minCol = Math.Max(0, Math.Min(AnchorCol, SelectedCol));
+            int maxCol = Math.Min(Cols - 1, Math.Max(AnchorCol, SelectedCol));
+
+            bool hasSelection = false;
+            for (int r = minRow; r <= maxRow; r++)
+            {
+                for (int c = minCol; c <= maxCol; c++)
+                {
+                    int targetIndex = r * Cols + c;
+                    if (targetIndex >= 0 && targetIndex < sourcePositions.Count)
+                    {
+                        AddSphereToMesh(selectedMesh, sourcePositions[targetIndex], 1.0);
+                        hasSelection = true;
+                    }
+                }
+            }
+
+            if (hasSelection) selectedMesh.Freeze();
+            else selectedMesh = new MeshGeometry3D();
+
+            // 3. Безопасно пушим готовые меши геометрии в UI-поток
+            System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                AllSpheresMesh = allMesh;
+                SelectedSpheresMesh = selectedMesh;
+            });
+        }
+
+        /// <summary>
+        /// Нативный математический генератор 3D-сферы (WPF 3D Core)
+        /// </summary>
+        private void AddSphereToMesh(MeshGeometry3D mesh, Point3D center, double radius)
+        {
+            int slices = 10;
+            int stacks = 10;
+            int baseIndex = mesh.Positions.Count;
+
+            // Генерируем вершины И нормали сферы (синусы и косинусы)
+            for (int stack = 0; stack <= stacks; stack++)
+            {
+                double phi = Math.PI * stack / stacks;
+                double y = radius * Math.Cos(phi);
+                double rStrata = radius * Math.Sin(phi);
+
+                for (int slice = 0; slice <= slices; slice++)
+                {
+                    double theta = 2.0 * Math.PI * slice / slices;
+                    double x = rStrata * Math.Cos(theta);
+                    double z = rStrata * Math.Sin(theta);
+
+                    // 1. Физическая точка на экране
+                    mesh.Positions.Add(new Point3D(center.X + x, center.Y + y, center.Z + z));
+
+                    // 2. 🔥 ХАК НЕПРОЗРАЧНОСТИ: Рассчитываем вектор нормали (направление взгляда из центра сферы наружу)
+                    // Это заставит видеокарту включить жесткую Z-отсечку буфера глубины
+                    double normalX = x / radius;
+                    double normalY = y / radius;
+                    double normalZ = z / radius;
+                    mesh.Normals.Add(new Vector3D(normalX, normalY, normalZ));
+                }
+            }
+
+            // Собираем треугольники сферы (Исправленный обход: нормали смотрят СТРОГО наружу!)
+            for (int stack = 0; stack < stacks; stack++)
+            {
+                for (int slice = 0; slice < slices; slice++)
+                {
+                    int nextStack = stack + 1;
+                    int nextSlice = slice + 1;
+                    int stride = slices + 1;
+
+                    int tL = baseIndex + stack * stride + slice;
+                    int tR = baseIndex + stack * stride + nextSlice;
+                    int bL = baseIndex + nextStack * stride + slice;
+                    int bR = baseIndex + nextStack * stride + nextSlice;
+
+                    // Первый треугольник ячейки сферы (TL -> TR -> BL)
+                    mesh.TriangleIndices.Add(tL);
+                    mesh.TriangleIndices.Add(tR);
+                    mesh.TriangleIndices.Add(bL);
+
+                    // Второй треугольник ячейки сферы (TR -> BR -> BL)
+                    mesh.TriangleIndices.Add(tR);
+                    mesh.TriangleIndices.Add(bR);
+                    mesh.TriangleIndices.Add(bL);
+                }
+            }
         }
 
 

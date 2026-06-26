@@ -68,6 +68,7 @@ namespace WpfCalibrator.Services
 
                 if (isNavKey)
                 {
+
                     // 🔥 АВТОСОХРАНЕНИЕ MOTEC: Если инженер набрал число и нажал стрелку — 
                     // автоматически фиксируем и пушим буфер в UART перед переходом на другую ячейку!
                     if (variable.IsEditing)
@@ -122,6 +123,8 @@ namespace WpfCalibrator.Services
 
                     // Перерисовываем неоновую рамку выделения на холсте
                     activeTable.UpdateSelectionHighlight();
+                    activeTable.UpdateCursorVerticesHighlight(activeTable.SurfaceMesh.Positions);
+
                     return true;
                 }
             }

@@ -23,6 +23,8 @@ public partial class VariableViewModel
         Calculate3DLaserPosition(currentInputX, currentInputY, axisXData, axisYData, baseColIdx, baseRowIdx);
 
         // 5. Синхронизация неона двумерной таблицы ячеек
+
+
         ActiveRowIndex = rowIdx;
         ActiveColIndex = colIdx;
         RebuildMatrixCells();
