@@ -164,23 +164,19 @@ namespace WpfCalibrator.ViewModels
         /// </summary>
         private MeshGeometry3D BuildSurfaceMesh(double minVal, double delta, double scaleZ, double halfWidth, double halfLength, out Point3DCollection positions)
         {
-
-
             var mesh = new MeshGeometry3D();
             positions = new Point3DCollection();
             var indices = new Int32Collection();
             var texCoords = new PointCollection();
 
-            // 1. Генерация вершин (Строго Rows x Cols)
+            // Генерация вершин и маппинг градиента
             for (int r = 0; r < Rows; r++)
             {
                 for (int c = 0; c < Cols; c++)
                 {
                     double val = MatrixData[r, c];
                     double x = (c * StepX) - halfWidth;
-
-                    // 🔥 Твоя новая инвертированная формула Y (Синхронизация 3D с таблицей)
-                    double y = ((Rows - 1 - r) * StepY) - halfLength;
+                    double y = (r * StepY) - halfLength;
                     double z = (val - minVal) * scaleZ;
 
                     positions.Add(new Point3D(x, y, z));
@@ -192,7 +188,7 @@ namespace WpfCalibrator.ViewModels
             mesh.Positions = positions;
             mesh.TextureCoordinates = texCoords;
 
-            // 2. Сборка треугольников (Исправленный обход: нормали смотрят строго вверх)
+            // Сборка треугольников с правильным направлением нормалей (лицом вверх)
             for (int r = 0; r < Rows - 1; r++)
             {
                 for (int c = 0; c < Cols - 1; c++)
@@ -202,15 +198,8 @@ namespace WpfCalibrator.ViewModels
                     int bottomLeft = (r + 1) * Cols + c;
                     int bottomRight = (r + 1) * Cols + (c + 1);
 
-                    // Первый треугольник (TL -> TR -> BL)
-                    indices.Add(topLeft);
-                    indices.Add(topRight);
-                    indices.Add(bottomLeft);
-
-                    // Второй треугольник (TR -> BR -> BL)
-                    indices.Add(topRight);
-                    indices.Add(bottomRight);
-                    indices.Add(bottomLeft);
+                    indices.Add(topLeft); indices.Add(topRight); indices.Add(bottomLeft);
+                    indices.Add(topRight); indices.Add(bottomRight); indices.Add(bottomLeft);
                 }
             }
             mesh.TriangleIndices = indices;
@@ -225,28 +214,19 @@ namespace WpfCalibrator.ViewModels
         }
 
         /// <summary>
-        /// Шаг 3: Нарезка четырехугольных ребер (БЕЗ ДИАГОНАЛЕЙ, С ЗАЩИТОЙ ОТ ВЫЛЕТА ИНДЕКСА)
+        /// Шаг 3: Нарезка четырехугольных ребер (БЕЗ ДИАГОНАЛЕЙ)
         /// </summary>
         private Point3DCollection BuildSurfaceEdges(Point3DCollection positions, double minVal, double delta)
         {
             var lines = new Point3DCollection();
 
-            // Предохранитель: если вершины не сгенерировались, возвращаем пустую коллекцию
-            if (positions == null || positions.Count != Rows * Cols) return lines;
-
-            // Горизонтальные линии ячеек (Идем строго в границах сгенерированного массива positions)
+            // Горизонтальные линии ячеек
             for (int r = 0; r < Rows; r++)
             {
                 for (int c = 0; c < Cols - 1; c++)
                 {
-                    int idx1 = r * Cols + c;
-                    int idx2 = r * Cols + (c + 1);
-
-                    if (idx1 < positions.Count && idx2 < positions.Count)
-                    {
-                        lines.Add(positions[idx1]);
-                        lines.Add(positions[idx2]);
-                    }
+                    lines.Add(positions[r * Cols + c]);
+                    lines.Add(positions[r * Cols + (c + 1)]);
                 }
             }
 
@@ -255,14 +235,8 @@ namespace WpfCalibrator.ViewModels
             {
                 for (int r = 0; r < Rows - 1; r++)
                 {
-                    int idx1 = r * Cols + c;
-                    int idx2 = (r + 1) * Cols + c;
-
-                    if (idx1 < positions.Count && idx2 < positions.Count)
-                    {
-                        lines.Add(positions[idx1]);
-                        lines.Add(positions[idx2]);
-                    }
+                    lines.Add(positions[r * Cols + c]);
+                    lines.Add(positions[(r + 1) * Cols + c]);
                 }
             }
 
