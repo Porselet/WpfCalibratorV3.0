@@ -319,6 +319,7 @@ namespace WpfCalibrator.ViewModels
         /// </summary>
         private void BuildAxisLabels(double minVal, double maxVal, double delta, double halfWidth, double halfLength)
         {
+            return;
             var group = new Model3DGroup();
 
             // 1. ОЦИФРОВКА ОСИ X (Колонки - например, Обороты / RPM)
