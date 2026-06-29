@@ -109,7 +109,7 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
     /// <param name="payloadSize">Рассчитанный размер полезной нагрузки в байтах (эквивалентен elementsCount * 4).</param>
     /// <returns>Массив элементов типа double[], готовый для передачи в графический слой MainViewModel.</returns>
 
-    private double[] DeserializeResponsePayload(byte varId, byte elementsCount, byte[] fullPacket, int payloadSize)
+    private double[] DeserializeResponsePayload(byte varId, ushort elementsCount, byte[] fullPacket, int payloadSize)
     {
         if (payloadSize == 0) return Array.Empty<double>();
 
@@ -120,7 +120,7 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
         int cols = _expectedCols;
 
         double[] resultPayload = new double[rows * cols];
-        int byteOffset = 5; // Данные в нашем кадре fullPacket лежат строго с 5-го байта!
+        int byteOffset = 6; // Данные в нашем кадре fullPacket лежат строго с 6-го байта!
 
         // ОБРАТНЫЙ COLUMN-MAJOR РАЗБОР: Плата шлет по столбцам (Cols), внутри — по строкам (Rows)
         for (int c = 0; c < cols; c++)

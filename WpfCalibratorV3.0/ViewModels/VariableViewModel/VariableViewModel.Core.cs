@@ -26,7 +26,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
     public int Rows { get; init; }
     public int Cols { get; init; }
     public string Comment { get; init; } = "";
-    public byte ModelId { get; init; } // <=== Добавлено
+    public byte ModelId { get; set; } // <=== Добавлено
 
     // Вычисляемые свойства
     public int TotalElements => Rows * Cols;

@@ -64,9 +64,17 @@ public partial class MainViewModel
 
     private void OnUartPacketReceived(NetworkCommand response)
     {
+        // 🔍 КОНТРОЛЬНЫЙ ВЫВОД: Смотрим, что прилетело из UART и что лежит в ОЗУ
+        if (ParameterVariables.Any())
+        {
+            var firstVar = ParameterVariables.First();
+            System.Diagnostics.Debug.WriteLine($"[СЕТЕВАЯ ОТЛАДКА] Пакет UART: VarId={response.VarId}, ModelId={response.ModelId} | В памяти переменная '{firstVar.Name}': Id={firstVar.Id}, ModelId={firstVar.ModelId}");
+        }
+
+
         // 1. Ищем переменную в нашей живой программе по её VarId
-        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == response.VarId)
-                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == response.VarId);
+        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == response.VarId && response.ModelId == v.ModelId)
+                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == response.VarId && response.ModelId == v.ModelId);
 
         if (targetVariable == null) return;
 

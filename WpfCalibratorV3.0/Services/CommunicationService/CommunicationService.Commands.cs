@@ -32,7 +32,7 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
             // 2. МАРШАЛИНГ: Пакуем данные ТОЛЬКО если это реальная запись (VarWrite)!
             // Если команда идет на Чтение (VarRead) — payload ОБЯЗАН быть абсолютно пустым!
             byte[] payloadBytes = Array.Empty<byte>();
-            byte elementsCount = (byte)(cmd.Rows * cmd.Cols);
+            ushort elementsCount = (ushort)(cmd.Rows * cmd.Cols);
 
             if (cmd.Cmd == Models.LinkCommand.VarWrite)
             {
@@ -122,7 +122,7 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
     /// <param name="elementsCount">Количество элементов (размерность массива/матрицы) в запросе</param>
     /// <param name="payload">Сырой массив байт полезной нагрузки (для команд записи) или null (для команд чтения)</param>
     /// <returns>Асинхронную задачу выполнения операции записи в системный буфер драйвера Windows</returns>
-    private async System.Threading.Tasks.Task SendPacketAsync(byte modelId, byte cmd, byte varId, byte elementsCount, byte[] payload)
+    private async System.Threading.Tasks.Task SendPacketAsync(byte modelId, byte cmd, byte varId, ushort elementsCount, byte[] payload)
     {
         // ... твой оригинальный рабочий сишный код сборки кадра и записи в порт ...
 
@@ -138,8 +138,9 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
         modelId, // Индекс 1: PKT_MODEL_ID_IDX
         cmd,     // Индекс 2: PKT_CMD_IDX
         varId,   // Индекс 3: PKT_VAR_ID_IDX
-        elementsCount // Индекс 4: PKT_LEN_IDX
-        };
+        (byte)((elementsCount >> 8) & 0xFF),// PKT_LEN_HIGH_IDX // Индекс 4: PKT_LEN_IDX
+        (byte)(elementsCount & 0xFF),       // PKT_LEN_LOW_IDX
+    };
 
         // 2. Вычисляем CRC-8
         byte[] packet = header.Concat(payload).ToArray();
@@ -197,9 +198,9 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
                 }
 
                 // ======================================================================
-                // 2. СТЕРИЛЬНЫЙ ПЕРЕХВАТ ЗАГЛОВКА (Жестко дочитываем остальные 4 байта)
+                // 2. СТЕРИЛЬНЫЙ ПЕРЕХВАТ ЗАГЛОВКА (Жестко дочитываем остальные 5 байт)
                 // ======================================================================
-                byte[]? headerResult = await WaitForBytesAsync(4, 100);
+                byte[]? headerResult = await WaitForBytesAsync(5, 100);
                 if (headerResult == null)
                 {
                     System.Diagnostics.Debug.WriteLine("[UART-ERROR] Обрыв кадра: заголовок не долетел.");
@@ -209,21 +210,21 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
                 byte modelId = headerResult[0];
                 byte cmd = headerResult[1];
                 byte varId = headerResult[2];
-                byte elementsCount = headerResult[3];
+                ushort elementsCount = (ushort)(((ushort)headerResult[3] << 8) | headerResult[4]);
 
                 // Рассчитываем точную геометрию кадра полезной нагрузки
                 int payloadSize = elementsCount * _expectedElementSize;
-                int totalPacketSize = 5 + payloadSize + 1; // 5 байт заголовка + payload + 1 байт CRC
+                int totalPacketSize = 6 + payloadSize + 1; // 5 байт заголовка + payload + 1 байт CRC
 
                 // Выделяем монолитный буфер под весь пакет и упаковываем туда заголовок
                 byte[] fullPacket = new byte[totalPacketSize];
                 fullPacket[0] = 0xAA;
-                System.Array.Copy(headerResult, 0, fullPacket, 1, 4);
+                System.Array.Copy(headerResult, 0, fullPacket, 1, 5);
 
                 // ======================================================================
                 // 3. СТЕРИЛЬНЫЙ ПЕРЕХВАТ ДАННЫХ И CRC (Жестко ждем весь остаток кадра куском!)
                 // ======================================================================
-                byte[]? payloadResult = await WaitForBytesAsync(payloadSize + 1, 400);
+                byte[]? payloadResult = await WaitForBytesAsync(payloadSize + 1, 4000);
                 if (payloadResult == null)
                 {
                     System.Diagnostics.Debug.WriteLine($"[UART-ERROR] Обрыв кадра: данные VarId {varId} не долетели по таймауту.");
@@ -231,7 +232,7 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
                 }
 
                 // Допаковываем прилетевшие данные float и CRC в наш полный пакет
-                System.Array.Copy(payloadResult, 0, fullPacket, 5, payloadResult.Length);
+                System.Array.Copy(payloadResult, 0, fullPacket, 6, payloadResult.Length);
 
                 // Извлекаем финальный байт контрольной суммы кадра
                 byte receivedCrc = fullPacket[fullPacket.Length - 1];

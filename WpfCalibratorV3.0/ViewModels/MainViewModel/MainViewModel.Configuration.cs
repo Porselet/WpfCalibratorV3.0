@@ -348,37 +348,76 @@ public partial class MainViewModel
 
 
 
+    /*   private void OnDeviceChanged()
+       {
+           if (SelectedDevice == null) return;
+
+           // Выбираем первую модель по умолчанию
+           _selectedModelId = SelectedDevice.Models.Keys.FirstOrDefault();
+
+           // Загружаем конфигурации для этого устройства
+           var userConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
+
+           // Очищаем существующие коллекции переменных
+           ParameterVariables.Clear();
+           TelemetryVariables.Clear();
+
+           // Заполняем коллекции переменными из выбранной модели
+           var selectedModel = SelectedDevice.Models[_selectedModelId];
+           foreach (var variable in selectedModel.Variables)
+           {
+               // Получаем ID модели из ключа словаря
+               byte modelId = _selectedModelId;
+
+               var vm = new VariableViewModel(variable, modelId);
+               if (variable.IsParam)
+                   ParameterVariables.Add(vm);
+               else
+                   TelemetryVariables.Add(vm);
+           }
+
+           // Восстановление настроек интерфейса (привязки осей и виджеты)
+           ApplyUserConfig(userConfig);
+       }
+
+   */
+
     private void OnDeviceChanged()
     {
         if (SelectedDevice == null) return;
 
-        // Выбираем первую модель по умолчанию
-        _selectedModelId = SelectedDevice.Models.Keys.FirstOrDefault();
-
-        // Загружаем конфигурации для этого устройства
+        // Загружаем сохраненный конфиг рабочего стола (там калибровки вперемешку)
         var userConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
 
-        // Очищаем существующие коллекции переменных
+        // 1. Очищаем старый кэш полностью
         ParameterVariables.Clear();
         TelemetryVariables.Clear();
 
-        // Заполняем коллекции переменными из выбранной модели
-        var selectedModel = SelectedDevice.Models[_selectedModelId];
-        foreach (var variable in selectedModel.Variables)
+        // 2. СКВОЗНОЙ ПАРСИНГ: Бежим по всем моделям устройства
+        foreach (var modelKvp in SelectedDevice.Models)
         {
-            // Получаем ID модели из ключа словаря
-            byte modelId = _selectedModelId;
-            var vm = new VariableViewModel(variable, modelId);
-            if (variable.IsParam)
-                ParameterVariables.Add(vm);
-            else
-                TelemetryVariables.Add(vm);
+            // Ключ словаря — это и есть физический ID модели (1, 2, 3...)
+            byte currentModelId = (byte)modelKvp.Key;
+            var modelData = modelKvp.Value;
+
+            System.Diagnostics.Debug.WriteLine($"[АРХИТЕКТУРА] Загружаем в ОЗУ модель ID={currentModelId} ('{modelData.ModelName}')");
+
+            foreach (var variable in modelData.Variables)
+            {
+                // Создаем вьюмодель и жестко пришиваем к ней ID её родной модели!
+                var vm = new VariableViewModel(variable, currentModelId);
+                vm.ModelId = currentModelId; // Фиксируем в свойстве для UART-линковщика
+
+                if (variable.IsParam)
+                    ParameterVariables.Add(vm);
+                else
+                    TelemetryVariables.Add(vm);
+            }
         }
 
-        // Восстановление настроек интерфейса (привязки осей и виджеты)
+        // 3. Восстанавливаем рабочий стол (все виджеты откроются одновременно, независимо от их модели!)
         ApplyUserConfig(userConfig);
     }
-
 
 
 
