@@ -7,7 +7,7 @@
  
     
     >
-    
+
 
     <!-- ====================================================================== -->
     <!-- ГЛОБАЛЬНЫЕ СТИЛИ (Компилируются в первую очередь, видны всем шаблонам) -->
@@ -22,6 +22,9 @@
     </Style>
     <!-- 1. СТИЛЬ ДЛЯ РАМОК ЯЧЕЕК ТАБЛИЦЫ С ПОДДЕРЖКОЙ КУРСОРНОГО ВЫДЕЛЕНИЯ -->
     <Style x:Key="MatrixCellBorderStyle" TargetType="Border">
+        <!-- Для 5х6 ячейки будут растягиваться, а для 32х32 никогда не сожмутся меньше этих цифр! -->
+        <Setter Property="MinWidth" Value="45"/>
+        <Setter Property="MinHeight" Value="22"/>
         <Setter Property="Background" Value="#222222"/>
         <Setter Property="BorderBrush" Value="#444444"/>
         <Setter Property="BorderThickness" Value="1"/>
@@ -128,133 +131,106 @@
     <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ (МАТРИЦ И ВЕКТОРОВ С ОСЯМИ) -->
     <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ (МАТРИЦ И ВЕКТОРОВ С ОСЯМИ) -->
     <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ (МАТРИЦ И ВЕКТОРОВ С ОСЯМИ) -->
+    <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ (МАТРИЦ И ВЕКТОРОВ С ОСЯМИ) -->
+    <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ -->
+    <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ТАБЛИЦ (МАТРИЦ И ВЕКТОРОВ С ОСЯМИ) -->
     <DataTemplate x:Key="MatrixTableTemplate">
-        <Grid Margin="5">
-            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                <!-- Убираем жесткий Height="280" и переносим управление высотой ВСЕГО прибора в Стиль -->
-                <Grid Width="500" x:Name="MainTableGrid">
-                    <Grid.Style>
-                        <Style TargetType="Grid">
-                            <!-- Дефолтное гоночное значение для многострочных 3D-карт -->
-                            <Setter Property="Height" Value="280"/>
-                            <Style.Triggers>
-                                <!-- 🔥 ГОНОЧНЫЙ АВТО-МАСШТАБ ДЛЯ ОДНОМЕРНЫХ ВЕКТОРОВ: -->
-                                <DataTrigger Binding="{Binding DataSource.Rows}" Value="1">
-                                    <!-- Схлопываем ВЕСЬ контейнер прибора по высоте до 75 пикселей! 
-                                         Этого объема гарантированно хватит, чтобы и верхняя ось X осталась крупной,
-                                         и нижняя строка матрицы с боковой осью Y встали пиксель в пиксель без обрезки! -->
-                                    <Setter Property="Height" Value="75"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Grid.Style>
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#111111">
+            <Grid Margin="10">
+                <Grid.Style>
+                    <Style TargetType="Grid">
+                        <Setter Property="Height" Value="Auto"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding DataSource.Rows}" Value="1">
+                                <Setter Property="Height" Value="75"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Grid.Style>
 
-                    <Grid.RowDefinitions>
-                        <!-- Первая строка (Верхняя ось X): всегда занимает сколько нужно -->
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <!-- Вторая строка (Матрица и ось Y): теперь спокойно делят 100% оставшейся высоты -->
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <!-- 🔥 ИСПРАВЛЕНО: Для колонок используем строго Width! -->
+                    <ColumnDefinition Width="Auto"/>
+                    <!-- Ширина боковой оси Y подстроится под текст -->
+                    <ColumnDefinition Width="*"/>
+                    <!-- Матрица займет всё оставшееся место -->
+                </Grid.ColumnDefinitions>
+
+                <!-- 1. НАЗВАНИЕ ТАБЛИЦЫ -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                           Text="{Binding DataSource.Name}" 
+                           Foreground="#FFFFFF" FontSize="14" FontWeight="Bold" Margin="35,0,0,5"/>
+
+                <!-- 2. ВЕРХНЯЯ ОСЬ Х -->
+                <ItemsControl Grid.Row="1" Grid.Column="1" 
+                              x:Name="X_Axis_Items"
+                              ItemsSource="{Binding DataSource.BoundAxisX.MatrixCells}" 
+                              Margin="1,0,0,2">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="1" Columns="{Binding DataSource.Cols}"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#252525" BorderBrush="#333333" BorderThickness="1" Margin="1,0">
+                                <TextBlock Text="{Binding ValueText}" Foreground="#FFFF00" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="2"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 3. БОКОВАЯ ОСЬ Y -->
+                <ItemsControl Grid.Row="2" Grid.Column="0" 
+                              ItemsSource="{Binding DataSource.BoundAxisY.MatrixCells}" 
+                              Margin="0,1,2,1" Width="32">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="{Binding DataSource.Rows}" Columns="1"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="#252525" BorderBrush="#333333" BorderThickness="1" Margin="0,1">
+                                <TextBlock Text="{Binding ValueText}" Foreground="#FFFF00" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="2"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 4. ОСНОВНАЯ КАЛИБРОВОЧНАЯ МАТРИЦА (РЕЗИНОВАЯ + АВТО-СКРОЛЛ) -->
+                <!-- 4. ОСНОВНАЯ КАЛИБРОВОЧНАЯ МАТРИЦА (РЕЗИНОВАЯ + АВТО-СКРОЛЛ) -->
+                <ItemsControl Grid.Row="2" Grid.Column="1" ItemsSource="{Binding DataSource.MatrixCells}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="{Binding DataSource.Rows}" Columns="{Binding DataSource.Cols}"
+                                         VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource MatrixCellBorderStyle}" MinWidth="50" MinHeight="24" Margin="0.5">
+                                <!-- 🔥 Обернули ТОЛЬКО текст в индивидуальный Viewbox! 
+                     Теперь шрифт резиновый внутри каждой ячейки по отдельности, 
+                     а общая геометрия UniformGrid защищена скроллом! -->
+                                <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                    <TextBox Text="{Binding ValueText, Mode=TwoWay}"
+                             Style="{StaticResource MatrixCellTextBoxStyle}"
+                             FontWeight="Bold" Foreground="#FFFFFF" Margin="2"/>
+                                </Viewbox>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
 
-                    <!-- ... Весь остальной твой XAML осей и ItemsControl остается абсолютно без изменений ... -->
-
-
-
-                    <!-- ШАПКА ТАБЛИЦЫ -->
-                    <Grid Grid.Row="0" Margin="0,0,0,5">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding DataSource.Name}" Foreground="#FFA500" FontWeight="Bold" FontSize="16" Margin="0,0,10,0" FontFamily="Consolas"/>
-                            <TextBlock Foreground="Gray" FontFamily="Consolas" FontSize="12" VerticalAlignment="Center">
-                                <TextBlock.Text>
-                                    <MultiBinding StringFormat="Размерность: {0} x {1}">
-                                        <Binding Path="DataSource.Rows"/>
-                                        <Binding Path="DataSource.Cols"/>
-                                    </MultiBinding>
-                                </TextBlock.Text>
-                            </TextBlock>
-                        </StackPanel>
-
-                        <Button Content="⚙" 
-                                HorizontalAlignment="Right" VerticalAlignment="Center"
-                                Width="24" Height="20"
-                                Background="#333333" Foreground="#FFA500" FontWeight="Bold" 
-                                BorderThickness="1" BorderBrush="#555555" Cursor="Hand"
-                                Command="{Binding DataContext.OpenTableSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding}"/>
-                    </Grid>
-
-                    <!-- ВЫВОД ЗНАЧЕНИЙ ОСИ X -->
-                    <ItemsControl Grid.Row="1" ItemsSource="{Binding DataSource.BoundAxisX.MatrixCells}" Margin="35,0,0,2">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <UniformGrid Rows="1" Columns="{Binding DataSource.Cols}"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="#252525" BorderBrush="#333333" BorderThickness="1" Margin="1,0">
-                                    <TextBlock Text="{Binding ValueText}" Foreground="#FFFF00" FontSize="12" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="2"/>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <!-- НИЖНЯЯ ЗОНА: ОСЬ Y И МАТРИЦА -->
-                    <Grid Grid.Row="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="35"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <!-- ВЫВОД ЗНАЧЕНИЙ ОСИ Y -->
-                        <ItemsControl Grid.Column="0" ItemsSource="{Binding DataSource.BoundAxisY.MatrixCells}" Margin="0,0,2,0">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <UniformGrid Columns="1" Rows="{Binding DataSource.Rows}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="#252525" BorderBrush="#333333" BorderThickness="1" Margin="0,1">
-                                        <TextBlock Text="{Binding ValueText}" Foreground="#FFFF00" FontSize="12" FontWeight="Bold"  HorizontalAlignment="Right"  Padding="4,2"/>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <!-- ОСНОВНАЯ КАЛИБРОВОЧНАЯ МАТРИЦА -->
-                        <ItemsControl Grid.Column="1" ItemsSource="{Binding DataSource.MatrixCells}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <UniformGrid Rows="{Binding DataSource.Rows}" Columns="{Binding DataSource.Cols}" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- Стили берутся из самого верха файла, всё стабильно! -->
-                                    <Border Style="{StaticResource MatrixCellBorderStyle}" Margin="1">
-                                        <!-- Ячейка 2D-матрицы (Бесфокусный режим) -->
-                                        <TextBox Text="{Binding ValueText, Mode=OneWay}"
-                                             Focusable="False"
-                                             IsReadOnly="True"
-                                             Background="Transparent"
-                                             Foreground="White"
-                                             Height="28"
-                                             BorderThickness="0"
-                                             HorizontalContentAlignment="Center"
-                                             VerticalContentAlignment="Center"
-                                             FontFamily="Consolas"
-                                             FontSize="14"/>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Grid>
-                </Grid>
-            </Viewbox>
-        </Grid>
+            </Grid>
+        </ScrollViewer>
     </DataTemplate>
 
     <!-- ====================================================================== -->

@@ -78,23 +78,41 @@
                                         <!-- ШАПКА ВИДЖЕТА (ПЕРЕМЕЩЕНИЕ) -->
                                         <!-- ШАПКА ВИДЖЕТА (ПЕРЕМЕЩЕНИЕ ИСПРАВЛЕНО: Убран Preview для Down и Up) -->
                                         <Border Grid.Row="0" Background="#2D2D2D" Padding="6,4" Cursor="SizeAll"
-        MouseLeftButtonDown="WidgetHeader_MouseDown" 
-        MouseMove="WidgetHeader_MouseMove" 
-        MouseLeftButtonUp="WidgetHeader_MouseUp">
+                                                    MouseLeftButtonDown="WidgetHeader_MouseDown" 
+                                                    MouseMove="WidgetHeader_MouseMove" 
+                                                    MouseLeftButtonUp="WidgetHeader_MouseUp">
 
                                             <Grid>
                                                 <TextBlock Text="{Binding DataSource.Name}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
                                                 <!-- КНОПКА ЗАКРЫТИЯ ВИДЖЕТА (ИСПРАВЛЕНА НА КОМАНДУ) -->
                                                 <Button Content="×" 
-        Background="Transparent" 
-        Foreground="Red" 
-        BorderThickness="0" 
-        HorizontalAlignment="Right" 
-        VerticalAlignment="Center" 
-        FontSize="10" 
-        Cursor="Hand"
-        Command="{Binding DataContext.DeleteWidgetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-        CommandParameter="{Binding}"/>
+                                                        Background="Transparent" 
+                                                        Foreground="Red" 
+                                                        BorderThickness="0" 
+                                                        HorizontalAlignment="Right" 
+                                                        VerticalAlignment="Center" 
+                                                        FontSize="10" 
+                                                        Cursor="Hand"
+                                                        Command="{Binding DataContext.DeleteWidgetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding}"/>
+                                                
+                                                <Button Content="⚙" 
+                                                        Background="Transparent" Foreground="#FF9100" BorderThickness="0"
+                                                        HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,22,0" FontSize="11" Cursor="Hand"
+                                                        Command="{Binding DataContext.OpenTableSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ControlView}" Value="Matrix3DSurface">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding ControlView}" Value="RadarTracker">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
 
 
 
