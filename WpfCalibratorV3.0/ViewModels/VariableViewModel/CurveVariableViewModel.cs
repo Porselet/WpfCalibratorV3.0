@@ -49,6 +49,11 @@ namespace WpfCalibrator.ViewModels
             }
         }
 
+        public override double GetTableValue(int r, int c) => VectorData[c];
+        protected override void SetTableValue(int r, int c, double val) => VectorData[c] = val;
+        // OnTableDataChanged для оси не нужен, 3D-сетки у неё нет
+
+
         /// <summary>
         /// Реализация скоростного маршалинга одномерного вектора из UART
         /// </summary>
@@ -56,21 +61,61 @@ namespace WpfCalibrator.ViewModels
         {
             if (rawData == null || rawData.Length == 0) return;
 
-            // Сохраняем физические числа
+            // 1. Сохраняем физические числа
             VectorData = rawData;
 
-            // Обновляем строковую коллекцию для графики WPF в один проход
+            // 2. Обновляем текстовые подписи
             StringValues.Clear();
             for (int i = 0; i < rawData.Length; i++)
             {
-                StringValues.Add(rawData[i].ToString("F0")); // Оси обычно оцифрованы целыми числами
+                StringValues.Add(rawData[i].ToString("F0"));
+            }
+
+            // 3. Синхронизируем коллекцию интерактивных ячеек (размерность 1 x Cols)
+            if (MatrixCells.Count != rawData.Length)
+            {
+                MatrixCells.Clear();
+                for (int c = 0; c < rawData.Length; c++)
+                {
+                    MatrixCells.Add(new MatrixCellViewModel
+                    {
+                        Parent = this,
+                        Row = 0, // У одномерного вектора строка всегда нулевая!
+                        Col = c
+                    });
+                }
+            }
+
+            // 4. Заливаем свежие строковые значения в ячейки оси на экране
+            for (int c = 0; c < rawData.Length; c++)
+            {
+                MatrixCells[c].ValueText = rawData[c].ToString("F1");
+            }
+
+            // 5. Пересчитываем одномерную рамку выделения
+            UpdateSelectionHighlight();
+        }
+
+        /// <summary>
+        /// Линейный (одномерный) пересчет выделения ячеек оси шкал
+        /// </summary>
+        public override void UpdateSelectionHighlight()
+        {
+            // У одномерной шкалы строки всегда = 0, поэтому рассчитываем 
+            // границы выделения строго по горизонтали (по колонкам Col)
+            int startCol = Math.Min(AnchorCol, SelectedCol);
+            int endCol = Math.Max(AnchorCol, SelectedCol);
+
+            // Пробегаем по линейке ячеек и включаем рамки выделения инженера
+            foreach (var cell in MatrixCells)
+            {
+                // Ячейка выделена, если её индекс попал в диапазон протяжки мыши
+                cell.IsSelected = (cell.Col >= startCol && cell.Col <= endCol);
             }
         }
 
-        public override void UpdateSelectionHighlight()
-        {
-            // Оставляем пока пустым {}, это наш безопасный плацдарм
-        }
+
+
 
     }
 }

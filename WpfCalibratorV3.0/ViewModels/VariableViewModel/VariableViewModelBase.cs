@@ -14,9 +14,12 @@ namespace WpfCalibrator.ViewModels
         public string Type { get; set; } = "single";
 
         // Геометрия сетки данных
-        public int Rows { get; set; }
-        public int Cols { get; set; }
-        public int TotalElements => Rows * Cols;
+        /// <summary>
+        /// Общее количество элементов типа float/single в ОЗУ переменной.
+        /// Используется сетевым драйвером для расчета длины бинарного пакета.
+        /// </summary>
+        public virtual int TotalElements => 1; // Любой скаляр/датчик по умолчанию — это 1 элемент!
+
 
         // Назначение: true = калибровка (RAM), false = телеметрия (датчик)
         public bool IsParam { get; set; }
@@ -26,6 +29,13 @@ namespace WpfCalibrator.ViewModels
         public float ScaleMax { get; set; }
         public float MinLimit { get; set; }
         public float MaxLimit { get; set; }
+
+        /// <summary>
+        /// Универсальное изменение значения калибровки. 
+        /// Для PageUp передаем положительный step (например, 1.0), 
+        /// Для PageDown — отрицательный (например, -1.0).
+        /// </summary>
+        public abstract void AdjustValue(double step);
 
         // Глобальный механизм уведомления графики WPF об изменении параметров
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -37,5 +47,13 @@ namespace WpfCalibrator.ViewModels
 
         // Абстрактный метод: каждый наследник ниже сам разберет свой массив байт из UART
         public abstract void UpdateDataFromRawPayload(double[] rawData);
+
+        /// <summary>
+        /// Полиморфный метод фиксации ручного ввода из виджета в ОЗУ калибратора.
+        /// </summary>
+        public abstract void CommitEditedValue(double parsedValue);
+
+
+
     }
 }

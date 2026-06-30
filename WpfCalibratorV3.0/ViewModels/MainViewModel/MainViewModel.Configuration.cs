@@ -261,7 +261,7 @@ public partial class MainViewModel
         {
             await Task.Delay(800);
             // Собираем в уникальный список (HashSet) вообще все параметры, которые нужно обновить
-            var parametersToUpdate = new HashSet<VariableViewModel>();
+            var parametersToUpdate = new HashSet<VariableViewModelBase>();
 
             foreach (var widget in ActiveWidgets.ToList())
             {

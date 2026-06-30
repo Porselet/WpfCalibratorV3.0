@@ -94,7 +94,7 @@ namespace WpfCalibrator.Services
                 _currentTelemetryIndex = 0;
 
                 // Извлекаем из активных виджетов только уникальные переменные ТЕЛЕМЕТРИИ (IsParam == false)
-                var uniqueTelemetrySources = new HashSet<ViewModels.VariableViewModel>();
+                var uniqueTelemetrySources = new HashSet<ViewModels.VariableViewModelBase>();
 
                 foreach (var widget in _mainVm.ActiveWidgets)
                 {

@@ -21,7 +21,7 @@ namespace WpfCalibrator.ViewModels
                 if (Math.Abs(_currentValue - value) < 0.0001) return;
 
                 _currentValue = value;
-
+                CheckAlarmStatus();
                 // Мгновенно уведомляем графику WPF о том, что цифра обновилась
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ValueText));
@@ -44,5 +44,51 @@ namespace WpfCalibrator.ViewModels
             // Забираем самое первое число из прилетевшего массива
             CurrentValue = rawData[0];
         }
+
+        public override void AdjustValue(double step)
+        {
+            if (!IsParam) return;
+
+            // Складываем напрямую. Если step отрицательный, число само уменьшится!
+            double newValue = CurrentValue + step;
+
+            // Универсальная защита: проверяем границы по лимитам шкалы
+            if (newValue > ScaleMax) newValue = ScaleMax;
+            if (newValue < ScaleMin) newValue = ScaleMin;
+
+            CurrentValue = newValue;
+        }
+
+
+        private bool _isAlarmActive;
+        public bool IsAlarmActive
+        {
+            get => _isAlarmActive;
+            set { if (_isAlarmActive != value) { _isAlarmActive = value; OnPropertyChanged(); } }
+        }
+
+        // ВАЖНО: вызываем этот метод в сеттере CurrentValue!
+        private void CheckAlarmStatus()
+        {
+            if (IsParam) { IsAlarmActive = false; return; }
+            IsAlarmActive = CurrentValue < MinLimit || CurrentValue > MaxLimit;
+        }
+
+
+        public override void CommitEditedValue(double parsedValue)
+        {
+            if (!IsParam) return;
+
+            double finalValue = parsedValue;
+            if (finalValue > ScaleMax) finalValue = ScaleMax;
+            if (finalValue < ScaleMin) finalValue = ScaleMin;
+
+            CurrentValue = finalValue;
+
+            // 🔥 Тут в будущем будет одиночный выстрел команды VarWrite в UART!
+        }
+
+
+
     }
 }

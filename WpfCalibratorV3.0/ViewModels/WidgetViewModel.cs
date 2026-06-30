@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
@@ -14,7 +15,54 @@ public class WidgetViewModel : INotifyPropertyChanged
     public Guid Id { get; } = Guid.NewGuid();
 
     // Переменная, данные которой отображает виджет
-    public VariableViewModel? DataSource { get; set; }
+    private VariableViewModelBase? _dataSource;
+
+    /// <summary>
+    /// Источник данных прибора (его цифровая переменная в ОЗУ).
+    /// Привязывается в момент создания виджета инженером.
+    /// </summary>
+    public VariableViewModelBase? DataSource
+    {
+        get => _dataSource;
+        set
+        {
+            // Если датчик тот же самый — ничего не делаем
+            if (_dataSource == value) return;
+
+            // Отписываемся от старого (страховка для сборщика мусора при удалении виджета)
+            if (_dataSource != null) _dataSource.PropertyChanged -= OnDataSourcePropertyChanged;
+
+            _dataSource = value;
+
+            // Намертво привязываем уши виджета к новому датчику
+            if (_dataSource != null) _dataSource.PropertyChanged += OnDataSourcePropertyChanged;
+
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>
+    /// Реактивный диспетчер: срабатывает КАЖДЫЙ РАЗ, когда в недрах UART меняется цифра датчика.
+    /// </summary>
+    private void OnDataSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        // Нас интересует только изменение живого физического значения скаляра
+        if (e.PropertyName == "CurrentValue" && DataSource is ScalarVariableViewModel scalar)
+        {
+            // ⚡️ Аппаратно пинаем стрелки и треугольники варнингов MoTeC-прибора
+            this.NotifyValueAngleChanged();
+            this.RefreshAlarmTriangles();
+
+            // Если перед глазами инженера открыт осциллограф — плавно дописываем точку в лог
+            if (ControlView == "TimePlot")
+            {
+                this.AppendPlotPoint(scalar.CurrentValue);
+            }
+
+            // Обновляем текстовый блок вывода строки на экран
+            OnPropertyChanged(nameof(CurrentValueText));
+        }
+    }
 
     // Тип виджета (TextBox, Graph, Gauge...)
     private string _controlView = "TextBox";
@@ -32,6 +80,150 @@ public class WidgetViewModel : INotifyPropertyChanged
             }
         }
     }
+    private bool _isEditing = false;
+    public bool IsEditing
+    {
+        get => _isEditing;
+        set
+        {
+            if (_isEditing != value)
+            {
+                _isEditing = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string _inputBuffer = string.Empty;
+    private string _currentValueText = "0";
+    /// <summary>
+    /// Текстовый буфер для бесфокусного набора цифр с клавиатуры.
+    /// </summary>
+    public string InputBuffer
+    {
+        get => _inputBuffer;
+        set
+        {
+            if (_inputBuffer == value) return;
+            _inputBuffer = value;
+            OnPropertyChanged();
+
+            // Автоматически взводим твой существующий флаг IsEditing:
+            // Если в буфере есть текст — значит, идет редактирование и UART заблокирован!
+            IsEditing = !string.IsNullOrEmpty(_inputBuffer);
+
+            // Уведомляем интерфейс, что текст на экране обновился
+            OnPropertyChanged(nameof(CurrentValueText));
+        }
+    }
+
+    /// <summary>
+    /// Универсальное свойство отображения для TextBox скаляров и логов.
+    /// Заменяет собой дёрганую привязку к float.
+    /// </summary>
+    public string CurrentValueText
+    {
+        get
+        {
+            // Если инженер сейчас набирает цифры руками — жестко выводим буфер ввода
+            if (IsEditing && !string.IsNullOrEmpty(_inputBuffer))
+            {
+                return _inputBuffer;
+            }
+
+            // В режиме покоя — выводим наше стандартное число из UART с красивым гоночным форматом
+            return DataSource.CurrentValue.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        set
+        {
+            // Этот сеттер будет вызываться только при инициализации, его не трогаем
+            _currentValueText = value;
+            OnPropertyChanged();
+        }
+    }
+
+
+
+
+    /// <summary>
+    /// Фиксация ввода: перекладывает накопленный текстовый буфер в чистую математику ОЗУ.
+    /// Не производит самостоятельных выстрелов в UART.
+    /// </summary>
+    public void ApplyEditing()
+    {
+        // Безопасный парсинг ввода и передача полиморфного значения [1.14]
+        if (string.IsNullOrEmpty(InputBuffer) || DataSource == null) return;
+
+        if (float.TryParse(InputBuffer, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out float parsedValue) ||
+            float.TryParse(InputBuffer, out parsedValue))
+        {
+            // Делегируем запись конкретному типу переменной [1.14]
+            if (DataSource is TableVariableViewModelBase tableVar) tableVar.CommitEditedValue(parsedValue);
+            else if (DataSource is ScalarVariableViewModel scalarVar) scalarVar.CommitEditedValue(parsedValue);
+        }
+
+        InputBuffer = string.Empty;
+        IsEditing = false;
+        OnPropertyChanged(nameof(CurrentValueText));
+    }
+
+    /// <summary>
+    /// Изменение числа внутри буфера на заданный шаг (Для PageUp/PageDown в режиме ввода).
+    /// </summary>
+    public void ChangeBufferByStep(float step)
+    {
+        if (DataSource == null) return;
+
+        // Быстрое переключение через AdjustValue
+        if (!IsEditing || string.IsNullOrEmpty(InputBuffer))
+        {
+            DataSource.AdjustValue(step);
+            return;
+        }
+
+        // Ручной ввод с ограничением по лимитам
+        if (float.TryParse(InputBuffer, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out float currentValue))
+        {
+            float newValue = Math.Clamp(currentValue + step, (float)DataSource.ScaleMin, (float)DataSource.ScaleMax);
+            InputBuffer = newValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            // Синхронизация ячейки через TableVariableViewModelBase
+            if (DataSource is TableVariableViewModelBase tableVar)
+            {
+                var anchorCell = tableVar.MatrixCells.FirstOrDefault(c => c.Row == tableVar.SelectedRow && c.Col == tableVar.SelectedCol);
+                if (anchorCell != null) anchorCell.ValueText = InputBuffer;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Отмена ввода (Нажатие ESC).
+    /// </summary>
+    public void CancelEditing()
+    {
+        // 1. Полностью очищаем черновик набора и гасим флаг редактирования
+        InputBuffer = string.Empty;
+        IsEditing = false;
+
+        // 2. Возвращаем на экран честные числа из памяти ОЗУ
+        if (DataSource is TableVariableViewModelBase tableVar)
+        {
+            // Бежим по ячейкам UniformGrid и сбрасываем их текст обратно на актуальные данные из МК
+            int cellIndex = 0;
+            foreach (var cell in tableVar.MatrixCells)
+            {
+                // Вытягиваем живые числа через наш универсальный геттер таблиц
+                double ramValue = tableVar.GetTableValue(cell.Row, cell.Col);
+                cell.ValueText = ramValue.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+            }
+        }
+
+        // 3. Уведомляем интерфейс, чтобы обновился текст TextBox для скаляров
+        OnPropertyChanged(nameof(CurrentValueText));
+    }
+
+
+
 
     // Координаты и размер (для свободного позиционирования)
     // ИСПРАВЛЕНО: Теперь свойства уведомляют XAML о движении
@@ -516,79 +708,71 @@ public class WidgetViewModel : INotifyPropertyChanged
         }
     }
 
+
     /// <summary>
-    /// Шаговое увеличение значения активного скалярного параметра (PageUp) с учетом шага виджета и CTRL
+    /// Накопление строки ввода. Вызывается драйвером клавиатуры на каждый нажатый символ.
+    /// Синхронно размножает вводимый текст по всей выделенной области в реальном времени.
     /// </summary>
-    public void IncrementScalarValue()
+    public void AppendToBuffer(string text)
     {
-        if (DataSource == null || !DataSource.IsParam || DataSource.TotalElements > 1) return;
+        // Накапливаем символ в локальный буфер виджета
+        InputBuffer += text;
 
-        // Проверяем: если зажат CTRL — ускоряем шаг виджета в 10 раз, иначе шаг стандартный
-        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
-                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
-
-        float delta = this.IncrementStep * (isCtrlPressed ? 10f : 1f);
-        double newValue = DataSource.CurrentValue + delta;
-
-        // Защита от дурака: удерживаем значение в границах шкалы
-        if (newValue > DataSource.ScaleMax) newValue = DataSource.ScaleMax;
-
-        DataSource.CurrentValue = newValue;
-
-        // ВНУТРИ МЕТОДА IncrementScalarValue ПОСЛЕ ИЗМЕНЕНИЯ ЗНАЧЕНИЯ:
-        DataSource.CurrentValue = newValue;
-
-        // ФОРМИРУЕМ КОМАНДУ ЗАПИСИ ОДИНОЧНОГО СКАЛЯРА ДЛЯ ДИСПЕТЧЕРА
-        var writeCmd = new Models.NetworkCommand
+        // Если наш источник данных — интерактивная таблица (1D или 3D)
+        if (DataSource is TableVariableViewModelBase tableSource)
         {
-            ModelId = DataSource.ModelId,
-            Cmd = Models.LinkCommand.VarWrite, // Операция записи (0x01)
-            VarId = (byte)DataSource.Id,
-            DataType = DataSource.Type,
-            Rows = 1, // Для скаляра всегда 1
-            Cols = 1,
-            PayloadData = new double[] { newValue } // Кладем одно измененное число в массив double
-        };
-
-        // Заталкиваем команду в приоритетную очередь Арбитра
-        Services.BusArbiter.AsInterface.PushCommand(writeCmd);
-
+            // Размножаем черновой текст по всем выделенным синей рамкой ячейкам на экране!
+            foreach (var cell in tableSource.MatrixCells)
+            {
+                if (cell.IsSelected)
+                {
+                    cell.ValueText = InputBuffer;
+                }
+            }
+        }
+        // Если это одиночная константа-параметр
+        else if (DataSource is ScalarVariableViewModel scalarSource && scalarSource.IsParam)
+        {
+            OnPropertyChanged(nameof(CurrentValueText));
+        }
     }
 
     /// <summary>
-    /// Шаговое уменьшение значения активного скалярного параметра (PageDown) с учетом шага виджета и CTRL
+    /// Метод атомарной фиксации ввода: парсит накопленный буфер, швыряет число в AdjustValue() переменной,
+    /// гасит флаг редактирования IsEditing и полностью очищает InputBuffer
     /// </summary>
-    public void DecrementScalarValue()
+    public void CommitInputBuffer()
     {
-        if (DataSource == null || !DataSource.IsParam || DataSource.TotalElements > 1) return;
+        if (string.IsNullOrEmpty(InputBuffer)) return;
 
-        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
-                             System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
-
-        float delta = this.IncrementStep * (isCtrlPressed ? 10f : 1f);
-        double newValue = DataSource.CurrentValue - delta;
-
-        if (newValue < DataSource.ScaleMin) newValue = DataSource.ScaleMin;
-
-        // ВНУТРИ МЕТОДА IncrementScalarValue ПОСЛЕ ИЗМЕНЕНИЯ ЗНАЧЕНИЯ:
-        DataSource.CurrentValue = newValue;
-
-        // ФОРМИРУЕМ КОМАНДУ ЗАПИСИ ОДИНОЧНОГО СКАЛЯРА ДЛЯ ДИСПЕТЧЕРА
-        var writeCmd = new Models.NetworkCommand
+        // Пытаемся распарсить накопленный текст в физическое число double
+        if (double.TryParse(InputBuffer, out double parsedValue))
         {
-            ModelId = DataSource.ModelId,
-            Cmd = Models.LinkCommand.VarWrite, // Операция записи (0x01)
-            VarId = (byte)DataSource.Id,
-            DataType = DataSource.Type,
-            Rows = 1, // Для скаляра всегда 1
-            Cols = 1,
-            PayloadData = new double[] { newValue } // Кладем одно измененное число в массив double
-        };
+            // Если привязана интерактивная таблица (1D или 3D)
+            if (DataSource is TableVariableViewModelBase tableSource)
+            {
+                // Бежим по ячейкам и жестко фиксируем число в памяти
+                foreach (var cell in tableSource.MatrixCells)
+                {
+                    if (cell.IsSelected)
+                    {
+                        // В будущем здесь вызовется цепочка OnTableDataChanged() для пересчета 3D и UART!
+                        cell.ValueText = parsedValue.ToString("F2");
+                    }
+                }
+            }
+            // Если привязана одиночная константа-параметр
+            else if (DataSource is ScalarVariableViewModel scalarSource && scalarSource.IsParam)
+            {
+                scalarSource.CurrentValue = parsedValue;
+            }
+        }
 
-        // Заталкиваем команду в приоритетную очередь Арбитра
-        Services.BusArbiter.AsInterface.PushCommand(writeCmd);
-
+        // Полностью очищаем черновики виджета, гася флаг IsEditing у DataSource
+        InputBuffer = string.Empty;
+        OnPropertyChanged(nameof(CurrentValueText));
     }
+
 
 
 }

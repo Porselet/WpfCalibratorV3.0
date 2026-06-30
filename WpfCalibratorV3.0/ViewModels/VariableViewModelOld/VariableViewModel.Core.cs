@@ -32,58 +32,15 @@ public partial class VariableViewModel : INotifyPropertyChanged
     public int TotalElements => Rows * Cols;
     public int TotalBytes => TotalElements * ElementSize;
     // Настройки отображения (из user_view_config.json)
-    public string ControlView { get; set; } = "TextBox"; // Тип виджета: TextBox, Graph, Gauge...
+ //   public string ControlView { get; set; } = "TextBox"; // Тип виджета: TextBox, Graph, Gauge...
     public float MinValue { get; set; } = float.MinValue; // Для слайдеров
     public float MaxValue { get; set; } = float.MaxValue;
 
-    private string _inputBuffer = string.Empty;
-    private string _currentValueText = "0";
 
-    /// <summary>
-    /// Текстовый буфер для бесфокусного набора цифр с клавиатуры.
-    /// </summary>
-    public string InputBuffer
-    {
-        get => _inputBuffer;
-        set
-        {
-            if (_inputBuffer == value) return;
-            _inputBuffer = value;
-            OnPropertyChanged();
 
-            // Автоматически взводим твой существующий флаг IsEditing:
-            // Если в буфере есть текст — значит, идет редактирование и UART заблокирован!
-            IsEditing = !string.IsNullOrEmpty(_inputBuffer);
 
-            // Уведомляем интерфейс, что текст на экране обновился
-            OnPropertyChanged(nameof(CurrentValueText));
-        }
-    }
 
-    /// <summary>
-    /// Универсальное свойство отображения для TextBox скаляров и логов.
-    /// Заменяет собой дёрганую привязку к float.
-    /// </summary>
-    public string CurrentValueText
-    {
-        get
-        {
-            // Если инженер сейчас набирает цифры руками — жестко выводим буфер ввода
-            if (IsEditing && !string.IsNullOrEmpty(_inputBuffer))
-            {
-                return _inputBuffer;
-            }
 
-            // В режиме покоя — выводим наше стандартное число из UART с красивым гоночным форматом
-            return CurrentValue.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
-        }
-        set
-        {
-            // Этот сеттер будет вызываться только при инициализации, его не трогаем
-            _currentValueText = value;
-            OnPropertyChanged();
-        }
-    }
 
 
     // ======================================================================
@@ -365,19 +322,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
     }
 
 
-    private bool _isEditing = false;
-    public bool IsEditing
-    {
-        get => _isEditing;
-        set
-        {
-            if (_isEditing != value)
-            {
-                _isEditing = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+
 
 
 
