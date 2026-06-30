@@ -10,9 +10,9 @@ namespace WpfCalibrator.ViewModels;
 public class MatrixCellViewModel : INotifyPropertyChanged
 {
     // Родительская таблица (для обновления MatrixData)
-    public VariableViewModel? Parent { get; set; }
-
-    // Координаты ячейки
+    // 🔥 Теперь ячейка универсальна и видит свойства выделения 
+    // как в одномерном векторе-оси, так и в большой 3D-матрице!
+    public TableVariableViewModelBase? Parent { get; set; }    // Координаты ячейки
     public int Row { get; set; }
     public int Col { get; set; }
 
