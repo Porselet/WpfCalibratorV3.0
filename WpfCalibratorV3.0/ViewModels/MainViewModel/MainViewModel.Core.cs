@@ -92,6 +92,17 @@ public partial class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _isLeftPanelVisible = true;
+    public bool IsLeftPanelVisible
+    {
+        get => _isLeftPanelVisible;
+        set
+        {
+            _isLeftPanelVisible = value;
+            OnPropertyChanged(nameof(IsLeftPanelVisible));
+        }
+    }
+
     private string _selectedPort = "COM4";
     public string SelectedPort
     {

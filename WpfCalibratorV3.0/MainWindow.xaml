@@ -5,21 +5,35 @@
         Title="🎛️ Универсальный Калибратор STM32"
         PreviewKeyDown="GlobalWindow_PreviewKeyDown"
         Height="750" Width="1200" WindowStartupLocation="CenterScreen" Background="#000000">
+    <Window.InputBindings>
+        <!-- Привязываем Ctrl+B напрямую к нашей новой команде бэкэнда -->
+        <KeyBinding Modifiers="Ctrl" Key="B" Command="{Binding ToggleLeftPanelCommand}"/>
+    </Window.InputBindings>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="300"/>
-            <!-- Левая колонка -->
+            <!-- Левая колонка подстроится под размер панели, а при скрытии схлопнется в 0 -->
+            <ColumnDefinition Width="Auto"/>
+            <!-- Центральная колонка с холстом WorkspaceCanvas займет всё оставшееся место -->
             <ColumnDefinition Width="*"/>
-            <!-- Центральная колонка -->
         </Grid.ColumnDefinitions>
 
-        <!-- Подключаем модуль левого дерева -->
-        <!-- БЫЛО: <views:TreeViewPanel Grid.Column="0"/> -->
+        <!-- Модуль левого дерева с автоматическим скрытием через XAML триггер -->
+        <views:TreeViewPanel Grid.Column="0" x:Name="LeftPanel" Width="300"
+                             DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
+            <views:TreeViewPanel.Style>
+                <Style TargetType="UserControl">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <Style.Triggers>
+                        <!-- Если флаг в ОЗУ переключился в false -> полностью скрываем панель из макета! -->
+                        <DataTrigger Binding="{Binding IsLeftPanelVisible}" Value="False">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </views:TreeViewPanel.Style>
+        </views:TreeViewPanel>
 
-        <!-- СТАЛО (Явно передаем DataContext главного окна внутрь модуля): -->
-        <views:TreeViewPanel Grid.Column="0" x:Name="LeftPanel" DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"/>
-        <!-- Добавь этот пункт внутрь твоего Menu -->
 
 
         <!-- Подключаем модуль свободного холста -->
@@ -39,6 +53,27 @@
                 <!-- Левая часть: вкладки экранов -->
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                     <!-- СПИСОК ВКЛАДОК -->
+                    <!-- КНОПКА-ПЕРЕКЛЮЧАТЕЛЬ ВИДИМОСТИ НАВИГАЦИИ -->
+                    <ToggleButton IsChecked="{Binding IsLeftPanelVisible, Mode=TwoWay}"
+                              Width="30" Height="26"
+                              Background="#333333" Foreground="#00E5FF"
+                              FontWeight="Bold" FontSize="14" FontFamily="Consolas"
+                              Margin="5,0,0,0" Cursor="Hand"
+                              ToolTip="Скрыть/Показать панель навигации (Ctrl+B)">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="Content" Value="◀"/>
+                                <Style.Triggers>
+                                    <!-- Когда флаг сброшен (панель скрыта) — меняем стрелку вправо! -->
+                                    <Trigger Property="IsChecked" Value="False">
+                                        <Setter Property="Content" Value="▶"/>
+                                        <Setter Property="Foreground" Value="#FF9100"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
+
                     <ListBox ItemsSource="{Binding LayoutNames}" 
                              SelectedItem="{Binding CurrentLayoutName}"
                              Background="Transparent" 

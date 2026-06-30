@@ -83,7 +83,7 @@
                                                     MouseLeftButtonUp="WidgetHeader_MouseUp">
 
                                             <Grid>
-                                                <TextBlock Text="{Binding DataSource.Name}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding DataSource.Comment}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
                                                 <!-- КНОПКА ЗАКРЫТИЯ ВИДЖЕТА (ИСПРАВЛЕНА НА КОМАНДУ) -->
                                                 <Button Content="×" 
                                                         Background="Transparent" 

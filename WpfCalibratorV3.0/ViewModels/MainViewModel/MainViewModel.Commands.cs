@@ -83,6 +83,27 @@ public partial class MainViewModel
     }
 
 
+    // 1. Публичное свойство команды переключения левой панели
+    private ICommand? _toggleLeftPanelCommand;
+    public ICommand ToggleLeftPanelCommand => _toggleLeftPanelCommand ??= new ToggleLeftPanelCommandImpl(this);
+
+    // 2. Внутренний сишный драйвер команды
+    private class ToggleLeftPanelCommandImpl : BaseCommand
+    {
+        private readonly MainViewModel _parent;
+        public ToggleLeftPanelCommandImpl(MainViewModel parent) => _parent = parent;
+
+        // Команда инверсии доступна всегда, независимо от состояния UART
+        public override bool CanExecute(object? parameter) => true;
+
+        public override void Execute(object? parameter)
+        {
+            // Переворачиваем состояние видимости в ОЗУ
+            _parent.IsLeftPanelVisible = !_parent.IsLeftPanelVisible;
+        }
+    }
+
+
     private ICommand? _saveToFlashCommand;
 
     /// <summary>
