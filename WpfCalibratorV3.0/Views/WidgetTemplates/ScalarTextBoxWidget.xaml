@@ -1,0 +1,56 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+
+    <!-- ====================================================================== -->
+    <!-- ШАБЛОН ДЛЯ ОТОБРАЖЕНИЯ ОДИНОЧНОГО ПАРАМЕТРА (СКАЛЯРА / КОНСТАНТЫ)      -->
+    <!-- 1. Использует Viewbox Stretch="Uniform" для плавной гоночной растяжки   -->
+    <!--    текста и поля ввода при изменении геометрии окна виджета инженером. -->
+    <!-- 2. Выводит зеленое неоновое название калибровочного параметра слева.   -->
+    <!-- 3. Поле ввода TextBox работает в бесфокусном режиме (IsReadOnly)       -->
+    <!--    и крупно отображает текущее физическое значение константы из ОЗУ.   -->
+    <!-- ====================================================================== -->
+
+    <DataTemplate x:Key="ScalarTextBoxTemplate">
+        <Grid Margin="5">
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <!-- Задаем базовые пропорции, от которых Viewbox будет увеличивать контент -->
+                <Grid Width="260" Height="110">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Текст названия параметра -->
+                    <TextBlock Grid.Column="0" 
+                               Text="{Binding DataSource.Name}" 
+                               Foreground="#00FF00" 
+                               FontSize="18" 
+                               FontWeight="Bold" 
+                               FontFamily="Consolas" 
+                               VerticalAlignment="Center" 
+                               Margin="10,0"/>
+
+                    <!-- Поле ввода TextBox -->
+                    <!-- Поле ввода TextBox скаляра (Бесфокусный режим) -->
+                    <TextBox Grid.Column="1" 
+                             Text="{Binding DataSource.CurrentValueText, Mode=OneWay}" 
+                             Focusable="False"
+                             IsReadOnly="True"
+                             Background="#222222" 
+                             Foreground="White" 
+                             FontFamily="Consolas" 
+                             FontSize="22" 
+                             Width="120" 
+                             Height="36" 
+                             VerticalAlignment="Center" 
+                             HorizontalContentAlignment="Center" 
+                             VerticalContentAlignment="Center" 
+                             Margin="10,0"/>
+
+                </Grid>
+            </Viewbox>
+        </Grid>
+    </DataTemplate>
+
+</ResourceDictionary>

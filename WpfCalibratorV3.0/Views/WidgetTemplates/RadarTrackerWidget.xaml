@@ -1,0 +1,56 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+
+    <!-- ====================================================================== -->
+    <!-- ШАБЛОН ДВУМЕРНОГО РАДАР-ТРЕКЕРА (ПОЛЯРНЫЙ АВИАЦИОННЫЙ ПРИЦЕЛ)          -->
+    <!-- 1. Отображает положение цели на плоскости в полярных координатах       -->
+    <!--    (Угол X в градусах и Физическая дистанция Y в метрах).              -->
+    <!-- 2. Отрисовывает концентрическую сетку дальностей и угловые лучи визира -->
+    <!--    с неоновой зеленой подсветкой в стиле классических ИЛС/HUD.         -->
+    <!-- 3. Плавно перемещает маркер захвата цели (Target Crosshair) по экрану  -->
+    <!--    на основе живого математического потока данных из прошивки МК.      -->
+    <!-- ====================================================================== -->
+
+    <DataTemplate x:Key="RadarTrackerTrackerTemplate">
+        <Grid Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="🎯 СУБСЕТОЧНЫЙ ПРИЦЕЛ: " Foreground="#007ACC" FontWeight="Bold" FontFamily="Consolas" FontSize="14"/>
+                    <TextBlock Text="{Binding DataSource.Name}" Foreground="White" FontWeight="Bold" FontFamily="Consolas" FontSize="14"/>
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="1" Background="#0A0A0A" BorderBrush="#007ACC" BorderThickness="1" ClipToBounds="True">
+                <Grid x:Name="RadarGrid" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+
+                    <!-- СТАТИЧНЫЙ ЗЕЛЕНЫЙ ШАРИК-ЛИНЗА СТРОГО В ЦЕНТРЕ ОКНА -->
+                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Ellipse Width="80" Height="80" Fill="#00FF00" Opacity="0.15" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse.Effect>
+                                <BlurEffect Radius="20"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                        <Ellipse Width="30" Height="30" Stroke="#00FF00" StrokeThickness="2" Opacity="0.5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- ЖИВОЕ ЯРКОЕ ПЕРЕКРЕСТИЕ ТЕКУЩЕГО СИГНАЛА С БЕСКОНЕЧНЫМИ ЛУЧАМИ -->
+                    <Canvas HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Grid>
+                            <Grid.RenderTransform>
+                                <TranslateTransform X="{Binding RadarGridOffsetX}" Y="{Binding RadarGridOffsetY}"/>
+                            </Grid.RenderTransform>
+                            <Path Stroke="#00FF00" StrokeThickness="2" Opacity="0.8" Data="M -1000,0 L 1000,0 M 0,-1000 L 0,1000"/>
+                        </Grid>
+                    </Canvas>
+                </Grid>
+            </Border>
+        </Grid>
+    </DataTemplate>
+
+</ResourceDictionary>

@@ -1,0 +1,78 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+
+    <!-- ====================================================================== -->
+    <!-- ШАБЛОН ДЛЯ КРУПНОГО ЦИФРОВОГО ДАТЧИКА (ТЕЛЕМЕТРИЯ / МОНИТОРИНГ)        -->
+    <!-- 1. Предназначен для вывода мгновенных значений датчиков (RPM, MAP и др) -->
+    <!--    в виде огромного цифрового индикатора, читаемого с любого расстояния.-->
+    <!-- 2. Использует верхний Viewbox для сохранения резиновых пропорций       -->
+    <!--    шрифта при растяжении или сжатии границ окна инженером.            -->
+    <!-- 3. Крупно выводит текущее значение параметра (ValueText) по центру,   -->
+    <!--    а снизу поджимает его названием физической величины (Name).         -->
+    <!-- ====================================================================== -->
+
+
+    <DataTemplate x:Key="WidgetDigitalTemplate">
+        <Grid Margin="5">
+            <Viewbox Stretch="Uniform" 
+                     HorizontalAlignment="Stretch" 
+                     VerticalAlignment="Stretch">
+                <!-- Базовый контейнер. Увеличиваем высоту шрифта за счет удаления лишних строк -->
+                <Grid Width="200" Height="80">
+
+                    <!-- РАМКА С АЛАРМАМИ ПОДЛОЖКИ -->
+                    <Border x:Name="SensorBorder" 
+                            BorderBrush="#007ACC" 
+                            BorderThickness="1" 
+                            CornerRadius="3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#151515"/>
+                                <Style.Triggers>
+                                    <!-- УМНЫЙ МУЛЬТИТРИГГЕР: Краснеем, только если аларм активен И это разрешено в настройках! -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                            <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#990000"/>
+                                        <Setter Property="BorderBrush" Value="#FF0000"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+
+                            </Style>
+                        </Border.Style>
+
+                        <!-- ЧИСТЫЕ ГИГАНТСКИЕ ЦИФРЫ (Занимают 100% пространства) -->
+                        <TextBlock x:Name="ValueText" 
+                                   Text="{Binding DataSource.CurrentValue, StringFormat={}{0:F1}}" 
+                                   FontSize="48" 
+                                   FontWeight="Bold" 
+                                   FontFamily="Consolas" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="#007ACC"/>
+                                    <Style.Triggers>
+                                        <!-- Текст белеет на красном фоне только при подтверждении флага -->
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                                <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Border>
+
+                </Grid>
+            </Viewbox>
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>

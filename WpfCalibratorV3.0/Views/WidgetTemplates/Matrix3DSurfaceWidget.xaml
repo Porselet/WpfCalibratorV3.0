@@ -1,0 +1,178 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels"
+                    xmlns:helix="http://helix-toolkit.org/wpf"
+                    xmlns:media3d="clr-namespace:System.Windows.Media.Media3D;assembly=PresentationCore">
+
+    <!-- ====================================================================== -->
+    <!-- ШАБЛОН ТРЕХМЕРНОЙ ПОВЕРХНОСТИ КАЛИБРОВОК (HELIX TOOLKIT 3D SURFACE)    -->
+    <!-- 1. Строит интерактивную 3D-карту рельефа калибровок в реальном времени,-->
+    <!--    отображая массив ячеек в виде связанных вершин и цветных полигонов.  -->
+    <!-- 2. Поддерживает полноценную навигацию: вращение камеры правой кнопкой   -->
+    <!--    мыши, панорамирование (Shift) и плавный Zoom колесиком.              -->
+    <!-- 3. Включает динамическое окрашивание рельефа по принципу тепловой карты -->
+    <!--    и проецирует неоновый 3D-цилиндр активной режимной точки двигателя. -->
+    <!-- ====================================================================== -->
+
+    <DataTemplate x:Key="Matrix3DSurfaceTemplate">
+        <Grid Background="#222222">
+
+            <!-- Свободное вращение (правая кнопка мыши), зум (колесо) и панорамирование -->
+            <helix:HelixViewport3D x:Name="SurfaceViewport" 
+                               ShowCoordinateSystem="False"
+                               ShowViewCube="False"
+                               IsRotationEnabled="True"
+                               IsZoomEnabled="True"
+                               IsPanEnabled="True">
+
+                <!-- КАМЕРА ДЛЯ АЛГОРИТМИСТА: Развернута с обратной стороны, чтобы 0,0 была вверху слева. -->
+                <!-- Фокус вращения (LookDirection) жестко привязан к центру измерительного куба -->
+                <helix:HelixViewport3D.Camera>
+                    <PerspectiveCamera  Position="-85,-115,85" 
+                                        LookDirection="85,115,-75" 
+                                        UpDirection="0,0,1" 
+                                        FieldOfView="45"/>
+                </helix:HelixViewport3D.Camera>
+
+                <!-- Всеобщий фоновый свет без грязных теней на склонах -->
+                <ModelVisual3D>
+                    <ModelVisual3D.Content>
+                        <AmbientLight Color="#FFFFFF"/>
+                    </ModelVisual3D.Content>
+                </ModelVisual3D>
+
+                <!-- 1. ТВЕРДОТЕЛЬНАЯ ПОВЕРХНОСТЬ КАРТЫ -->
+                <ModelVisual3D>
+                    <ModelVisual3D.Content>
+                        <GeometryModel3D Geometry="{Binding DataSource.SurfaceMesh}">
+
+                            <!-- 1. ЛИЦЕВОЙ МАТЕРИАЛ (Верх карты) -->
+                            <GeometryModel3D.Material>
+                                <DiffuseMaterial>
+                                    <DiffuseMaterial.Brush>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <!-- Пики - Приглушенный благородный бордово-красный -->
+                                            <GradientStop Color="#C84B4B" Offset="0.0"/>
+                                            <!-- Средне-высокие - Мягкий песочно-желтый -->
+                                            <GradientStop Color="#D2B446" Offset="0.3"/>
+                                            <!-- Середина - Матовый, спокойный травяной зеленый (Не слепит!) -->
+                                            <GradientStop Color="#559664" Offset="0.6"/>
+                                            <!-- Низкие и ямы - Глубокий, спокойный стальной сине-серый -->
+                                            <GradientStop Color="#46648C" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </DiffuseMaterial.Brush>
+                                </DiffuseMaterial>
+                            </GeometryModel3D.Material>
+
+                            <!-- 2. 🔥 ИЗНАНОЧНЫЙ МАТЕРИАЛ (Низ карты) -->
+                            <!-- Сделали его точно таким же сочным, чтобы при любом вывороте осей Y карта сияла цветами! -->
+                            <GeometryModel3D.BackMaterial>
+                                <DiffuseMaterial>
+                                    <DiffuseMaterial.Brush>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <!-- Пики - Приглушенный благородный бордово-красный -->
+                                            <GradientStop Color="#C84B4B" Offset="0.0"/>
+                                            <!-- Средне-высокие - Мягкий песочно-желтый -->
+                                            <GradientStop Color="#D2B446" Offset="0.3"/>
+                                            <!-- Середина - Матовый, спокойный травяной зеленый (Не слепит!) -->
+                                            <GradientStop Color="#559664" Offset="0.6"/>
+                                            <!-- Низкие и ямы - Глубокий, спокойный стальной сине-серый -->
+                                            <GradientStop Color="#46648C" Offset="1.0"/>
+                                        </LinearGradientBrush>
+                                    </DiffuseMaterial.Brush>
+                                </DiffuseMaterial>
+                            </GeometryModel3D.BackMaterial>
+
+                        </GeometryModel3D>
+                    </ModelVisual3D.Content>
+                </ModelVisual3D>
+
+                <!-- 2. СЕТКА РЕБЕР НА ПОВЕРХНОСТИ (Четкие линии ячеек) -->
+                <helix:LinesVisual3D Points="{Binding DataSource.SurfaceLines}" 
+                                 Color="#111111" 
+                                 Thickness="2.0"/>
+
+                <!-- 3. ДИНАМИЧЕСКАЯ ИЗМЕРИТЕЛЬНАЯ КОРОБКА-ОБРЕШЕТКА -->
+                <helix:LinesVisual3D Points="{Binding DataSource.BoundingBoxLines}" 
+                                 Color="#888888" 
+                                 Thickness="1.5"/>
+
+                <!-- ==================== 4. ДИНАМИЧЕСКИЕ БИЛБОРД-ПОДПИСИ ОСЕЙ ==================== -->
+                <!-- Главное название оси X (Обороты) -->
+                <helix:BillboardTextVisual3D Position="0,-48,-3" 
+                                         Text="{Binding DataSource.BoundAxisX.Name, FallbackValue='ОБОРОТЫ (RPM)'}" 
+                                         Foreground="#FFFF00" FontSize="12" FontWeight="Bold" FontFamily="Consolas"/>
+
+                <!-- Главное название оси Y (Нагрузка) -->
+                <helix:BillboardTextVisual3D Position="48,0,-3" 
+                                         Text="{Binding DataSource.BoundAxisY.Name, FallbackValue='НАГРУЗКА (%)'}" 
+                                         Foreground="#FFFF00" FontSize="12" FontWeight="Bold" FontFamily="Consolas"/>
+
+                <!-- Название текущей калибровочной карты Z -->
+                <helix:BillboardTextVisual3D Position="45,45,34" 
+                                         Text="{Binding DataSource.Name, FallbackValue='ЗНАЧЕНИЕ'}" 
+                                         Foreground="#00FF00" FontSize="12" FontWeight="Bold" FontFamily="Consolas"/>
+
+
+                <!-- ==================== 5. 🔥 АВТОСПОРТИВНАЯ ОЦИФРОВКА ШКАЛ (Паттерн Чистый XAML) ==================== -->
+                <!-- Оцифровка уровней высоты куба Z (Оставляем аккуратные фиксированные билборды) -->
+                <helix:BillboardTextVisual3D Position="39,39,0" Text="МИН" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
+                <helix:BillboardTextVisual3D Position="39,39,7.5" Text="25%" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
+                <helix:BillboardTextVisual3D Position="39,39,15" Text="50%" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
+                <helix:BillboardTextVisual3D Position="39,39,22.5" Text="75%" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
+                <helix:BillboardTextVisual3D Position="39,39,30" Text="МАКС" Foreground="#A0A0A0" FontSize="10" FontFamily="Consolas"/>
+
+                <!-- 6. 🔥 ФИНАЛЬНЫЙ ВОЗВРАТ ЦИФР: Выводим список 3D-билбордов шкал из C# -->
+
+
+                <!-- 2. 🔥 ОБЪЕМНЫЙ КИБЕРПАНК-ЛАЗЕР (Честный 3D-цилиндр) -->
+                <!-- Биндимся на LaserBeamMesh, накладываем самосветящийся неоновый зеленый материал -->
+                <ModelVisual3D>
+                    <ModelVisual3D.Content>
+                        <GeometryModel3D Geometry="{Binding DataSource.LaserBeamMesh}">
+                            <GeometryModel3D.Material>
+                                <MaterialGroup>
+                                    <!-- Базовый матовый зеленый цвет для объема граней -->
+                                    <DiffuseMaterial Brush="#00AA00"/>
+                                    <!-- Мощное неоновое свечение, чтобы столб горел в темноте -->
+                                    <EmissiveMaterial Brush="#00FF00"/>
+                                </MaterialGroup>
+                            </GeometryModel3D.Material>
+                        </GeometryModel3D>
+                    </ModelVisual3D.Content>
+                </ModelVisual3D>
+
+                <!-- 3. ОБЪЕМНАЯ КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Честные матовые сферы) -->
+                <ModelVisual3D>
+                    <ModelVisual3D.Content>
+                        <GeometryModel3D Geometry="{Binding DataSource.AllSpheresMesh}">
+                            <GeometryModel3D.Material>
+                                <DiffuseMaterial Brush="#2A3D54"/>
+                            </GeometryModel3D.Material>
+                        </GeometryModel3D>
+                    </ModelVisual3D.Content>
+                </ModelVisual3D>
+
+                <!-- 4. ГЛЯНЦЕВЫЙ НЕОНОВЫЙ КУРСОР ВЫДЕЛЕНИЯ (3D-Шары с бликами MoTeC-Style) -->
+                <ModelVisual3D>
+                    <ModelVisual3D.Content>
+                        <GeometryModel3D Geometry="{Binding DataSource.SelectedSpheresMesh}">
+                            <GeometryModel3D.Material>
+                                <MaterialGroup>
+                                    <DiffuseMaterial Brush="#0080FF"/>
+                                    <SpecularMaterial Brush="#FFFFFF" SpecularPower="40"/>
+                                </MaterialGroup>
+                            </GeometryModel3D.Material>
+                        </GeometryModel3D>
+                    </ModelVisual3D.Content>
+                </ModelVisual3D>
+
+
+
+
+
+            </helix:HelixViewport3D>
+        </Grid>
+    </DataTemplate>
+
+</ResourceDictionary>

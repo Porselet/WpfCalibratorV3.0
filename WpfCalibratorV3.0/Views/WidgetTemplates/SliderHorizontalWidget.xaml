@@ -1,0 +1,93 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+    <!-- ====================================================================== -->
+    <!-- ШАБЛОН ГОРИЗОНТАЛЬНОГО ПОЛЗУНКА (SLIDER HORIZONTAL WIDGET)            -->
+    <!-- 1. Использует Viewbox для сохранения пропорций всего виджета на экране.-->
+    <!-- 2. Слева отображает название переменной, а справа — шкалу Slider.      -->
+    <!-- 3. Намертво связывает ползунок с текущим физическим значением в ОЗУ,   -->
+    <!--    позволяя инженеру плавно изменять калибровки линейными движениями.  -->
+    <!-- ====================================================================== -->
+
+    <DataTemplate x:Key="WidgetSliderTemplate">
+        <Grid Margin="5">
+            <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <!-- Компактный, узкий прибор строго под шкалу -->
+                <Grid Width="260" Height="45">
+
+                    <!-- ОБЩАЯ РАМКА ПРИБОРА С АЛАРМОМ НА УРОВНЕ ФОНА ЗАДНИКА -->
+                    <Border x:Name="SliderBorder" BorderBrush="#007ACC" BorderThickness="1" CornerRadius="3">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <!-- Стандартный гоночный серый фон -->
+                                <Setter Property="Background" Value="#151515"/>
+                                <Style.Triggers>
+                                    <!-- Слайдер тоже проверяет разрешение на красный фон задника -->
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                            <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#990000"/>
+                                        <Setter Property="BorderBrush" Value="#FF0000"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+
+                            </Style>
+                        </Border.Style>
+
+                        <!-- Контейнер для наложения шкал и рисок друг на друга -->
+                        <Grid Margin="15,0" Width="230">
+
+                            <!-- 1. РАСТУЩИЙ ВБОК ПРЯМОУГОЛЬНИК (Полноценный ProgressBar вместо Slider) -->
+                            <ProgressBar Minimum="{Binding DataSource.ScaleMin}" 
+                                         Maximum="{Binding DataSource.ScaleMax}" 
+                                         Value="{Binding DataSource.CurrentValue}"
+                                         Height="14" VerticalAlignment="Center"
+                                         Background="#222222" BorderThickness="1" BorderBrush="#333333">
+                                <ProgressBar.Style>
+                                    <Style TargetType="ProgressBar">
+                                        <!-- Стандартный синий неоновый MoTeC цвет заполнения -->
+                                        <Setter Property="Foreground" Value="#007ACC"/>
+                                        <Style.Triggers>
+                                            <!-- При аларме заполняющийся прямоугольник становится белым для контраста на красном фоне -->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding DataSource.IsAlarmActive}" Value="True"/>
+                                                    <Condition Binding="{Binding EnableVisualAlarm}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Foreground" Value="White"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ProgressBar.Style>
+                            </ProgressBar>
+
+                            <!-- 2. ДВА КРАСНЫХ ХОВЕР-ТРЕУГОЛЬНИКА СВЕРХУ ШКАЛЫ БАРГРАФА -->
+                            <!-- Используем наши готовые, отлаженные C#-координаты MinAlarmX и MaxAlarmX -->
+                            <Canvas Width="230" Height="45" VerticalAlignment="Stretch" HorizontalAlignment="Left">
+
+                                <!-- ТРЕУГОЛЬНИК МИНИМУМА (Смотрит острием вниз на растущую полосу) -->
+                                <Polygon Points="0,0 10,0 5,8" Fill="#FF0000" VerticalAlignment="Top" Canvas.Top="4">
+                                    <Polygon.RenderTransform>
+                                        <TranslateTransform X="{Binding MinAlarmX}"/>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+
+                                <!-- ТРЕУГОЛЬНИК МАКСИМУМА -->
+                                <Polygon Points="0,0 10,0 5,8" Fill="#FF0000" VerticalAlignment="Top" Canvas.Top="4">
+                                    <Polygon.RenderTransform>
+                                        <TranslateTransform X="{Binding MaxAlarmX}"/>
+                                    </Polygon.RenderTransform>
+                                </Polygon>
+
+                            </Canvas>
+                        </Grid>
+
+                    </Border>
+                </Grid>
+            </Viewbox>
+        </Grid>
+    </DataTemplate>
+
+</ResourceDictionary>
