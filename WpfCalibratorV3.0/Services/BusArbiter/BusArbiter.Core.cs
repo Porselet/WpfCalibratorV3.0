@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using WpfCalibrator.Models;
+using WpfCalibrator.ViewModels;
 
 namespace WpfCalibrator.Services
 {
@@ -14,6 +15,8 @@ namespace WpfCalibrator.Services
         private static readonly Lazy<BusArbiter> _instance = new Lazy<BusArbiter>(() => new BusArbiter());
 
         public static IBusArbiter AsInterface => _instance.Value;
+
+        public static BusArbiter Inst => _instance.Value;
 
         // 2. ОЧЕРЕДИ ПАКЕТОВ (ВЫСОКОУРОВНЕВЫЕ ОБЪЕКТЫ КОМАНД)
         // Приоритетная очередь для команд инженера (Запись 0x01, Флеш 0x03)
@@ -110,18 +113,35 @@ namespace WpfCalibrator.Services
                 {
                     if (source == null) continue;
 
-                    var readCommand = new NetworkCommand
+                    // На бумаге: Дефолтная мерность для одиночного датчика (Скаляра)
+                    int pollRows = 1;
+                    int pollCols = 1;
+
+                    // Вычисляем реальные габариты, только если датчик оказался таблицей/кривой
+                    if (source is TableVariableViewModelBase tableVar)
+                    {
+                        pollCols = tableVar.Cols;
+                        pollRows = (tableVar is Map3DVariableViewModel map3D) ? map3D.Rows : 1;
+                    }
+
+                    // ======================================================================
+                    // СБОРКА КОМАНДЫ ДЛЯ СВЯЗИ С ОБНОВЛЕННОЙ МЕРНОСТЬЮ
+                    // ======================================================================
+                    var readCmd = new Models.NetworkCommand
                     {
                         ModelId = source.ModelId,
-                        Cmd = LinkCommand.VarRead,
+                        Cmd = Models.LinkCommand.VarRead, // Команда чтения (0x02)
                         VarId = (byte)source.Id,
                         DataType = source.Type,
-                        Rows = source.Rows,
-                        Cols = source.Cols,
+                        Rows = pollRows, // 🔥 БЕЗОПАСНО: 1 для скаляров/кривых, Rows для 3D карт!
+                        Cols = pollCols, // 🔥 БЕЗОПАСНО: 1 для скаляров, Cols для осей/кривых/карт!
                         PayloadData = null
                     };
 
-                    _telemetryLoop.Add(readCommand);
+                    // Заталкиваем команду в очередь Арбитра
+                    //Services.BusArbiter.AsInterface.PushCommand(readCmd);
+
+                    _telemetryLoop.Add(readCmd);
                 }
             }
         }

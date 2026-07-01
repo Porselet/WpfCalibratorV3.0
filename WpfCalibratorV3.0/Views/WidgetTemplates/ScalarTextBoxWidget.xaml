@@ -33,20 +33,33 @@
 
                     <!-- Поле ввода TextBox -->
                     <!-- Поле ввода TextBox скаляра (Бесфокусный режим) -->
-                    <TextBox Grid.Column="1" 
-                             Text="{Binding DataSource.CurrentValueText, Mode=OneWay}" 
-                             Focusable="False"
-                             IsReadOnly="True"
-                             Background="#222222" 
-                             Foreground="White" 
-                             FontFamily="Consolas" 
-                             FontSize="22" 
-                             Width="120" 
-                             Height="36" 
-                             VerticalAlignment="Center" 
-                             HorizontalContentAlignment="Center" 
-                             VerticalContentAlignment="Center" 
-                             Margin="10,0"/>
+                    <TextBox Grid.Column="1"
+         Text="{Binding CurrentValueText, Mode=OneWay}"
+         Focusable="True"
+         IsReadOnly="True"
+         Background="#222222"
+         Foreground="White"
+         FontFamily="Consolas"
+         FontSize="22"
+         Width="120"
+         Height="36"
+         VerticalAlignment="Center"
+         HorizontalContentAlignment="Center"
+         VerticalContentAlignment="Center"
+         Margin="10,0">
+                        <!-- 🔥 УЛЬТИМАТИВНЫЙ ФИКС СТИЛЯ: Запрещаем Windows перекрашивать текст при IsReadOnly! -->
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Style.Triggers>
+                                    <Trigger Property="IsReadOnly" Value="True">
+                                        <Setter Property="Background" Value="#222222"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+
 
                 </Grid>
             </Viewbox>

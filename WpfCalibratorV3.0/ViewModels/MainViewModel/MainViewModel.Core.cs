@@ -117,10 +117,10 @@ public partial class MainViewModel : INotifyPropertyChanged
     // Конструктор с инъекцией зависимостей
     public MainViewModel(
         ConfigurationManager configManager,
-        IDashboardManager dashboardManager = null)
+        IDashboardManager dashboardManager)
     {
         _configManager = configManager;
-        _dashboardManager = dashboardManager ?? new NullDashboardManager();
+        _dashboardManager = dashboardManager;// ?? new NullDashboardManager();
 
         // Вызываем метод инициализации при создании ViewModel
         InitializeConfigurations();
@@ -183,43 +183,41 @@ public partial class MainViewModel : INotifyPropertyChanged
 
 
     // 1. Обработчик тика таймера (обновление прицела и polling)
+    // ======================================================================
+    // ПОЛИМОРФНЫЙ ТАЙМЕР РАСЧЕТА РЕЖИМНОЙ ТОЧКИ И ОПРОСА ТЕЛЕМЕТРИИ
+    // ======================================================================
     private void UpdateTimer_Tick(object? sender, EventArgs e)
     {
-        // 1. ОБНОВЛЕНИЕ КООРДИНАТ ПРИЦЕЛА (Для 3D-матриц и 1D-векторов)
+        // 1. ОБНОВЛЕНИЕ КООРДИНАТ ПРИЦЕЛА (MoTeC-Style субсеточный поиск)
         foreach (var param in ParameterVariables)
         {
-            // Проверяем базовые условия для одномерной оси X (она обязана быть всегда)
-            bool hasAxisX = param.BoundAxisX != null && param.BoundInputX != null;
-
-            // Для оси Y: если строк больше 1, требуем наличие оси Y, иначе (для вектора) — игнорируем её
-            bool hasAxisY = param.Rows > 1 ? (param.BoundAxisY != null && param.BoundInputY != null) : true;
-
-            if (hasAxisX && hasAxisY)
+            // Работаем только с табличными типами (1D-кривые и 3D-карты), у которых залинкованы оси
+            if (param is TableVariableViewModelBase tableVar && tableVar.IsLutLinked && tableVar.BoundAxisX != null && tableVar.BoundInputX != null)
             {
-                // Извлекаем массив оси X (работает всегда)
-                var axisXValues = param.BoundAxisX.MatrixData.Cast<double>().ToArray();
+                // Вытягиваем массив одномерной оси X (например, Обороты)
+                double[] axisXData = tableVar.BoundAxisX.VectorData;
+                double[] axisYData = null;
 
-                // Извлекаем массив оси Y: для многострочных карт — честные данные,
-                // а для одномерных векторов — суррогатный массив из одного нуля,
-                // чтобы исключить взрыв калькулятора по ошибке IndexOutOfRangeException!
-                var axisYValues = param.Rows > 1
-                    ? param.BoundAxisY!.MatrixData.Cast<double>().ToArray()
-                    : new double[] { 0.0 };
+                // Если это тяжелая 3D-матрица — бережно вытаскиваем ось Y (например, Наддув)
+                if (tableVar is Map3DVariableViewModel map3D)
+                {
+                    axisYData = map3D.BoundAxisY?.VectorData;
+                }
 
-                // Загоняем текущие значения в калькулятор рабочей точки
-                param.CalculateWorkingPoint(
-                    param.BoundInputX.CurrentValue,
-                    param.Rows > 1 ? param.BoundInputY!.CurrentValue : 0.0, // Для вектора Y-вход обнуляем
-                    axisXValues,
-                    axisYValues
+                // Загоняем живые показания датчиков в базовый калькулятор рабочей точки
+                tableVar.CalculateWorkingPoint(
+                    tableVar.BoundInputX.CurrentValue,
+                    (tableVar is Map3DVariableViewModel m3d) ? m3d.BoundInputY?.CurrentValue ?? 0.0 : 0.0,
+                    axisXData,
+                    axisYData
                 );
             }
         }
 
-        // 2. Если включено, запускаем опрос сигналов (polling)
+        // 2. Если включено, запускаем циклический опрос живых сигналов (polling)
         if (_isPollingEnabled && CommunicationService.AsInterface.IsConnected)
         {
-            //PollNextTelemetryVariable();
+            // Здесь ваш закомментированный или живой метод PollNextTelemetryVariable();
         }
     }
 

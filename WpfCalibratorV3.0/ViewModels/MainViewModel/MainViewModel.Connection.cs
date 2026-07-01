@@ -62,66 +62,30 @@ public partial class MainViewModel
     }
 
 
-    private void OnUartPacketReceived(NetworkCommand response)
+    private void OnUartPacketReceived(Models.NetworkCommand response)
     {
-        // 🔍 КОНТРОЛЬНЫЙ ВЫВОД: Смотрим, что прилетело из UART и что лежит в ОЗУ
-        if (ParameterVariables.Any())
-        {
-            var firstVar = ParameterVariables.First();
-            System.Diagnostics.Debug.WriteLine($"[СЕТЕВАЯ ОТЛАДКА] Пакет UART: VarId={response.VarId}, ModelId={response.ModelId} | В памяти переменная '{firstVar.Name}': Id={firstVar.Id}, ModelId={firstVar.ModelId}");
-        }
+        if (response?.PayloadData == null || response.PayloadData.Length == 0) return;
 
-
-        // 1. Ищем переменную в нашей живой программе по её VarId
-        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == response.VarId && response.ModelId == v.ModelId)
-                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == response.VarId && response.ModelId == v.ModelId);
+        var targetVariable = ParameterVariables.FirstOrDefault(v => v.Id == response.VarId && v.ModelId == response.ModelId)
+                          ?? TelemetryVariables.FirstOrDefault(v => v.Id == response.VarId && v.ModelId == response.ModelId);
 
         if (targetVariable == null) return;
 
-        // 2. Взводим наш флаг-щит сетевого обновления
-        targetVariable.IsUpdatingFromNetwork = true;
-
-        // ======================================================================
-        // 3. РАСПРЕДЕЛЯЕМ ДАННЫЕ В ОЗУ ВЬЮМОДЕЛИ C# (СТРОГО ПОТОКОБЕЗОПАСНО!)
-        // ======================================================================
-        if (response.PayloadData == null || response.PayloadData.Length == 0) return;
-
-        // Принудительно переносим обновление графики в главный UI-поток Windows!
-        System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+        try
         {
-            if (response.PayloadData.Length == 1)
+            targetVariable.IsUpdatingFromNetwork = true;
+            System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
             {
-                // Если скаляр — записываем его в свойство CurrentValue.
-                // Теперь сеттер выполнится внутри UI-потока, безопасно переберет ActiveWidgets,
-                // и стрелки MoTeC вместе с графиками TimePlot мгновенно полетят в космос!
-                targetVariable.CurrentValue = response.PayloadData[0];
-            }
-            else
-            {
-                // Если это многомерная таблица (LUT) — взводим флаг сетевого обновления
-                targetVariable.IsUpdatingFromNetwork = true;
-
-                // Сочно заливаем массив double[] в двухмерную матрицу MatrixData
-                int idx = 0;
-                for (int r = 0; r < response.Rows; r++)
-                {
-                    for (int c = 0; c < response.Cols; c++)
-                    {
-                        targetVariable.MatrixData[r, c] = (float)response.PayloadData[idx++];
-                    }
-                }
-
-                // Перерисовываем ячейки таблицы на экране ноутбука
-                targetVariable.RebuildMatrixCells(true);
-                targetVariable.Rebuild3DSurfaceMesh();
-
-                // Опускаем щит
-                targetVariable.IsUpdatingFromNetwork = false;
-            }
-        });
-
-        // 4. Опускаем щит
-        targetVariable.IsUpdatingFromNetwork = false;
+                targetVariable.UpdateDataFromRawPayload(response.PayloadData);
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[UART RX ERROR] Ошибка разбора данных: {ex.Message}");
+        }
+        finally
+        {
+            targetVariable.IsUpdatingFromNetwork = false;
+        }
     }
-
 }

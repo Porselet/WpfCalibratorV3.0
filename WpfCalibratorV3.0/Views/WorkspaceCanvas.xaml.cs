@@ -197,16 +197,25 @@ public partial class WorkspaceCanvas : UserControl
         // только тогда создаем как резервный вариант
         if (realVariableVm == null)
         {
-            realVariableVm = new VariableViewModelBase(variable, variable.ModelId);
+            // 🔥 УМНАЯ ПОЛИМОРФНАЯ ФАБРИКА ХОЛСТА
+            realVariableVm = (variable.Rows == 1 && variable.Cols == 1) ? new ScalarVariableViewModel() :
+                             (variable.Rows == 1 && variable.Cols > 1) ? new CurveVariableViewModel { Rows = variable.Rows, Cols = variable.Cols } :
+                             (VariableViewModelBase)new Map3DVariableViewModel { Rows = variable.Rows, Cols = variable.Cols };
+
+            realVariableVm.Id = (byte)variable.Id;
+            realVariableVm.Name = variable.Name;
+            realVariableVm.ModelId = variable.ModelId;
+            realVariableVm.Type = variable.Type;
+            realVariableVm.IsParam = variable.IsParam;
         }
 
         // Создаем графический контейнер, который теперь смотрит на ЕДИНСТВЕННЫЙ правильный источник данных
-        var widget = new WidgetViewModel
+        var widget = new WidgetViewModel(realVariableVm)
         {
             Left = x,
             Top = y,
             ControlView = viewType,
-            DataSource = realVariableVm
+            
         };
 
         if (variable.IsParam && variable.TotalElements > 1) // Карты LUT

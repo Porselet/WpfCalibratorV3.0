@@ -247,8 +247,11 @@ namespace WpfCalibrator.ViewModels
         /// </summary>
         protected override void UpdateLaserBeamPosition(double exactCol, double exactRow)
         {
-            // Вызов твоего оригинального метода отрисовки луча из VariableViewModel.3d.cs
-            this.UpdateLaserBeamPosition(exactCol, exactRow);
+            // Безопасно пинаем виджет 3D-поверхности, у которого живет лазерный меш [1.14]
+            var mainVm = System.Windows.Application.Current?.MainWindow?.DataContext as MainViewModel;
+            var my3DWidget = mainVm?.ActiveWidgets?.FirstOrDefault(w => w.DataSource == this && w.ControlView == "Matrix3DSurface");
+
+            my3DWidget?.UpdateLaserBeamPosition(exactCol, exactRow);
         }
         /// <summary>
         /// Шаг 1: Поиск минимального, максимального значений матрицы и дельты диапазона

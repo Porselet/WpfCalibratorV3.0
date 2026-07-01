@@ -75,178 +75,72 @@ public partial class MainViewModel
     }
 
 
-    // 1. Внутренний метод сохранения текущего состояния активного экрана
+    // ======================================================================
+    // ЧАСТЬ 1: ЛАКОНИЧНОЕ СОХРАНЕНИЕ РАБОЧИХ СТОЛОВ ЧЕРЕЗ СЕРВИСЫ
+    // ======================================================================
     private void SaveCurrentLayoutInternal()
     {
-        if (SelectedDevice == null || string.IsNullOrEmpty(CurrentLayoutName)) return;
+        if (string.IsNullOrEmpty(CurrentLayoutName) || SelectedDevice == null) return;
 
-        // Загружаем актуальный файл конфигурации устройства с диска
-        var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath) ?? new UserViewConfig();
+        // 1. Просим ConfigurationManager загрузить текущий файл с диска [1.14]
+        var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
+        if (currentConfig == null) return;
 
-        currentConfig.LastUsedComPort = SelectedPort ?? "COM4";
+        // 2. Снимаем слепок окон холста силами DashboardManager [1.14]
+        currentConfig.Layouts[CurrentLayoutName] = _dashboardManager.PackActiveWidgets(ActiveWidgets);
         currentConfig.ActiveLayoutName = CurrentLayoutName;
 
-        // Формируем список виджетов, открытых прямо сейчас на холсте
-        var widgetsList = new List<SavedWidgetInfo>();
-        foreach (var widget in ActiveWidgets)
-        {
-            if (widget.DataSource == null) continue;
-
-            widgetsList.Add(new SavedWidgetInfo
-            {
-                VarName = widget.DataSource.Name,
-                ControlView = widget.ControlView,
-                Left = widget.Left,
-                Top = widget.Top,
-                Width = widget.Width,
-                Height = widget.Height,
-
-                // НОВОЕ: Забираем флаг вертикальной ориентации из виджета и бережно пишем в JSON!
-                IsVertical = widget.IsVertical,
-                // НОВОЕ: Передаем шаг изменения из виджета в структуру JSON
-                IncrementStep = widget.IncrementStep,
-                // Фиксируем связи Look-Up осей локально для этой таблицы на этом экране
-
-                // НОВОЕ: Забираем масштабы и алармы из переменной виджета и пишем в JSON!
-                ScaleMin = (float)(widget.DataSource?.ScaleMin ?? 0f),
-                ScaleMax = (float)(widget.DataSource?.ScaleMax ?? 100f),
-                MinLimit = widget.DataSource?.MinLimit ?? float.NegativeInfinity,
-                MaxLimit = widget.DataSource?.MaxLimit ?? float.PositiveInfinity,
-                // НОВОЕ: Забираем флаг индивидуального аларма из виджета и пишем в JSON!
-                EnableVisualAlarm = widget.EnableVisualAlarm,
-                ModelId = widget.DataSource?.ModelId ?? 0,
-                TableBindings = new LutBindings
-                {
-                    HasBindings = widget.DataSource.IsLutLinked,
-                    AxisX_VarName = widget.DataSource.BoundAxisX?.Name ?? "",
-                    AxisY_VarName = widget.DataSource.BoundAxisY?.Name ?? "",
-                    InputX_VarName = widget.DataSource.BoundInputX?.Name ?? "",
-                    InputY_VarName = widget.DataSource.BoundInputY?.Name ?? "",
-
-                    // НОВОЕ: Передаем состояние флага Радара из вьюмодели таблицы в JSON
-                    ShowRadarTracker = widget.DataSource.ShowRadarTracker,
-                    Show3DSurface = widget.DataSource.Show3DSurface,
-
-                }
-            });
-        }
-
-        // Сохраняем сформированный список в словарь под именем текущей вкладки
-        currentConfig.Layouts[CurrentLayoutName] = widgetsList;
-
-        // Записываем обновленный JSON обратно на диск
+        // 3. Пишем обновленный конфиг обратно на диск [1.14]
         _configManager.SaveUserConfig(currentConfig, SelectedDevice.DevicePath);
     }
 
-    // 2. Метод физического переключения экранов на холсте
+    public void AddNewLayout(string name)
+    {
+        if (string.IsNullOrEmpty(name) || SelectedDevice == null) return;
+
+        var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
+        if (currentConfig == null || currentConfig.Layouts.ContainsKey(name)) return;
+
+        // Создаем чистую вкладку в JSON-конфиге [1.14]
+        currentConfig.Layouts[name] = new List<Models.SavedWidgetInfo>();
+        LayoutNames.Add(name);
+        CurrentLayoutName = name;
+
+        // Загоняем изменения на жесткий диск
+        _configManager.SaveUserConfig(currentConfig, SelectedDevice.DevicePath);
+    }
+
+
+
+
+
+    // ======================================================================
+    // ЧАСТЬ 2: РАСПАКОВКА И ВОССТАНОВЛЕНИЕ ОКАН НА ХОЛСТЕ СИЛАМИ СЕРВИСОВ [1.14]
+    // ======================================================================
     private void SwitchToLayout(string layoutName)
     {
-        if (SelectedDevice == null) return;
+        if (string.IsNullOrEmpty(layoutName) || SelectedDevice == null) return;
 
-        // Временно выключаем опрос телеметрии, чтобы безопасно перерисовать UI без гонок потоков
-        bool wasPolling = _isPollingEnabled;
-        _isPollingEnabled = false;
-
+        // 1. Очищаем холст от старых виджетов
         ActiveWidgets.Clear();
+        _currentLayoutName = layoutName;
 
-        var config = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
-        if (config != null && config.Layouts.TryGetValue(layoutName, out var savedWidgets))
+        // 2. Читаем актуальный файл конфигурации устройства с жесткого диска [1.14]
+        var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
+        if (currentConfig == null || !currentConfig.Layouts.ContainsKey(layoutName)) return;
+
+        var savedWidgets = currentConfig.Layouts[layoutName];
+
+        // 3. Вызываем наш DashboardManager для воссоздания живых виджетов и линковки осей! [1.14]
+        // Передаем делегат поиска переменных FindVariable из MainViewModel
+        var liveWidgets = _dashboardManager.UnpackSavedWidgets(savedWidgets, FindVariable);
+
+        // 4. Закидываем воссозданные приборы на холст WPF
+        foreach (var widget in liveWidgets)
         {
-            foreach (var info in savedWidgets)
-            {
-                // Используем твой родной рабочий метод поиска по имени
-                var realVar = FindVariable(info.VarName);
-
-                // Дополнительная проверка безопасности: если переменная нашлась, 
-                // но её ModelId не совпадает с дисковым — пропускаем её
-                if (realVar != null && realVar.ModelId != info.ModelId)
-                {
-                    realVar = null;
-                }
-
-                if (realVar == null) continue;
-
-                // Восстанавливаем сохраненные масштабы шкал и алармы из JSON прямо в переменную!
-                realVar.ScaleMin = info.ScaleMin;
-                realVar.ScaleMax = info.ScaleMax;
-                realVar.MinLimit = info.MinLimit;
-                realVar.MaxLimit = info.MaxLimit;
-
-                // ТИХАЯ ЗАЩИТА ОТ ДУБЛИКАТОВ: 
-                // Теперь мы зряче разрешаем одновременное существование на холсте и таблицы (MatrixTable), 
-                // и её 3D-копии (Matrix3DSurface), привязанных к одной переменной!
-                if (info.ControlView != "RadarTracker" && info.ControlView != "Matrix3DSurface" && realVar.IsParam &&
-                    ActiveWidgets.Any(w => w.DataSource != null && w.DataSource.Name == realVar.Name && w.ControlView != "RadarTracker" && w.ControlView != "Matrix3DSurface"))
-                {
-                    continue;
-                }
-
-                // Создаем виджет, восстанавливая его ГЕОМЕТРИЮ (Left, Top, Width, Height) прямо из JSON на диске!
-                var widgetVm = new WidgetViewModel
-                {
-                    DataSource = realVar,
-                    ControlView = info.ControlView,
-                    Left = info.Left,
-                    Top = info.Top,
-                    Width = info.Width,
-                    Height = info.Height,
-                    IncrementStep = info.IncrementStep,
-                    IsVertical = info.IsVertical,
-                    EnableVisualAlarm = info.EnableVisualAlarm
-                };
-
-                // 🔥 УЛЬТИМАТИВНЫЙ ФИКС ОСЕЙ (Для MatrixTable и Matrix3DSurface):
-                // Если в JSON сохранены имена осей — принудительно восстанавливаем их в ОЗУ, 
-                // независимо от того, в каком графическом виде отображается прибор!
-                if (info.TableBindings != null)
-                {
-                    if (!string.IsNullOrEmpty(info.TableBindings.AxisX_VarName))
-                        realVar.BoundAxisX = FindVariable(info.TableBindings.AxisX_VarName);
-
-                    if (!string.IsNullOrEmpty(info.TableBindings.AxisY_VarName))
-                        realVar.BoundAxisY = FindVariable(info.TableBindings.AxisY_VarName);
-
-                    if (!string.IsNullOrEmpty(info.TableBindings.InputX_VarName))
-                        realVar.BoundInputX = FindVariable(info.TableBindings.InputX_VarName);
-
-                    if (!string.IsNullOrEmpty(info.TableBindings.InputY_VarName))
-                        realVar.BoundInputY = FindVariable(info.TableBindings.InputY_VarName);
-
-                    realVar.ShowRadarTracker = info.TableBindings.ShowRadarTracker;
-
-                    // Также восстанавливаем флаг в ядро переменной, чтобы галочка в настройках была синхронизирована
-                    realVar.Show3DSurface = info.TableBindings.Show3DSurface;
-                }
-
-                ActiveWidgets.Add(widgetVm);
-
-                // Если вывели на холст калибровочный параметр — принудительно вычитываем его актуальные данные из МК
-                if (realVar.IsParam && CommunicationService.AsInterface.IsConnected)
-                {
-                    _ = RefreshAllLayoutParametersAsync();
-                }
-            }
-
-            var firstParam = ActiveWidgets?.FirstOrDefault(w => w.DataSource != null && w.DataSource.IsParam);
-            if (firstParam != null)
-            {
-                // Жестко взводим ему неоновый фокус активности в ОЗУ!
-                firstParam.IsActiveWidget = true;
-            }
-            // ... внутри метода SwitchToLayout, после очистки и заполнения ActiveWidgets:
-            foreach (var widget in ActiveWidgets)
-            {
-                if (widget.DataSource != null && widget.DataSource.IsParam)
-                {
-                    // Сбрасываем старый 3D-масштаб ТОЛЬКО при физическом переключении вкладок оператором
-                    widget.DataSource.Reset3DScale();
-                }
-            }
-
+            ActiveWidgets.Add(widget);
         }
-
-        // Возвращаем опрос телеметрии в исходное состояние
-        _isPollingEnabled = wasPolling;
+        _ = RefreshAllLayoutParametersAsync();
     }
 
 
@@ -266,13 +160,16 @@ public partial class MainViewModel
             foreach (var widget in ActiveWidgets.ToList())
             {
                 if (widget.DataSource == null || !widget.DataSource.IsParam) continue;
-
+                var tableVar = widget.DataSource as TableVariableViewModelBase;
                 // Добавляем саму таблицу или скалярный параметр
                 parametersToUpdate.Add(widget.DataSource);
 
-                // If это LUT-таблица, добавляем её оси в очередь на чтение
-                if (widget.DataSource.BoundAxisX != null) parametersToUpdate.Add(widget.DataSource.BoundAxisX);
-                if (widget.DataSource.BoundAxisY != null) parametersToUpdate.Add(widget.DataSource.BoundAxisY);
+                if (tableVar?.BoundAxisX != null) parametersToUpdate.Add(tableVar.BoundAxisX);
+
+                // Для оси Y делаем дополнительную проверку на 3D карту [1.14]
+                if (tableVar is Map3DVariableViewModel map3D && map3D.BoundAxisY != null)
+                    parametersToUpdate.Add(map3D.BoundAxisY);
+
             }
 
             // ИСПРАВЛЕНО: Вместо прямой отправки байт вслепую, мы просто ставим задачи в очередь Арбитра!
@@ -283,14 +180,25 @@ public partial class MainViewModel
                 // чтобы следующий пакет таблицы зашел в чистый и свободный DMA-стрим!
                 await System.Threading.Tasks.Task.Delay(300);
 
+                // На бумаге: Дефолтная мерность для одиночного датчика (Скаляра)
+                int pollRows = 1;
+                int pollCols = 1;
+
+                // Вычисляем реальные габариты, только если датчик оказался таблицей/кривой
+                if (param is TableVariableViewModelBase tableVar)
+                {
+                    pollCols = tableVar.Cols;
+                    pollRows = (tableVar is Map3DVariableViewModel map3D) ? map3D.Rows : 1;
+                }
+
                 var readCmd = new Models.NetworkCommand
                 {
                     ModelId = param.ModelId,
                     Cmd = Models.LinkCommand.VarRead, // Команда чтения
                     VarId = (byte)param.Id,
                     DataType = param.Type,
-                    Rows = param.Rows,
-                    Cols = param.Cols,
+                    Rows = pollRows,
+                    Cols = pollCols,
                     PayloadData = null // При чтении данные нам вернет сам STM32 в ответе
                 };
 
@@ -317,14 +225,6 @@ public partial class MainViewModel
         await Task.CompletedTask;
     }
 
-    // 3. Метод создания нового экрана из кода или UI
-    public void AddNewLayout(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name) || LayoutNames.Contains(name)) return;
-
-        LayoutNames.Add(name);
-        CurrentLayoutName = name; // Наш сеттер из Шага 2 сам сделает автосейв старого экрана и откроет чистый новый
-    }
 
     // 4. Метод удаления экрана
     public void DeleteLayout(string name)
@@ -348,75 +248,71 @@ public partial class MainViewModel
 
 
 
-    /*   private void OnDeviceChanged()
-       {
-           if (SelectedDevice == null) return;
-
-           // Выбираем первую модель по умолчанию
-           _selectedModelId = SelectedDevice.Models.Keys.FirstOrDefault();
-
-           // Загружаем конфигурации для этого устройства
-           var userConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
-
-           // Очищаем существующие коллекции переменных
-           ParameterVariables.Clear();
-           TelemetryVariables.Clear();
-
-           // Заполняем коллекции переменными из выбранной модели
-           var selectedModel = SelectedDevice.Models[_selectedModelId];
-           foreach (var variable in selectedModel.Variables)
-           {
-               // Получаем ID модели из ключа словаря
-               byte modelId = _selectedModelId;
-
-               var vm = new VariableViewModel(variable, modelId);
-               if (variable.IsParam)
-                   ParameterVariables.Add(vm);
-               else
-                   TelemetryVariables.Add(vm);
-           }
-
-           // Восстановление настроек интерфейса (привязки осей и виджеты)
-           ApplyUserConfig(userConfig);
-       }
-
-   */
 
     private void OnDeviceChanged()
     {
-        if (SelectedDevice == null) return;
-
-        // Загружаем сохраненный конфиг рабочего стола (там калибровки вперемешку)
-        var userConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
-
-        // 1. Очищаем старый кэш полностью
-        ParameterVariables.Clear();
-        TelemetryVariables.Clear();
-
-        // 2. СКВОЗНОЙ ПАРСИНГ: Бежим по всем моделям устройства
-        foreach (var modelKvp in SelectedDevice.Models)
+        // ======================================================================
+        // ЧАСТЬ 3: ПОЛИМОРФНАЯ ФАБРИКА ПАРСИНГА XML-ПРОШИВКИ (OnDeviceChanged) [1.14]
+        // ======================================================================
+        if (SelectedDevice != null)
         {
-            // Ключ словаря — это и есть физический ID модели (1, 2, 3...)
-            byte currentModelId = (byte)modelKvp.Key;
-            var modelData = modelKvp.Value;
+            ParameterVariables.Clear();
+            TelemetryVariables.Clear();
+            LayoutNames.Clear();
 
-            System.Diagnostics.Debug.WriteLine($"[АРХИТЕКТУРА] Загружаем в ОЗУ модель ID={currentModelId} ('{modelData.ModelName}')");
-
-            foreach (var variable in modelData.Variables)
+            foreach (var modelPair in SelectedDevice.Models)
             {
-                // Создаем вьюмодель и жестко пришиваем к ней ID её родной модели!
-                var vm = new VariableViewModel(variable, currentModelId);
-                vm.ModelId = currentModelId; // Фиксируем в свойстве для UART-линковщика
+                byte currentModelId = modelPair.Key;
+                var modelConfig = modelPair.Value;
 
-                if (variable.IsParam)
-                    ParameterVariables.Add(vm);
+                foreach (var variable in modelConfig.Variables)
+                {
+                    // 🔥 Внедряем фабрику: разделяем типы данных по их физической мерности в XML! [1.14]
+                    VariableViewModelBase vm;
+
+                    if (variable.Rows == 1 && variable.Cols == 1)
+                    {
+                        vm = new ScalarVariableViewModel(); // Одиночная константа / живой датчик [1.14]
+                    }
+                    else if (variable.Rows == 1 && variable.Cols > 1)
+                    {
+                        vm = new CurveVariableViewModel { Rows = variable.Rows, Cols = variable.Cols }; // 1D-Кривая оцифровки [1.14]
+                    }
+                    else
+                    {
+                        vm = new Map3DVariableViewModel { Rows = variable.Rows, Cols = variable.Cols }; // Тяжелая 3D-Матрица [1.14]
+                    }
+
+                    // Накатываем общие паспортные данные в абстрактный корень [1.14]
+                    vm.Id = (byte)variable.Id;
+                    vm.Name = variable.Name;
+                    vm.ModelId = currentModelId;
+                    vm.IsParam = variable.IsParam;
+                    vm.Type = variable.Type;
+                    vm.ElementSize = variable.ElementSize;
+
+                    // Распределяем по глобальным реестрам ОЗУ для навигатора
+                    if (vm.IsParam)
+                        ParameterVariables.Add(vm);
+                    else
+                        TelemetryVariables.Add(vm);
+                }
+            }
+
+            // Восстанавливаем вкладки макетов из JSON для этого блока
+            var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
+            if (currentConfig != null)
+            {
+                foreach (var name in currentConfig.Layouts.Keys) LayoutNames.Add(name);
+
+                // Разворачиваем активный рабочий стол
+                string defaultLayout = currentConfig.ActiveLayoutName;
+                if (!string.IsNullOrEmpty(defaultLayout) && LayoutNames.Contains(defaultLayout))
+                    CurrentLayoutName = defaultLayout;
                 else
-                    TelemetryVariables.Add(vm);
+                    CurrentLayoutName = LayoutNames.FirstOrDefault() ?? "";
             }
         }
-
-        // 3. Восстанавливаем рабочий стол (все виджеты откроются одновременно, независимо от их модели!)
-        ApplyUserConfig(userConfig);
     }
 
 

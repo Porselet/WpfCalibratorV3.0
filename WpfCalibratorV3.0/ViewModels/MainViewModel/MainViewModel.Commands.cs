@@ -286,10 +286,14 @@ public partial class MainViewModel
             }
 
             // Открываем окно модально. Если пользователь нажал "ПРИМЕНИТЬ" (true)
+            // Открываем окно модально. Если пользователь нажал "ПРИМЕНИТЬ" (true)
             if (settingsWindow.ShowDialog() == true)
             {
-                // Принудительно заставляем таблицу перерисовать ячейки
-                widgetVm.DataSource.RebuildMatrixCells();
+                // Принудительно заставляем таблицу обновить ячейки на экране ноутбука [1.14]
+                if (widgetVm.DataSource is TableVariableViewModelBase tableVar)
+                {
+                    tableVar.UpdateSelectionHighlight(); // Наш новый базовый метод отрисовки рамок! [1.14]
+                }
 
                 // Автоматически сохраняем обновленные связи экрана в JSON
                 if (_parent.SaveLayoutCommand.CanExecute(null))
@@ -297,6 +301,7 @@ public partial class MainViewModel
                     _parent.SaveLayoutCommand.Execute(null);
                 }
             }
+
         }
     }
 

@@ -19,6 +19,10 @@ namespace WpfCalibrator.ViewModels
         /// Используется сетевым драйвером для расчета длины бинарного пакета.
         /// </summary>
         public virtual int TotalElements => 1; // Любой скаляр/датчик по умолчанию — это 1 элемент!
+        /// <summary>
+        /// Размер одного элемента переменной в байтах ОЗУ контроллера (1, 2, 4 байта)
+        /// </summary>
+        public int ElementSize { get; set; } = 4; // По умолчанию 4 байта (float)
 
 
         // Назначение: true = калибровка (RAM), false = телеметрия (датчик)

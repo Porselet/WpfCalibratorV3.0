@@ -30,7 +30,7 @@ namespace WpfCalibrator.Services
             if (e.Key == Key.Enter && !string.IsNullOrEmpty(activeWidget.InputBuffer))
             {
                 activeWidget.CommitInputBuffer(); // Наш новый метод фиксации в ОЗУ
-                // SendBulkUpdateToNetwork(activeWidget); // Выстрел в UART
+                SendBulkUpdateToNetwork(activeWidget); // Выстрел в UART
                 return true;
             }
 
@@ -50,16 +50,24 @@ namespace WpfCalibrator.Services
                 if (isCtrlPressed) step *= 10.0;
                 if (e.Key == Key.PageDown) step = -step;
 
-                // Если идет ручной накат цифр в буфер
                 if (!string.IsNullOrEmpty(activeWidget.InputBuffer))
                 {
-                    // Логика изменения буфера на лету (ChangeBufferByStep)
+                    // 1. Пытаемся распарсить черновик, который сейчас набит в TextBox [1.14]
+                    if (double.TryParse(activeWidget.InputBuffer, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double currentDraft))
+                    {
+                        // 2. Накатываем шаг (например, +1.0 или -10.0) на черновик в ОЗУ ноутбука [1.14]
+                        double newDraft = currentDraft + step;
+
+                        // 3. Записываем обновленный текст обратно в буфер виджета БЕЗ отправки в UART! [1.14]
+                        activeWidget.InputBuffer = newDraft.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+                    }
                 }
+
                 else
                 {
                     // 🔥 НАШ ПОЛИМОРФНЫЙ СХЛОПНУТЫЙ ШЛЮЗ: Меняет и скаляры, и 3D-карты!
                     variable.AdjustValue(step);
-                    // SendBulkUpdateToNetwork(activeWidget); // Выстрел пачки в UART
+                    SendBulkUpdateToNetwork(activeWidget); // Выстрел пачки в UART
                 }
                 return true;
             }
@@ -97,8 +105,11 @@ namespace WpfCalibrator.Services
                 if (!string.IsNullOrEmpty(activeWidget.InputBuffer)) activeWidget.CommitInputBuffer();
 
                 // Переносим рамку на ячейку, которую UART подсвечивает зеленым
-                spaceTable.SelectedRow = spaceTable.SelectedRow; // Сюда подставишь свой ActiveRowIndex
-                spaceTable.SelectedCol = spaceTable.SelectedCol; // Сюда подставишь свой ActiveColIndex
+                if (spaceTable.ActiveRowIndex >= 0 && spaceTable.ActiveColIndex >= 0)
+                {
+                    spaceTable.SelectedRow = spaceTable.ActiveRowIndex;
+                    spaceTable.SelectedCol = spaceTable.ActiveColIndex;
+                }
 
                 if (!isShiftPressed)
                 {
@@ -172,34 +183,42 @@ namespace WpfCalibrator.Services
             // Если его нет, проверку !variable.IsUpdatingFromNetwork можно временно опустить
             if (variable.IsParam && BusArbiter.AsInterface.IsRunning)
             {
-                double[] flatPayload = Array.Empty<double>();
 
-                // 🚀 ПОЛИМОРФНЫЙ МАРШАЛИНГ: Каждый класс сам отдаёт свой плоский слепок ОЗУ!
+                double[] flatPayload = Array.Empty<double>();
+                int txRows = 1;
+                int txCols = 1;
+
+                // 🚀 ПОЛИМОРФНЫЙ МАРШАЛИНГ С СЕМАНТИКОЙ МЕРНОСТИ
                 if (variable is Map3DVariableViewModel map3D)
                 {
-                    flatPayload = map3D.GetFlatPayloadForTx(); // Твой Column-Major метод сборки матрицы 32х32 [1.14]
+                    flatPayload = map3D.GetFlatPayloadForTx(); // Твой Column-Major метод 32х32 [1.14]
+                    txRows = map3D.Rows;
+                    txCols = map3D.Cols;
                 }
                 else if (variable is CurveVariableViewModel curve)
                 {
-                    flatPayload = curve.VectorData; // 1D-вектор отдаёт свой голый массив осей напрямую [1.14]
+                    flatPayload = curve.VectorData; // 1D-вектор напрямую [1.14]
+                    txRows = 1; // У кривой всегда одна строка! [1.14]
+                    txCols = curve.Cols;
                 }
                 else if (variable is ScalarVariableViewModel scalar)
                 {
-                    flatPayload = new double[] { scalar.CurrentValue }; // Скаляр отдаёт одиночный элемент [1.14]
+                    flatPayload = new double[] { scalar.CurrentValue }; // Одиночный датчик [1.14]
+                    txRows = 1;
+                    txCols = 1;
                 }
 
-                // Переходим к сборке TX-команды (Часть 2)
                 // ======================================================================
-                // ЧАСТЬ 2: СБОРКА МОНОЛИТНОГО TX-КАДРА И ВЫСТРЕЛ В ОЧЕРЕДЬ АРБИТРА
+                // СБОРКА ТХ-КАДРА С ИСПРАВЛЕННОЙ МЕРНОСТЬЮ
                 // ======================================================================
                 var writeCmd = new Models.NetworkCommand
                 {
                     ModelId = variable.ModelId,
-                    Cmd = Models.LinkCommand.VarWrite, // Команда записи (0x01)
+                    Cmd = Models.LinkCommand.VarWrite,
                     VarId = (byte)variable.Id,
                     DataType = variable.Type,
-                    Rows = variable.Rows,
-                    Cols = variable.Cols,
+                    Rows = txRows, // 🔥 БЕЗОПАСНО: Подставляем вычисленные строки! [1.14]
+                    Cols = txCols, // 🔥 БЕЗОПАСНО: Подставляем вычисленные колонки! [1.14]
                     PayloadData = flatPayload
                 };
 

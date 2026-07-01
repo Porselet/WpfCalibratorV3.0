@@ -30,10 +30,6 @@ namespace WpfCalibrator.ViewModels
         /// </summary>
         public ObservableCollection<string> StringValues { get; } = new();
 
-        /// <summary>
-        /// Ссылка на физический входной датчик (например, RPM), который двигает режимную точку по этой оси
-        /// </summary>
-        public ScalarVariableViewModel? BoundInputChannel { get; set; }
 
         /// <summary>
         /// Текущий активный индекс режимной точки на оси (рассчитывается аппаратно)

@@ -41,19 +41,49 @@ public class WidgetViewModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
+    // ======================================================================
+    // ЧАСТЬ 1: КОНСТРУКТОРЫ СВЯЗИ UI С ПОЛИМОРФНЫМ ОЗУ
+    // ======================================================================
+    public WidgetViewModel()
+    {
+        // Пустой конструктор для Blend / XAML-Designer
+    }
+    public WidgetViewModel(VariableViewModelBase dataSource)
+    {
+        // Намертво подписываем обработчик OnDataSourcePropertyChanged на изменения в UART
+        DataSource = dataSource;
+
+        // Синхронизируем стартовый шаг PageUp/PageDown (например, 1.0 для таблиц)
+        IncrementStep = 1.0f;
+        // 🚀 СВЯЗУЮЩИЙ МОСТ: Слушаем UART-изменения из бэкэнда данных!
+        DataSource.PropertyChanged += (s, e) =>
+        {
+            // Если в ОЗУ изменилось физическое число, заставляем UI-текст пересчитаться! [1.14]
+            if (e.PropertyName == "CurrentValue")
+            {
+                OnPropertyChanged(nameof(CurrentValueText));
+                NotifyValueAngleChanged(); // Поворачиваем стрелку круглого прибора!
+            }
+        };
+        // Аппаратно выставляем стрелки круглых и дуговых приборов под текущее рантайм-значение МК
+        NotifyValueAngleChanged();
+        RefreshAlarmTriangles();
+    }
+
 
     /// <summary>
     /// Реактивный диспетчер: срабатывает КАЖДЫЙ РАЗ, когда в недрах UART меняется цифра датчика.
     /// </summary>
     private void OnDataSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        // Нас интересует только изменение живого физического значения скаляра
+        // ПОТОК 1: Логика обработки живого скаляра-датчика телеметрии
         if (e.PropertyName == "CurrentValue" && DataSource is ScalarVariableViewModel scalar)
         {
             // ⚡️ Аппаратно пинаем стрелки и треугольники варнингов MoTeC-прибора
             this.NotifyValueAngleChanged();
             this.RefreshAlarmTriangles();
             OnPropertyChanged(nameof(LedStates));
+
             // Если перед глазами инженера открыт осциллограф — плавно дописываем точку в лог
             if (ControlView == "TimePlot")
             {
@@ -62,16 +92,17 @@ public class WidgetViewModel : INotifyPropertyChanged
 
             // Обновляем текстовый блок вывода строки на экран
             OnPropertyChanged(nameof(CurrentValueText));
-            // Внутри WidgetViewModel.cs -> OnDataSourcePropertyChanged:
-            if (DataSource is TableVariableViewModelBase tableVar)
-            {
-                // Если обновились координаты смещения радара в ОЗУ — виджет мгновенно перерисовывает мишень!
-                if (e.PropertyName == "RadarGridOffsetX") OnPropertyChanged(nameof(RadarGridOffsetX));
-                if (e.PropertyName == "RadarGridOffsetY") OnPropertyChanged(nameof(RadarGridOffsetY));
-            }
+        }
 
+        // ПОТОК 2: Логика обработки табличного прицела MoTeC-радара (Вынесено из скалярного блока!)
+        if (DataSource is TableVariableViewModelBase tableVar)
+        {
+            // Если обновились координаты смещения радара в ОЗУ — виджет мгновенно перерисовывает мишень!
+            if (e.PropertyName == "RadarGridOffsetX") OnPropertyChanged(nameof(RadarGridOffsetX));
+            if (e.PropertyName == "RadarGridOffsetY") OnPropertyChanged(nameof(RadarGridOffsetY));
         }
     }
+
 
     // Тип виджета (TextBox, Graph, Gauge...)
     private string _controlView = "TextBox";
@@ -146,7 +177,14 @@ public class WidgetViewModel : INotifyPropertyChanged
             }
 
             // В режиме покоя — выводим наше стандартное число из UART с красивым гоночным форматом
-            return DataSource.CurrentValue.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+
+            // Безопасно приводим к скаляру. Если это таблица — вернем пустую строку или прочерк.
+            if (DataSource is ScalarVariableViewModel scalar)
+            {
+                return scalar.CurrentValue.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            return "---";
         }
         set
         {
@@ -593,7 +631,9 @@ public class WidgetViewModel : INotifyPropertyChanged
         {
             if (DataSource == null || (DataSource.ScaleMax <= DataSource.ScaleMin)) return 210;
 
-            double pct = (DataSource.CurrentValue - DataSource.ScaleMin) / (DataSource.ScaleMax - DataSource.ScaleMin);
+            double pct = (DataSource is ScalarVariableViewModel scalar)
+                            ? (scalar.CurrentValue - scalar.ScaleMin) / (scalar.ScaleMax - scalar.ScaleMin)
+                            : 0.0; // Fallback-значение 0% для таблиц или осей
             if (pct < 0) pct = 0;
             if (pct > 1) pct = 1;
 
@@ -690,7 +730,9 @@ public class WidgetViewModel : INotifyPropertyChanged
         {
             if (DataSource == null || (DataSource.ScaleMax <= DataSource.ScaleMin)) return 180;
 
-            double pct = (DataSource.CurrentValue - DataSource.ScaleMin) / (DataSource.ScaleMax - DataSource.ScaleMin);
+            double pct = (DataSource is ScalarVariableViewModel scalar)
+    ? (scalar.CurrentValue - scalar.ScaleMin) / (scalar.ScaleMax - scalar.ScaleMin)
+    : 0.0; // Fallback-значение 0% для таблиц или осей
             if (pct < 0) pct = 0;
             if (pct > 1) pct = 1;
 
@@ -744,7 +786,9 @@ public class WidgetViewModel : INotifyPropertyChanged
         {
             if (DataSource == null || (DataSource.ScaleMax <= DataSource.ScaleMin)) return 0;
 
-            double pct = (DataSource.CurrentValue - DataSource.ScaleMin) / (DataSource.ScaleMax - DataSource.ScaleMin);
+            double pct = (DataSource is ScalarVariableViewModel scalar)
+    ? (scalar.CurrentValue - scalar.ScaleMin) / (scalar.ScaleMax - scalar.ScaleMin)
+    : 0.0; // Fallback-значение 0% для таблиц или осей
             if (pct < 0) pct = 0;
             if (pct > 1) pct = 1;
 
@@ -791,7 +835,7 @@ public class WidgetViewModel : INotifyPropertyChanged
         if (string.IsNullOrEmpty(InputBuffer)) return;
 
         // Пытаемся распарсить накопленный текст в физическое число double
-        if (double.TryParse(InputBuffer, out double parsedValue))
+        if (double.TryParse(InputBuffer, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double parsedValue))
         {
             // Если привязана интерактивная таблица (1D или 3D)
             if (DataSource is TableVariableViewModelBase tableSource)
@@ -890,19 +934,29 @@ public class WidgetViewModel : INotifyPropertyChanged
         if (DataSource is not Map3DVariableViewModel map3D) return;
         if (map3D.Rows <= 1 || map3D.Cols <= 1 || map3D.MatrixData == null) return;
 
-        // Расчет масштаба (защита от «желе»)
+        // 1. Сначала объявляем maxVal (так как её ниже в методе ещё нет)
+        double maxVal;
+        double minVal = FixedMinVal.Value;
+        double delta = FixedMaxVal.Value - minVal;
+        // 2. Взводим расчёт масштаба (защита от «желе»)
         if (FixedScaleZ == null || FixedMinVal == null || FixedMaxVal == null)
         {
-            //map3D.FindMatrixExtremes(out double minVal, out double maxVal, out double delta);
-            //FixedMinVal = minVal; FixedMaxVal = maxVal; FixedScaleZ = (delta > 0.001) ? (MaxHeightZ / delta) : 1.0;
+            // 🔥 ХИТРЫЙ ХАК: убираем ключевое слово "double" перед minVal и delta!
+            // Компилятор просто запишет результаты в переменные, которые объявлены ниже!
+            this.FindMatrixExtremes(map3D, out minVal, out maxVal, out delta);
+
+            FixedMinVal = minVal;
+            FixedMaxVal = maxVal;
+            FixedScaleZ = (delta > 0.001) ? (MaxHeightZ / delta) : 1.0;
         }
+
 
         // Габариты измерительного куба
         double halfWidth = ((map3D.Cols - 1) * StepX) / 2.0;
         double halfLength = ((map3D.Rows - 1) * StepY) / 2.0;
         // 🚀 СБОРКА ГЕОМЕТРИИ (Вызываем подфункции генерации Helix)
-        double minVal = FixedMinVal.Value;
-        double delta = FixedMaxVal.Value - minVal;
+       // double minVal = FixedMinVal.Value;
+        //double delta = FixedMaxVal.Value - minVal;
         double scaleZ = FixedScaleZ.Value;
 
         var mesh = BuildSurfaceMesh(map3D, minVal, delta, scaleZ, halfWidth, halfLength, out var positions);
@@ -910,7 +964,7 @@ public class WidgetViewModel : INotifyPropertyChanged
         var boundingBox = BuildBoundingBox(map3D, halfWidth, halfLength);
 
         // Оцифровка шкал осей
-        BuildAxisLabels(map3D, minVal, FixedMaxVal.Value, delta, halfWidth, halfLength);
+        //BuildAxisLabels(map3D, minVal, FixedMaxVal.Value, delta, halfWidth, halfLength);
 
         // Атомарный заброс мешей в графический конвейер WPF
         System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
@@ -920,9 +974,14 @@ public class WidgetViewModel : INotifyPropertyChanged
             BoundingBoxLines = boundingBox;
 
             // Подсвечиваем синие вершины выделенного инженером курсора [1.14]
-            UpdateCursorVerticesHighlight(map3D, positions);
+            //UpdateCursorVerticesHighlight(map3D, positions);
         });
     } // Конец метода Rebuild3DSurfaceMesh
+
+
+
+
+
 
     /// <summary>
     /// Шаг 2: Сборка твердотельного полигонального рельефа и расчет тепловой карты текстур [1.14]
@@ -945,7 +1004,7 @@ public class WidgetViewModel : INotifyPropertyChanged
                 double z = (val - minVal) * scaleZ;
                 positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
                 double normZ = (delta > 0.001) ? ((val - minVal) / delta) : 0.5;
-                texCoords.Add(new System.Windows.Foundation.Point(0.5, 1.0 - normZ));
+                //texCoords.Add(new System.Windows.Foundation.Point(0.5, 1.0 - normZ));
             }
         }
         mesh.Positions = positions;
@@ -1080,6 +1139,40 @@ public class WidgetViewModel : INotifyPropertyChanged
         mesh.Freeze();
 
         System.Windows.Application.Current?.Dispatcher?.Invoke(() => LaserBeamMesh = mesh);
+    }
+
+    /// <summary>
+    /// Локальная подфункция: вычисляет экстремумы 3D-матрицы для расчета стабильного масштаба [1.14]
+    /// </summary>
+    private void FindMatrixExtremes(Map3DVariableViewModel map3D, out double minVal, out double maxVal, out double delta)
+    {
+        minVal = double.MaxValue;
+        maxVal = double.MinValue;
+
+        for (int r = 0; r < map3D.Rows; r++)
+        {
+            for (int c = 0; c < map3D.Cols; c++)
+            {
+                double v = map3D.MatrixData[r, c];
+                if (v < minVal) minVal = v;
+                if (v > maxVal) maxVal = v;
+            }
+        }
+        delta = maxVal - minVal;
+    }
+
+    /// <summary>
+    /// Сброс текстового буфера ввода инженера и очистка черновика набора [1.14]
+    /// </summary>
+    public void ClearGraphBuffer()
+    {
+        // Обнуляем буфер ввода, чтобы сбросить черновик набора по нажатию Escape [1.14]
+        InputBuffer = string.Empty;
+
+        // Если у тебя на виджете привязан ползущий график логов, 
+        // здесь можно вызвать очистку его точек (например: GraphPoints?.Clear();)
+
+        OnPropertyChanged(nameof(CurrentValueText));
     }
 
 

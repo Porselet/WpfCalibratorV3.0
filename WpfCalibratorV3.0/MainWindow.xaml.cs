@@ -19,9 +19,9 @@ public partial class MainWindow : Window
 
         // Собираем зависимости вручную (Pure DI)
         var configManager = new ConfigurationManager();
-
+        var dashboardManager = new DashboardManager();
         // Инициализируем вьюмодель, передавая ей созданные сервисы
-        var viewModel = new MainViewModel(configManager);
+        var viewModel = new MainViewModel(configManager, dashboardManager);
 
         // Привязываем DataContext к главному окну. 
         // Все вложенные элементы (панель и холст) унаследуют его автоматически!
