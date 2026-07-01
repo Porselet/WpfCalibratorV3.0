@@ -173,13 +173,19 @@ namespace WpfCalibrator.ViewModels
         protected override void SetTableValue(int r, int c, double val) => MatrixData[r, c] = val;
 
         /// <summary>
-        /// А вот 3D-карта перехватывает этот триггер и мгновенно перестраивает рельеф Helix!
+        /// 3D-карта перехватывает триггер изменения ОЗУ и пинает свой виджет на перерисовку рельефа! [1.14]
         /// </summary>
         protected override void OnTableDataChanged()
         {
-            this.Rebuild3DSurfaceMesh();
-            // Тут же будет выстрел TX-команды записи обновленной карты по UART!
+            // Находим виджет этой карты на экране и принудительно перестраиваем Helix-сцену!
+            var mainVm = System.Windows.Application.Current?.MainWindow?.DataContext as MainViewModel;
+            var myWidget = mainVm?.ActiveWidgets?.FirstOrDefault(w => w.DataSource == this && w.ControlView == "Matrix3DSurface");
+
+            myWidget?.Rebuild3DSurfaceMesh();
+
+            // Тут же в будущем будет выстрел TX-команды записи обновленной карты по UART!
         }
+
 
         /// <summary>
         /// ДИСПЕТЧЕР: Запускает вертикальную интерполяцию по колонкам для выделенной области.
@@ -243,6 +249,25 @@ namespace WpfCalibrator.ViewModels
         {
             // Вызов твоего оригинального метода отрисовки луча из VariableViewModel.3d.cs
             this.UpdateLaserBeamPosition(exactCol, exactRow);
+        }
+        /// <summary>
+        /// Шаг 1: Поиск минимального, максимального значений матрицы и дельты диапазона
+        /// </summary>
+        public void FindMatrixExtremes(out double minVal, out double maxVal, out double delta)
+        {
+            minVal = double.MaxValue;
+            maxVal = double.MinValue;
+
+            for (int r = 0; r < Rows; r++)
+            {
+                for (int c = 0; c < Cols; c++)
+                {
+                    double v = MatrixData[r, c];
+                    if (v < minVal) minVal = v;
+                    if (v > maxVal) maxVal = v;
+                }
+            }
+            delta = maxVal - minVal;
         }
 
     }

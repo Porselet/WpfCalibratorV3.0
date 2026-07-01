@@ -403,66 +403,6 @@ public partial class VariableViewModel : INotifyPropertyChanged
 
 
 
-    /// <summary>
-    /// Координата X для треугольника минимального аларма (смещенная на центр острия)
-    /// </summary>
-    public double MinAlarmX
-    {
-        get
-        {
-            if (float.IsNegativeInfinity(MinLimit) || (ScaleMax <= ScaleMin)) return -100;
-
-            double pct = (MinLimit - ScaleMin) / (ScaleMax - ScaleMin);
-            if (pct < 0) pct = 0;
-            if (pct > 1) pct = 1;
-
-            // Вычитаем 5 пикселей (половину ширины треугольника 10px) для идеальной центровки острия!
-            return (pct * 230.0) - 5.0;
-        }
-    }
-
-    /// <summary>
-    /// Координата X для треугольника максимального аларма (смещенная на центр острия)
-    /// </summary>
-    public double MaxAlarmX
-    {
-        get
-        {
-            if (float.IsPositiveInfinity(MaxLimit) || (ScaleMax <= ScaleMin)) return -100;
-
-            double pct = (MaxLimit - ScaleMin) / (ScaleMax - ScaleMin);
-            if (pct < 0) pct = 0;
-            if (pct > 1) pct = 1;
-
-            return (pct * 230.0) - 5.0;
-        }
-    }
-
-
-    /// <summary>
-    /// Текущее значение датчика в процентах от его настроенной шкалы (0..100)
-    /// </summary>
-    /// <summary>
-    /// Статус горения 10 светодиодов Shift-Light линейки (true = горит)
-    /// </summary>
-    public bool[] LedStates
-    {
-        get
-        {
-            var states = new bool[10];
-            if (ScaleMax <= ScaleMin) return states;
-
-            // Переводим живое значение в чистый процент от 0 до 100
-            double pct = (CurrentValue - ScaleMin) / (ScaleMax - ScaleMin) * 100.0;
-
-            // Зажигаем лампочки по цепочке (каждые 10% шкалы — новый диод)
-            for (int i = 0; i < 10; i++)
-            {
-                states[i] = pct >= ((i + 1) * 10.0);
-            }
-            return states;
-        }
-    }
 
 
 
