@@ -68,7 +68,7 @@ public partial class MainViewModel
 
 
     // Вспомогательный метод для поиска переменной по имени
-    private VariableViewModel? FindVariable(string varName)
+    private VariableViewModelBase? FindVariable(string varName)
     {
         return ParameterVariables.FirstOrDefault(v => v.Name == varName)
                ?? TelemetryVariables.FirstOrDefault(v => v.Name == varName);
@@ -108,8 +108,8 @@ public partial class MainViewModel
                 // Фиксируем связи Look-Up осей локально для этой таблицы на этом экране
 
                 // НОВОЕ: Забираем масштабы и алармы из переменной виджета и пишем в JSON!
-                ScaleMin = widget.DataSource?.ScaleMin ?? 0f,
-                ScaleMax = widget.DataSource?.ScaleMax ?? 100f,
+                ScaleMin = (float)(widget.DataSource?.ScaleMin ?? 0f),
+                ScaleMax = (float)(widget.DataSource?.ScaleMax ?? 100f),
                 MinLimit = widget.DataSource?.MinLimit ?? float.NegativeInfinity,
                 MaxLimit = widget.DataSource?.MaxLimit ?? float.PositiveInfinity,
                 // НОВОЕ: Забираем флаг индивидуального аларма из виджета и пишем в JSON!
@@ -125,7 +125,7 @@ public partial class MainViewModel
 
                     // НОВОЕ: Передаем состояние флага Радара из вьюмодели таблицы в JSON
                     ShowRadarTracker = widget.DataSource.ShowRadarTracker,
-                    Show3DSurface    = widget.DataSource.Show3DSurface,
+                    Show3DSurface = widget.DataSource.Show3DSurface,
 
                 }
             });

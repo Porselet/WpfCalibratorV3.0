@@ -301,7 +301,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
             {
                 _selectedRow = value;
                 OnPropertyChanged();
-                UpdateSelectionHighlight(); // Принудительно перекрашиваем рамки в XAML
+                //UpdateSelectionHighlight(); // Принудительно перекрашиваем рамки в XAML
             }
         }
     }
@@ -316,7 +316,7 @@ public partial class VariableViewModel : INotifyPropertyChanged
             {
                 _selectedCol = value;
                 OnPropertyChanged();
-                UpdateSelectionHighlight(); // Принудительно перекрашиваем рамки в XAML
+               //UpdateSelectionHighlight(); // Принудительно перекрашиваем рамки в XAML
             }
         }
     }
@@ -464,148 +464,6 @@ public partial class VariableViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Пакетный инкремент значений ВСЕХ выделенных ячеек таблицы по нажатию PageUp (с учетом CTRL x10)
-    /// </summary>
-    public void IncrementSelectedCell(float customStep)
-    {
-        if (!IsParam) return;
-
-        // Проверяем статус клавиши CTRL для форсажа x10
-        /*        bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
-                                     System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
-        */
-        float delta = customStep;//s * (isCtrlPressed ? 10f : 1f);
-        bool hasChanges = false;
-
-        // Бежим циклом по всей двухмерной матрице калибровок
-        for (int r = 0; r < Rows; r++)
-        {
-            for (int c = 0; c < Cols; c++)
-            {
-                // Находим соответствующую визуальную ячейку в нашей коллекции, чтобы проверить её статус выделения
-                var cell = MatrixCells.FirstOrDefault(m => m.Row == r && m.Col == c);
-                if (cell != null && cell.IsSelected)
-                {
-                    double newValue = MatrixData[r, c] + delta;
-
-                    // Защита от дурака: удерживаем значение каждой ячейки в границах шкалы
-                    if (newValue > MaxValue) newValue = MaxValue;
-                    if (newValue < MinValue) newValue = MinValue;
-
-                    MatrixData[r, c] = newValue;
-                    hasChanges = true;
-                }
-            }
-        }
-        // ВНУТРИ МЕТОДОВ IncrementSelectedCell и DecrementSelectedCell ПОСЛЕ ЦИКЛА:
-        if (hasChanges)
-        {
-            // 1. Мгновенно обновляем текст в ячейках на экране компьютера своими силами
-            RebuildMatrixCells(false);
-
-            // 2. МАРШАЛИНГ В DOUBLE: Вытаскиваем всю двухмерную матрицу MatrixData 
-            // в один плоский одномерный массив double[] для Диспетчера.
-            // Переводим строго в Row-Major порядке C# (строка за строкой), 
-            // так как наш MATLAB-маршалер в сервисе связи сам развернет его в Column-Major!
-            double[] flatPayload = new double[Rows * Cols];
-            int idx = 0;
-            for (int r = 0; r < Rows; r++)
-            {
-                for (int c = 0; c < Cols; c++)
-                {
-                    flatPayload[idx++] = MatrixData[r, c];
-                }
-            }
-
-            // 3. ФОРМИРУЕМ ВЫСОКОУРОВНЕВУЮ КОМАНДУ ЗАПИСИ
-            var writeCmd = new Models.NetworkCommand
-            {
-                ModelId = this.ModelId,
-                Cmd = Models.LinkCommand.VarWrite, // Операция записи (0x01)
-                VarId = (byte)this.Id,
-                DataType = this.Type,
-                Rows = this.Rows,
-                Cols = this.Cols,
-                PayloadData = flatPayload
-            };
-
-            // 4. ПУШ В ОЧЕРЕДЬ: Заталкиваем калибровку в приоритетную очередь Арбитра.
-            // Он мгновенно приостановит фоновую телеметрию и выстрелит этот пакет следующим!
-            Services.BusArbiter.AsInterface.PushCommand(writeCmd);
-        }
-
-    }
-
-    /// <summary>
-    /// Пакетный декремент значений ВСЕХ выделенных ячеек таблицы по нажатию PageDown (с учетом CTRL x10)
-    /// </summary>
-    public void DecrementSelectedCell(float customStep)
-    {
-        if (!IsParam) return;
-        /*
-                bool isCtrlPressed = System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.LeftCtrl) ||
-                                     System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.RightCtrl);
-        */
-        float delta = customStep;// * (isCtrlPressed ? 10f : 1f);
-        bool hasChanges = false;
-
-        for (int r = 0; r < Rows; r++)
-        {
-            for (int c = 0; c < Cols; c++)
-            {
-                var cell = MatrixCells.FirstOrDefault(m => m.Row == r && m.Col == c);
-                if (cell != null && cell.IsSelected)
-                {
-                    double newValue = MatrixData[r, c] - delta;
-
-                    if (newValue > ScaleMax) newValue = ScaleMax;
-                    if (newValue < ScaleMin) newValue = ScaleMin;
-
-                    MatrixData[r, c] = newValue;
-                    hasChanges = true;
-                }
-            }
-        }
-
-        // ВНУТРИ МЕТОДОВ IncrementSelectedCell и DecrementSelectedCell ПОСЛЕ ЦИКЛА:
-        if (hasChanges)
-        {
-            // 1. Мгновенно обновляем текст в ячейках на экране компьютера своими силами
-            RebuildMatrixCells(false);
-
-            // 2. МАРШАЛИНГ В DOUBLE: Вытаскиваем всю двухмерную матрицу MatrixData 
-            // в один плоский одномерный массив double[] для Диспетчера.
-            // Переводим строго в Row-Major порядке C# (строка за строкой), 
-            // так как наш MATLAB-маршалер в сервисе связи сам развернет его в Column-Major!
-            double[] flatPayload = new double[Rows * Cols];
-            int idx = 0;
-            for (int r = 0; r < Rows; r++)
-            {
-                for (int c = 0; c < Cols; c++)
-                {
-                    flatPayload[idx++] = MatrixData[r, c];
-                }
-            }
-
-            // 3. ФОРМИРУЕМ ВЫСОКОУРОВНЕВУЮ КОМАНДУ ЗАПИСИ
-            var writeCmd = new Models.NetworkCommand
-            {
-                ModelId = this.ModelId,
-                Cmd = Models.LinkCommand.VarWrite, // Операция записи (0x01)
-                VarId = (byte)this.Id,
-                DataType = this.Type,
-                Rows = this.Rows,
-                Cols = this.Cols,
-                PayloadData = flatPayload
-            };
-
-            // 4. ПУШ В ОЧЕРЕДЬ: Заталкиваем калибровку в приоритетную очередь Арбитра.
-            // Он мгновенно приостановит фоновую телеметрию и выстрелит этот пакет следующим!
-            Services.BusArbiter.AsInterface.PushCommand(writeCmd);
-        }
-
-    }
 
 
 

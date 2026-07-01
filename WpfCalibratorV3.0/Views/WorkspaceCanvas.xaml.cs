@@ -197,7 +197,7 @@ public partial class WorkspaceCanvas : UserControl
         // только тогда создаем как резервный вариант
         if (realVariableVm == null)
         {
-            realVariableVm = new VariableViewModel(variable, variable.ModelId);
+            realVariableVm = new VariableViewModelBase(variable, variable.ModelId);
         }
 
         // Создаем графический контейнер, который теперь смотрит на ЕДИНСТВЕННЫЙ правильный источник данных

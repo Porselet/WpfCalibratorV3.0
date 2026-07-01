@@ -32,8 +32,8 @@ public partial class MainViewModel : INotifyPropertyChanged
     // Коллекции для UI
     public ObservableCollection<string> AvailablePorts { get; } = new();
     public ObservableCollection<DeviceConfig> DiscoveredDevices { get; } = new();
-    public ObservableCollection<VariableViewModel> ParameterVariables { get; } = new();
-    public ObservableCollection<VariableViewModel> TelemetryVariables { get; } = new();
+    public ObservableCollection<VariableViewModelBase> ParameterVariables { get; } = new();
+    public ObservableCollection<VariableViewModelBase> TelemetryVariables { get; } = new();
 
     // Коллекция активных виджетов на свободном холсте (Flexible Layout)
     private ObservableCollection<WidgetViewModel> _activeWidgets = new();

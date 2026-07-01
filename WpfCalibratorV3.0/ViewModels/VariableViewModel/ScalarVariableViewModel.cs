@@ -28,6 +28,12 @@ namespace WpfCalibrator.ViewModels
             }
         }
 
+
+        public double MinLimit { get; set; } // + OnPropertyChanged с обновлением SliderTicks
+        public double MaxLimit { get; set; } // + OnPropertyChanged с обновлением SliderTicks
+        public System.Windows.Media.DoubleCollection SliderTicks { get { /* логика с CheckInfinity */ return ...; } }
+
+
         /// <summary>
         /// Форматированная строка для вывода в TextBox или цифровые индикаторы
         /// </summary>

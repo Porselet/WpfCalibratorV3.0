@@ -272,7 +272,7 @@ public partial class MainViewModel
             if (widgetVm == null || widgetVm.DataSource == null) return;
 
             // Собираем все переменные текущей модели в один плоский список
-            var allVariables = new List<VariableViewModel>();
+            var allVariables = new List<VariableViewModelBase>();
             allVariables.AddRange(_parent.ParameterVariables);
             allVariables.AddRange(_parent.TelemetryVariables);
 

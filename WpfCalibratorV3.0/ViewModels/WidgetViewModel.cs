@@ -52,7 +52,7 @@ public class WidgetViewModel : INotifyPropertyChanged
             // ⚡️ Аппаратно пинаем стрелки и треугольники варнингов MoTeC-прибора
             this.NotifyValueAngleChanged();
             this.RefreshAlarmTriangles();
-
+            OnPropertyChanged(nameof(LedStates));
             // Если перед глазами инженера открыт осциллограф — плавно дописываем точку в лог
             if (ControlView == "TimePlot")
             {
@@ -61,6 +61,14 @@ public class WidgetViewModel : INotifyPropertyChanged
 
             // Обновляем текстовый блок вывода строки на экран
             OnPropertyChanged(nameof(CurrentValueText));
+            // Внутри WidgetViewModel.cs -> OnDataSourcePropertyChanged:
+            if (DataSource is TableVariableViewModelBase tableVar)
+            {
+                // Если обновились координаты смещения радара в ОЗУ — виджет мгновенно перерисовывает мишень!
+                if (e.PropertyName == "RadarGridOffsetX") OnPropertyChanged(nameof(RadarGridOffsetX));
+                if (e.PropertyName == "RadarGridOffsetY") OnPropertyChanged(nameof(RadarGridOffsetY));
+            }
+
         }
     }
 
@@ -93,6 +101,11 @@ public class WidgetViewModel : INotifyPropertyChanged
             }
         }
     }
+
+
+    public double RadarGridOffsetX => (DataSource is TableVariableViewModelBase t) ? t.RadarGridOffsetX : 0;
+    public double RadarGridOffsetY => (DataSource is TableVariableViewModelBase t) ? t.RadarGridOffsetY : 0;
+
 
     private string _inputBuffer = string.Empty;
     private string _currentValueText = "0";
@@ -142,7 +155,28 @@ public class WidgetViewModel : INotifyPropertyChanged
         }
     }
 
+    private bool _showRadarTracker = true;
+    /// <summary>
+    /// Настройка UI: true — отображать неоновый маркер режимной точки на приборе, 
+    /// false — скрыть маркер (например, для чистой визуализации 3D-рельефа) [1.14].
+    /// </summary>
+    public bool ShowRadarTracker
+    {
+        get => _showRadarTracker;
+        set { if (_showRadarTracker != value) { _showRadarTracker = value; OnPropertyChanged(); } }
+    }
 
+
+    private bool _show3DSurface;
+    /// <summary>
+    /// Настройка UI: true — переключить виджет в режим отображения 3D-рельефа Helix Toolkit,
+    /// false — отображать классическую плоскую таблицу ячеек.
+    /// </summary>
+    public bool Show3DSurface
+    {
+        get => _show3DSurface;
+        set { if (_show3DSurface != value) { _show3DSurface = value; OnPropertyChanged(); } }
+    }
 
 
     /// <summary>
@@ -305,22 +339,7 @@ public class WidgetViewModel : INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    // ... внутри класса WidgetViewModel:
-
-    private double _radarGridOffsetX = 0;
-    public double RadarGridOffsetX
-    {
-        get => _radarGridOffsetX;
-        set { if (_radarGridOffsetX != value) { _radarGridOffsetX = value; OnPropertyChanged(); } }
-    }
-
-    private double _radarGridOffsetY = 0;
-    public double RadarGridOffsetY
-    {
-        get => _radarGridOffsetY;
-        set { if (_radarGridOffsetY != value) { _radarGridOffsetY = value; OnPropertyChanged(); } }
-    }
-    private int _zIndex = 0;
+   private int _zIndex = 0;
     public int ZIndex
     {
         get => _zIndex;
@@ -353,40 +372,25 @@ public class WidgetViewModel : INotifyPropertyChanged
 
 
     /// <summary>
-    /// Координата X для треугольника минимального аларма (расчет на уровне виджета)
+    /// Статус 10 LED Shift-Light (true = горит) [1.14]
     /// </summary>
-    public double MinAlarmX
+    public bool[] LedStates
     {
         get
         {
-            if (DataSource == null || float.IsNegativeInfinity(DataSource.MinLimit) || (DataSource.ScaleMax <= DataSource.ScaleMin))
-                return -100; // Прячем за экран
-
-            double pct = (DataSource.MinLimit - DataSource.ScaleMin) / (DataSource.ScaleMax - DataSource.ScaleMin);
-            if (pct < 0) pct = 0;
-            if (pct > 1) pct = 1;
-
-            return (pct * 230.0) - 5.0;
+            var states = new bool[10];
+            if (DataSource is ScalarVariableViewModel scalar && scalar.ScaleMax > scalar.ScaleMin)
+            {
+                // Расчет % от 0 до 100 и зажигание цепочки [1.14]
+                double pct = (scalar.CurrentValue - scalar.ScaleMin) / (scalar.ScaleMax - scalar.ScaleMin) * 100.0;
+                for (int i = 0; i < 10; i++) states[i] = pct >= ((i + 1) * 10.0);
+            }
+            return states;
         }
     }
 
-    /// <summary>
-    /// Координата X для треугольника максимального аларма (расчет на уровне виджета)
-    /// </summary>
-    public double MaxAlarmX
-    {
-        get
-        {
-            if (DataSource == null || float.IsPositiveInfinity(DataSource.MaxLimit) || (DataSource.ScaleMax <= DataSource.ScaleMin))
-                return -100; // Прячем за экран
 
-            double pct = (DataSource.MaxLimit - DataSource.ScaleMin) / (DataSource.ScaleMax - DataSource.ScaleMin);
-            if (pct < 0) pct = 0;
-            if (pct > 1) pct = 1;
 
-            return (pct * 230.0) - 5.0;
-        }
-    }
 
     /// <summary>
     /// Метод для принудительного обновления графики треугольников извне
@@ -634,6 +638,46 @@ public class WidgetViewModel : INotifyPropertyChanged
     }
 
 
+            /// <summary>
+        /// Координата X для треугольника минимального аларма (смещенная на центр острия) [1.14]
+        /// </summary>
+        public double MinAlarmX
+        {
+            get
+            {
+                if (DataSource is ScalarVariableViewModel scalar)
+                {
+                    if (double.IsNegativeInfinity(scalar.MinLimit) || (scalar.ScaleMax <= scalar.ScaleMin)) return -100;
+
+                    double pct = (scalar.MinLimit - scalar.ScaleMin) / (scalar.ScaleMax - scalar.ScaleMin);
+                    pct = Math.Clamp(pct, 0.0, 1.0);
+
+                    // Вычитаем 5 пикселей для идеальной центровки острия (из твоей оригинальной верстки)
+                    return (pct * 230.0) - 5.0;
+                }
+                return -100;
+            }
+        }
+
+        /// <summary>
+        /// Координата X для треугольника максимального аларма (смещенная на центр острия) [1.14]
+        /// </summary>
+        public double MaxAlarmX
+        {
+            get
+            {
+                if (DataSource is ScalarVariableViewModel scalar)
+                {
+                    if (double.IsPositiveInfinity(scalar.MaxLimit) || (scalar.ScaleMax <= scalar.ScaleMin)) return -100;
+
+                    double pct = (scalar.MaxLimit - scalar.ScaleMin) / (scalar.ScaleMax - scalar.ScaleMin);
+                    pct = Math.Clamp(pct, 0.0, 1.0);
+
+                    return (pct * 230.0) - 5.0;
+                }
+                return -100;
+            }
+        }
 
 
     /// <summary>

@@ -25,9 +25,41 @@ namespace WpfCalibrator.ViewModels
             }
         }
 
-        // Привязанные оцифрованные оси шкал (Обороты X и Нагрузка Y)
-        public CurveVariableViewModel? BoundAxisX { get; set; }
-        public CurveVariableViewModel? BoundAxisY { get; set; }
+        private ScalarVariableViewModel? _boundInputY;
+        /// <summary>
+        /// Физический датчик-вход (например, MAP), который двигает маркер по вертикали Y.
+        /// Принимает ТОЛЬКО скаляры-сигналы телеметрии.
+        /// </summary>
+        public ScalarVariableViewModel? BoundInputY
+        {
+            get => _boundInputY;
+            set
+            {
+                // Калибровочные константы-параметры сюда не пройдут фейсконтроль!
+                if (value != null && value.IsParam) return;
+
+                if (_boundInputY == value) return;
+                _boundInputY = value;
+                OnPropertyChanged();
+            }
+        } 
+
+        private CurveVariableViewModel? _boundAxisY;
+        /// <summary>
+        /// Ссылка на одномерную ось калибровки по вертикали Y
+        /// </summary>
+        public CurveVariableViewModel? BoundAxisY
+        {
+            get => _boundAxisY;
+            set { if (_boundAxisY != value) { _boundAxisY = value; OnPropertyChanged(); } }
+        }
+
+        /// <summary>
+        /// Флаг полной линковки 3D-карты: для активации неонового прицела 
+        /// обязаны быть привязаны обе оси (X, Y) и оба живых датчика телеметрии!
+        /// </summary>
+        public new bool IsLutLinked => BoundAxisX != null && BoundInputX != null &&
+                                       BoundAxisY != null && BoundInputY != null;
 
 
 
@@ -201,6 +233,16 @@ namespace WpfCalibrator.ViewModels
                     cell.ValueText = calculatedValue.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
                 }
             }
+        }
+
+
+        /// <summary>
+        /// Переопределяем триггер лазера: плавно двигаем красную точку прицела по 3D-полигонам Helix! [1.14]
+        /// </summary>
+        protected override void UpdateLaserBeamPosition(double exactCol, double exactRow)
+        {
+            // Вызов твоего оригинального метода отрисовки луча из VariableViewModel.3d.cs
+            this.UpdateLaserBeamPosition(exactCol, exactRow);
         }
 
     }

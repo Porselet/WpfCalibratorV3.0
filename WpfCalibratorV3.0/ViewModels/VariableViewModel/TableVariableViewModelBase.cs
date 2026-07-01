@@ -25,6 +25,93 @@ namespace WpfCalibrator.ViewModels
 
         public override int TotalElements => Rows * Cols;
 
+
+        private ScalarVariableViewModel? _boundInputX;
+        /// <summary>
+        /// Физический датчик-вход (например, RPM), который двигает маркер по горизонтали.
+        /// Принимает ТОЛЬКО скаляры-сигналы (телеметрию, у которых IsParam == false).
+        /// </summary>
+        public ScalarVariableViewModel? BoundInputX
+        {
+            get => _boundInputX;
+            set
+            {
+                // Если нам подсовывают константу-параметр (IsParam == true), 
+                // то эта модель не подходит! Игнорируем привязку, защищая логику.
+                if (value != null && value.IsParam) return;
+
+                if (_boundInputX == value) return;
+                _boundInputX = value;
+                OnPropertyChanged();
+            }
+        }
+
+
+        private CurveVariableViewModel? _boundAxisX;
+        /// <summary>
+        /// Ссылка на одномерную ось калибровки (шкалу оцифровки) по горизонтали X
+        /// </summary>
+        public CurveVariableViewModel? BoundAxisX
+        {
+            get => _boundAxisX;
+            set { if (_boundAxisX != value) { _boundAxisX = value; OnPropertyChanged(); } }
+        }
+
+        /// <summary>
+        /// Флаг успешной линковки таблицы: true, если привязана и шкала оцифровки, 
+        /// и живой датчик-сигнал для отрисовки интерактивного неонового прицела!
+        /// </summary>
+        public bool IsLutLinked => BoundAxisX != null && BoundInputX != null;
+
+
+        private int _activeRowIndex = -1;
+        /// <summary>
+        /// Индекс строки, в которой СЕЙЧАС находится двигатель (зеленый маркер) [1.14]
+        /// </summary>
+        public int ActiveRowIndex
+        {
+            get => _activeRowIndex;
+            set { if (_activeRowIndex != value) { _activeRowIndex = value; OnPropertyChanged(); } }
+        }
+
+        private int _activeColIndex = -1;
+        /// <summary>
+        /// Индекс колонки, в которой СЕЙЧАС находится двигатель (зеленый маркер) [1.14]
+        /// </summary>
+        public int ActiveColIndex
+        {
+            get => _activeColIndex;
+            set { if (_activeColIndex != value) { _activeColIndex = value; OnPropertyChanged(); } }
+        }
+
+        private double _radarGridOffsetX;
+        /// <summary>
+        /// Дробное пиксельное смещение мишени радара по горизонтали X [1.14]
+        /// </summary>
+        public double RadarGridOffsetX
+        {
+            get => _radarGridOffsetX;
+            set { if (Math.Abs(_radarGridOffsetX - value) < 0.001) return; _radarGridOffsetX = value; OnPropertyChanged(); }
+        }
+
+        private double _radarGridOffsetY;
+        /// <summary>
+        /// Дробное пиксельное смещение мишени радара по вертикали Y [1.14]
+        /// </summary>
+        public double RadarGridOffsetY
+        {
+            get => _radarGridOffsetY;
+            set { if (Math.Abs(_radarGridOffsetY - value) < 0.001) return; _radarGridOffsetY = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Виртуальный триггер для 3D-карты: плавно перемещает лазерный луч Helix [1.14]
+        /// </summary>
+        protected virtual void UpdateLaserBeamPosition(double exactCol, double exactRow) { }
+
+
+
+
         // ======================================================================
         // ⛓️ АБСТРАКТНЫЙ МОСТ ДОСТУПА К ДАННЫМ ОЗУ
         // ======================================================================
@@ -152,7 +239,126 @@ namespace WpfCalibrator.ViewModels
             OnTableDataChanged();
         }
 
+        /// <summary>
+        /// Точечное изменение ячейки инженером на экране.
+        /// Одинаково работает и для ячеек 1D-осей (row=0), и для тяжелых 3D-матриц!
+        /// </summary>
+        public void UpdateMatrixValue(int row, int col, double newValue)
+        {
+            if (row < 0 || row >= Rows || col < 0 || col >= Cols) return;
 
+            // 1. Вытягиваем старое число из ОЗУ через наш абстрактный мост
+            double oldValue = GetTableValue(row, col);
+
+            // Железобетонный фикс: блокируем паразитные пакеты, если число не изменилось
+            if (Math.Abs(oldValue - newValue) < 0.0001) return;
+
+            // 2. Пишем свежее число в ОЗУ-массив наследника
+            SetTableValue(row, col, newValue);
+
+            // 3. Если это параметр — пакуем плоский слепок и выстреливаем в UART
+            if (IsParam && !IsUpdatingFromNetwork && Services.BusArbiter.AsInterface.IsRunning)
+            {
+                double[] flatPayload = Array.Empty<double>();
+
+                // Маршалим данные в зависимости от типа таблицы
+                if (this is Map3DVariableViewModel map3D)
+                {
+                    flatPayload = map3D.GetFlatPayloadForTx(); // 3D-карта пакует Column-Major слепок [1.14]
+                }
+                else if (this is CurveVariableViewModel curve)
+                {
+                    flatPayload = curve.VectorData; // 1D-вектор просто отдает свой массив осей [1.14]
+                }
+
+                var writeCmd = new Models.NetworkCommand
+                {
+                    ModelId = this.ModelId,
+                    Cmd = Models.LinkCommand.VarWrite,
+                    VarId = (byte)this.Id,
+                    DataType = this.Type,
+                    Rows = this.Rows,
+                    Cols = this.Cols,
+                    PayloadData = flatPayload
+                };
+
+                Services.BusArbiter.AsInterface.PushCommand(writeCmd);
+            }
+
+            // Пинаем графический движок (если это 3D — перестроится Helix сетка) [1.14]
+            OnTableDataChanged();
+        }
+
+        // ======================================================================
+        // 📐 ВЫЧИСЛЕНИЕ РЕЖИМНОЙ ТОЧКИ ДВИГАТЕЛЯ И ДЕЛЬТ РАДАРА MoTeC-STYLE
+        // ======================================================================
+
+        /// <summary>
+        /// Главный диспетчер расчёта рабочей точки. Вызывается по таймеру телеметрии из UART [1.14].
+        /// </summary>
+        public void CalculateWorkingPoint(double currentInputX, double currentInputY, double[] axisXData, double[] axisYData)
+        {
+            // 1. Бинарно-линейный поиск квадранта сетки
+            FindBaseIndices(currentInputX, currentInputY, axisXData, axisYData,
+                out int colIdx, out int rowIdx, out int baseColIdx, out int baseRowIdx);
+
+            // 2. Взводим индексы ячеек для неоновой рамки в UI [1.14]
+            ActiveRowIndex = rowIdx;
+            ActiveColIndex = colIdx;
+
+            // 3. Считаем пиксельные смещения для мишени Радара-прицела
+            if (axisXData != null && baseColIdx < axisXData.Length - 1)
+            {
+                double startX = axisXData[baseColIdx];
+                double endX = axisXData[baseColIdx + 1];
+                double pctX = (endX <= startX) ? 0 : (currentInputX - startX) / (endX - startX);
+                double exactCol = baseColIdx + Math.Clamp(pctX, 0, 1);
+
+                // Вычисляем горизонтальную дельту радара (в пикселях UniformGrid)
+                RadarGridOffsetX = (exactCol - colIdx) * 50.0; // 50px — ширина твоей XAML ячейки!
+
+                // 4. Расчёт вертикальной оси (только для 3D-матриц) [1.14]
+                if (axisYData != null && baseRowIdx < axisYData.Length - 1)
+                {
+                    double startY = axisYData[baseRowIdx];
+                    double endY = axisYData[baseRowIdx + 1];
+                    double pctY = (endY <= startY) ? 0 : (currentInputY - startY) / (endY - startY);
+                    double exactRow = baseRowIdx + Math.Clamp(pctY, 0, 1);
+
+                    RadarGridOffsetY = -(exactRow - rowIdx) * 30.0; // 30px — высота ячейки!
+
+                    // 🔥 Пинаем виртуальный лазерный луч 3D-карты Helix!
+                    UpdateLaserBeamPosition(exactCol, exactRow);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Сишный перебор: находит границы квадранта, в котором сейчас находится мотор [1.14].
+        /// </summary>
+        private void FindBaseIndices(double currentInputX, double currentInputY, double[] axisXData, double[] axisYData,
+                                     out int colIdx, out int rowIdx, out int baseColIdx, out int baseRowIdx)
+        {
+            colIdx = 0; rowIdx = 0; baseColIdx = 0; baseRowIdx = 0;
+            if (axisXData == null || axisXData.Length < 2) return;
+
+            // Горизонтальный поиск X (Обороты)
+            for (int c = 0; c < axisXData.Length; c++)
+            {
+                if (currentInputX >= axisXData[c]) colIdx = c;
+            }
+            baseColIdx = (colIdx < axisXData.Length - 1) ? colIdx : (axisXData.Length - 2);
+
+            // Вертикальный поиск Y (Наддув) — только если массив Y передан (3D режим) [1.14]
+            if (axisYData != null && axisYData.Length > 1)
+            {
+                for (int r = 0; r < axisYData.Length; r++)
+                {
+                    if (currentInputY >= axisYData[r]) rowIdx = r;
+                }
+                baseRowIdx = (rowIdx < axisYData.Length - 1) ? rowIdx : (axisYData.Length - 2);
+            }
+        }
 
 
     }

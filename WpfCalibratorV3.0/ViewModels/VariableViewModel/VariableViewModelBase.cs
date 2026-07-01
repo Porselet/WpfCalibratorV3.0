@@ -25,10 +25,13 @@ namespace WpfCalibrator.ViewModels
         public bool IsParam { get; set; }
 
         // Инструментальные лимиты шкал и критические алармы (варнинги)
-        public float ScaleMin { get; set; }
-        public float ScaleMax { get; set; }
         public float MinLimit { get; set; }
         public float MaxLimit { get; set; }
+
+        /// <summary>
+        /// Флаг-предохранитель: true блокирует отправку пакета записи обратно в UART при сетевом обновлении
+        /// </summary>
+        public bool IsUpdatingFromNetwork { get; set; } = false;
 
         /// <summary>
         /// Универсальное изменение значения калибровки. 
@@ -36,6 +39,12 @@ namespace WpfCalibrator.ViewModels
         /// Для PageDown — отрицательный (например, -1.0).
         /// </summary>
         public abstract void AdjustValue(double step);
+
+
+        private double _scaleMin = 0, _scaleMax = 100;
+        public double ScaleMin { get => _scaleMin; set { if (Math.Abs(_scaleMin - value) > 0.001) { _scaleMin = value; OnPropertyChanged(); OnPropertyChanged("MinAlarmPercent"); } } }
+        public double ScaleMax { get => _scaleMax; set { if (Math.Abs(_scaleMax - value) > 0.001) { _scaleMax = value; OnPropertyChanged(); } } }
+
 
         // Глобальный механизм уведомления графики WPF об изменении параметров
         public event PropertyChangedEventHandler? PropertyChanged;
