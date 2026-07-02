@@ -57,6 +57,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         // Аппаратно выставляем стрелки круглых и дуговых приборов под текущее рантайм-значение МК
         NotifyValueAngleChanged();
         RefreshAlarmTriangles();
+        // Если этот виджет создали как 3D-поверхность, сразу же принудительно строим рельеф!
+        if (ControlView == "Matrix3DSurface")
+        {
+            this.Rebuild3DSurfaceMesh();
+        }
     }
 
 

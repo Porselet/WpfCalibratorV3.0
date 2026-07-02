@@ -70,7 +70,7 @@ public partial class MainViewModel
                           ?? TelemetryVariables.FirstOrDefault(v => v.Id == response.VarId && v.ModelId == response.ModelId);
 
         if (targetVariable == null) return;
-
+        if (targetVariable.IsUpdatingFromNetwork) return;
         try
         {
             targetVariable.IsUpdatingFromNetwork = true;

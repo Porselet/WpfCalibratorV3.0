@@ -116,6 +116,27 @@ namespace WpfCalibrator.ViewModels
             base.UpdateSelectionHighlight();
         }
 
+        /// <summary>
+        /// Переливает текст из ячеек шкалы оцифровки обратно в одномерный массив VectorData [1.14]
+        /// </summary>
+        public override void SyncDataFromCells()
+        {
+            if (MatrixCells == null || VectorData == null) return;
+
+            foreach (var cell in MatrixCells)
+            {
+                if (cell == null) continue;
+
+                if (double.TryParse(cell.ValueText, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double parsedVal))
+                {
+                    // У 1D кривой строка всегда 0, пишем строго в индекс колонки [1.14]
+                    if (cell.Col >= 0 && cell.Col < VectorData.Length)
+                    {
+                        VectorData[cell.Col] = parsedVal;
+                    }
+                }
+            }
+        }
 
 
 

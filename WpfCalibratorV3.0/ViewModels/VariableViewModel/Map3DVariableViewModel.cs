@@ -99,7 +99,13 @@ namespace WpfCalibrator.ViewModels
         /// </summary>
         public override void UpdateDataFromRawPayload(double[] rawData)
         {
+            // 🔥 СЕТЕВОЙ ЩИТ: Если инженер прямо сейчас крутит PageUp/Down, 
+            // полностью игнорируем любые затирающие фоновые пакеты из UART! [1.14]
+            //if (IsUpdatingFromNetwork) return;
+
+
             if (rawData == null || rawData.Length == 0) return;
+            //if (IsUpdatingFromNetwork) return; // Сетевой щит [1.14]
             if (Rows <= 0 || Cols <= 0) return;
 
             // 1. Обновляем базовый двумерный массив ОЗУ
@@ -145,6 +151,9 @@ namespace WpfCalibrator.ViewModels
 
             // 4. Пересчитываем рамку выделения
             UpdateSelectionHighlight();
+            // 🔥 ЖИВОЙ СЕТЕВОЙ ПИНОК:
+            // Принудительно уведомляем систему, что массив 3D-данных обновился из UART!
+            OnPropertyChanged(nameof(MatrixData));
         }
 
         /// <summary>
@@ -273,6 +282,32 @@ namespace WpfCalibrator.ViewModels
             }
             delta = maxVal - minVal;
         }
+
+
+        /// <summary>
+        /// Переливает текст из плоских ячеек UniformGrid обратно в двумерный массив MatrixData [1.14]
+        /// </summary>
+        public override void SyncDataFromCells()
+        {
+            if (MatrixCells == null || MatrixData == null) return;
+
+            foreach (var cell in MatrixCells)
+            {
+                if (cell == null) continue;
+
+                // 🚀 ПУЛЕНЕПРОБИВАЕМЫЙ ПАРСЕР: 
+                // 1. Берем строку, вырезаем пробелы и принудительно меняем любые запятые на точки!
+                string safeText = cell.ValueText?.Replace(',', '.').Trim() ?? "0";
+
+                // 2. Используем NumberStyles.Float (запрещает разделители тысяч, разрешает только точку и минус)
+                if (double.TryParse(safeText, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double parsedVal))
+                {
+                    // Теперь строка "11.00" или "11,00" ГАРАНТИРОВАННО превратится в число 11.0! [1.14]
+                    MatrixData[cell.Row, cell.Col] = parsedVal;
+                }
+            }
+        }
+
 
     }
 }

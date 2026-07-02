@@ -29,7 +29,11 @@ namespace WpfCalibrator.Services
             // ======================================================================
             if (e.Key == Key.Enter && !string.IsNullOrEmpty(activeWidget.InputBuffer))
             {
+                
                 activeWidget.CommitInputBuffer(); // Наш новый метод фиксации в ОЗУ
+
+                if (variable is TableVariableViewModelBase table)
+                    table.SyncDataFromCells();
                 SendBulkUpdateToNetwork(activeWidget); // Выстрел в UART
                 return true;
             }
@@ -68,6 +72,12 @@ namespace WpfCalibrator.Services
                 {
                     // 🔥 НАШ ПОЛИМОРФНЫЙ СХЛОПНУТЫЙ ШЛЮЗ: Меняет и скаляры, и 3D-карты!
                     variable.AdjustValue(step);
+
+                    // 2. 🔥 НАШ НОВЫЙ ПОЛИМОРФНЫЙ СХЛОПНУТЫЙ ШЛЮЗ:
+                    // Автоматически синхронизирует ОЗУ и для 1D, и для 3D таблиц! [1.14]
+                    if (variable is TableVariableViewModelBase table)
+                        table.SyncDataFromCells();
+
                     SendBulkUpdateToNetwork(activeWidget); // Выстрел пачки в UART
                 }
                 return true;
@@ -177,6 +187,7 @@ namespace WpfCalibrator.Services
         }
         private static void SendBulkUpdateToNetwork(WidgetViewModel activeWidget)
         {
+
             if (activeWidget?.DataSource == null) return;
             var variable = activeWidget.DataSource;
 

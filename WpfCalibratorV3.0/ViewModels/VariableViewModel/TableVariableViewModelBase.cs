@@ -387,5 +387,10 @@ namespace WpfCalibrator.ViewModels
             OnPropertyChanged(nameof(MatrixCells));
         }
 
+        /// <summary>
+        /// Принудительно синхронизирует внутренние бинарные массивы данных с текстовым содержимым ячеек UI.
+        /// </summary>
+        public abstract void SyncDataFromCells();
+
     }
 }

@@ -120,15 +120,21 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         //BuildAxisLabels(map3D, minVal, FixedMaxVal.Value, delta, halfWidth, halfLength);
 
         // Атомарный заброс мешей в графический конвейер WPF
+        // Атомарный заброс мешей в графический конвейер WPF
         System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
         {
             SurfaceMesh = mesh;
             SurfaceLines = surfaceEdges;
             BoundingBoxLines = boundingBox;
 
-            // Подсвечиваем синие вершины выделенного инженером курсора [1.14]
-            //UpdateCursorVerticesHighlight(map3D, positions);
+            // 🔥 ФИКС: Передаем ТОЛЬКО коллекцию positions!
+            // Никаких map3D в скобках быть не должно!
+            UpdateCursorVerticesHighlight(positions);
+
+            // Включаем лазерный трекер над точкой калибровки
+            UpdateLaserBeamPosition(map3D.ActiveColIndex, map3D.ActiveRowIndex);
         });
+
     } // Конец метода Rebuild3DSurfaceMesh
 
 
@@ -151,11 +157,17 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         {
             for (int c = 0; c < map3D.Cols; c++)
             {
-                double val = map3D.MatrixData[r, c];
+                // Заменяем парсинг строк на чтение прямого ОЗУ-массива ЭБУ!
+                double val = map3D.GetTableValue(r, c); // Вызовет return MatrixData[r, c]; из бэкэнда
+
                 double x = (c * StepX) - halfWidth;
+                // Твоя инвертированная гоночная формула оси Y
                 double y = ((map3D.Rows - 1 - r) * StepY) - halfLength;
+                // Рассчитываем честную высоту вершины Z в пространстве Helix
                 double z = (val - minVal) * scaleZ;
-                positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
+
+                positions.Add(new Point3D(x, y, z));
+
                 double normZ = (delta > 0.001) ? ((val - minVal) / delta) : 0.5;
                 //texCoords.Add(new System.Windows.Foundation.Point(0.5, 1.0 - normZ));
             }
@@ -315,6 +327,109 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
 
+    /// <summary>
+    /// Обновляет кристаллическую решетку и подсвечивает синим цветом вершины под курсором таблицы.
+    /// </summary>
+    public void UpdateCursorVerticesHighlight(System.Windows.Media.Media3D.Point3DCollection sourcePositions)
+    {
+        if (sourcePositions == null || sourcePositions.Count == 0 || DataSource is not Map3DVariableViewModel map3D) return;
 
+        var allMesh = new System.Windows.Media.Media3D.MeshGeometry3D();
+        var selectedMesh = new System.Windows.Media.Media3D.MeshGeometry3D();
 
+        foreach (var pt in sourcePositions)
+        {
+            AddSphereToMesh(allMesh, pt, 0.4);
+        }
+        allMesh.Freeze();
+
+        int minRow = Math.Max(0, Math.Min(map3D.AnchorRow, map3D.SelectedRow));
+        int maxRow = Math.Min(map3D.Rows - 1, Math.Max(map3D.AnchorRow, map3D.SelectedRow));
+        int minCol = Math.Max(0, Math.Min(map3D.AnchorCol, map3D.SelectedCol));
+        int maxCol = Math.Min(map3D.Cols - 1, Math.Max(map3D.AnchorCol, map3D.SelectedCol));
+        bool hasSelection = false;
+
+        for (int r = minRow; r <= maxRow; r++)
+        {
+            for (int c = minCol; c <= maxCol; c++)
+            {
+                int targetIndex = r * map3D.Cols + c;
+                if (targetIndex >= 0 && targetIndex < sourcePositions.Count)
+                {
+                    AddSphereToMesh(selectedMesh, sourcePositions[targetIndex], 1.0);
+                    hasSelection = true;
+                }
+            }
+        }
+
+        if (hasSelection) selectedMesh.Freeze();
+        else selectedMesh = new System.Windows.Media.Media3D.MeshGeometry3D();
+
+        System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+        {
+            AllSpheresMesh = allMesh;
+            SelectedSpheresMesh = selectedMesh;
+        });
+    }
+
+    /// <summary>
+    /// Нативный математический генератор 3D-сферы (WPF 3D Core)
+    /// </summary>
+    private void AddSphereToMesh(MeshGeometry3D mesh, Point3D center, double radius)
+    {
+        int slices = 10;
+        int stacks = 10;
+        int baseIndex = mesh.Positions.Count;
+
+        // Генерируем вершины И нормали сферы (синусы и косинусы)
+        for (int stack = 0; stack <= stacks; stack++)
+        {
+            double phi = Math.PI * stack / stacks;
+            double y = radius * Math.Cos(phi);
+            double rStrata = radius * Math.Sin(phi);
+
+            for (int slice = 0; slice <= slices; slice++)
+            {
+                double theta = 2.0 * Math.PI * slice / slices;
+                double x = rStrata * Math.Cos(theta);
+                double z = rStrata * Math.Sin(theta);
+
+                // 1. Физическая точка на экране
+                mesh.Positions.Add(new Point3D(center.X + x, center.Y + y, center.Z + z));
+
+                // 2. 🔥 ХАК НЕПРОЗРАЧНОСТИ: Рассчитываем вектор нормали (направление взгляда из центра сферы наружу)
+                // Это заставит видеокарту включить жесткую Z-отсечку буфера глубины
+                double normalX = x / radius;
+                double normalY = y / radius;
+                double normalZ = z / radius;
+                mesh.Normals.Add(new Vector3D(normalX, normalY, normalZ));
+            }
+        }
+
+        // Собираем треугольники сферы (Исправленный обход: нормали смотрят СТРОГО наружу!)
+        for (int stack = 0; stack < stacks; stack++)
+        {
+            for (int slice = 0; slice < slices; slice++)
+            {
+                int nextStack = stack + 1;
+                int nextSlice = slice + 1;
+                int stride = slices + 1;
+
+                int tL = baseIndex + stack * stride + slice;
+                int tR = baseIndex + stack * stride + nextSlice;
+                int bL = baseIndex + nextStack * stride + slice;
+                int bR = baseIndex + nextStack * stride + nextSlice;
+
+                // Первый треугольник ячейки сферы (TL -> TR -> BL)
+                mesh.TriangleIndices.Add(tL);
+                mesh.TriangleIndices.Add(tR);
+                mesh.TriangleIndices.Add(bL);
+
+                // Второй треугольник ячейки сферы (TR -> BR -> BL)
+                mesh.TriangleIndices.Add(tR);
+                mesh.TriangleIndices.Add(bR);
+                mesh.TriangleIndices.Add(bL);
+            }
+        }
+    }
 }
