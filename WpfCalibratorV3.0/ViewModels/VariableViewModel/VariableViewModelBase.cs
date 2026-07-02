@@ -53,7 +53,7 @@ namespace WpfCalibrator.ViewModels
         // Глобальный механизм уведомления графики WPF об изменении параметров
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }

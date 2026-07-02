@@ -31,7 +31,7 @@ namespace WpfCalibrator.ViewModels
 
         public double MinLimit { get; set; } // + OnPropertyChanged с обновлением SliderTicks
         public double MaxLimit { get; set; } // + OnPropertyChanged с обновлением SliderTicks
-        public System.Windows.Media.DoubleCollection SliderTicks { get; set; }
+        //public System.Windows.Media.DoubleCollection SliderTicks { get; set; }
 
 
         /// <summary>

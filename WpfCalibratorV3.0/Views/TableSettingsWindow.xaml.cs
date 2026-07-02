@@ -99,7 +99,19 @@ namespace WpfCalibrator.Views
             RadioHorizontal.IsChecked = !_targetWidget.IsVertical;
 
             // 2. По умолчанию гасим абсолютно ВСЕ блоки перед переключением режимов [1.14]
-            // (Код скрытия элементов Visibility.Collapsed...)
+            SetVisibility(Visibility.Collapsed,
+                            LabelAxisX, ComboAxisX, 
+                            LabelInputX, ComboInputX,
+                            LabelAxisY, ComboAxisY, 
+                            LabelInputY, ComboInputY,
+                            LabelIncrementStep, TextIncrementStep,
+                            LabelEnableVisualAlarm, CheckEnableVisualAlarm,
+                            LabelLimits, PanelLimits,
+                            LabelScaleRange, PanelScaleRange,
+                            LabelOrientation, PanelOrientation,
+                            LabelStyle, ComboStyle
+
+                        );
 
             // Переходим к блоку распознавания (Часть 2)
             // ======================================================================
@@ -117,19 +129,32 @@ namespace WpfCalibrator.Views
                 if (_targetTable is Map3DVariableViewModel)
                 {
                     // ТИП 1: Двумерная 3D-Карта (видимость элементов)
-                    SetVisibility(Visibility.Visible, LabelAxisX, ComboAxisX, LabelInputX, ComboInputX, LabelAxisY, ComboAxisY, LabelInputY, ComboInputY, TextIncrementStep, LabelIncrementStep, LabelShowRadar, CheckShowRadar, CheckShow3D, LabelShow3D);
+                    SetVisibility(Visibility.Visible, 
+                        LabelAxisX, ComboAxisX, 
+                        LabelInputX, ComboInputX, 
+                        LabelAxisY, ComboAxisY, 
+                        LabelInputY, ComboInputY, 
+                        TextIncrementStep, LabelIncrementStep, 
+                        LabelShowRadar, CheckShowRadar, 
+                        CheckShow3D, LabelShow3D);
                     this.Height = 400;
                 }
                 else if (_targetTable is CurveVariableViewModel)
                 {
                     // ТИП 2: Одномерный Вектор (видимость элементов)
-                    SetVisibility(Visibility.Visible, LabelAxisX, ComboAxisX, LabelInputX, ComboInputX, LabelOrientation, PanelOrientation, TextIncrementStep, LabelIncrementStep, CheckShowRadar, LabelShowRadar);
+                    SetVisibility(Visibility.Visible, 
+                        LabelAxisX, ComboAxisX, 
+                        LabelInputX, ComboInputX, 
+                        LabelOrientation, PanelOrientation, 
+                        TextIncrementStep, LabelIncrementStep, 
+                        CheckShowRadar, LabelShowRadar);
                     this.Height = 290;
                 }
                 else if (_targetTable is ScalarVariableViewModel)
                 {
                     // ТИП 3: Одиночная уставка-константа (видимость элементов)
-                    SetVisibility(Visibility.Visible, TextIncrementStep, LabelIncrementStep, LabelStyle, ComboStyle);
+                    SetVisibility(Visibility.Visible, 
+                        TextIncrementStep, LabelIncrementStep);
                     this.Height = 200;
                 }
             }
@@ -139,7 +164,11 @@ namespace WpfCalibrator.Views
                 TableNameText.Text = _targetTable.Name;
 
                 // Включаем блоки стилей, критических алармов и масштаба шкал
-                SetVisibility(Visibility.Visible, LabelStyle, ComboStyle, LabelLimits, PanelLimits, LabelScaleRange, PanelScaleRange, LabelEnableVisualAlarm, CheckEnableVisualAlarm);
+                SetVisibility(Visibility.Visible, 
+                    LabelStyle, ComboStyle, 
+                    LabelLimits, PanelLimits, 
+                    LabelScaleRange, PanelScaleRange, 
+                    LabelEnableVisualAlarm, CheckEnableVisualAlarm);
 
                 // Безопасно выводим лимиты алармов (если бесконечность — оставляем поле пустым) [1.14]
                 TextMinLimit.Text = double.IsNegativeInfinity(_targetTable.MinLimit) ? string.Empty : _targetTable.MinLimit.ToString("F1");
@@ -226,9 +255,9 @@ namespace WpfCalibrator.Views
                 {
                     if (existingRadar == null)
                     {
-                        mainVm.ActiveWidgets.Add(new WidgetViewModel
+                        mainVm.ActiveWidgets.Add(new WidgetViewModel(_targetTable)
                         {
-                            DataSource = _targetTable,
+                            //DataSource = _targetTable,
                             ControlView = "RadarTracker",
                             Left = _targetWidget.Left + _targetWidget.Width + 20,
                             Top = _targetWidget.Top,
@@ -249,9 +278,9 @@ namespace WpfCalibrator.Views
                 {
                     if (existing3D == null)
                     {
-                        mainVm.ActiveWidgets.Add(new WidgetViewModel
+                        mainVm.ActiveWidgets.Add(new WidgetViewModel(_targetTable)
                         {
-                            DataSource = _targetTable,
+                            //DataSource = _targetTable,
                             ControlView = "Matrix3DSurface",
                             Left = _targetWidget.Left,
                             Top = _targetWidget.Top + _targetWidget.Height + 20,
@@ -298,8 +327,8 @@ namespace WpfCalibrator.Views
             }
 
             if (_targetTable != null && !_targetTable.IsParam) _targetWidget.RefreshAlarmTriangles();
-
-            _targetWidget.IsVertical = RadioVertical.IsChecked == true;
+            //if (_targetTable is Map3DVariableViewModel)                 _targetWidget.
+                _targetWidget.IsVertical = RadioVertical.IsChecked == true;
             DialogResult = true;
         } // 🔥 Финал метода ApplyButton_Click!
 

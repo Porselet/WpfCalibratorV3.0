@@ -167,6 +167,7 @@ namespace WpfCalibrator.ViewModels
                 // Включаем синюю рамку выделения инженера
                 cell.IsSelected = rowInBounds && colInBounds;
             }
+            base.UpdateSelectionHighlight();
         }
 
         public override double GetTableValue(int r, int c) => MatrixData[r, c];

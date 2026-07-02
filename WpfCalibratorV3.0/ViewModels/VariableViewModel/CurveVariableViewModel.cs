@@ -93,21 +93,27 @@ namespace WpfCalibrator.ViewModels
         }
 
         /// <summary>
-        /// Линейный (одномерный) пересчет выделения ячеек оси шкал
+        /// Переопределенный метод выделения колонок для 1D-кривой [1.14]
         /// </summary>
         public override void UpdateSelectionHighlight()
         {
-            // У одномерной шкалы строки всегда = 0, поэтому рассчитываем 
-            // границы выделения строго по горизонтали (по колонкам Col)
+            if (MatrixCells == null) return;
+
+            // 1. Считаем границы выделения мыши по горизонтали (колонки)
             int startCol = Math.Min(AnchorCol, SelectedCol);
             int endCol = Math.Max(AnchorCol, SelectedCol);
 
-            // Пробегаем по линейке ячеек и включаем рамки выделения инженера
+            // 2. Обходим плоский список ячеек шкалы оцифровки
             foreach (var cell in MatrixCells)
             {
-                // Ячейка выделена, если её индекс попал в диапазон протяжки мыши
+                if (cell == null) continue;
+
+                // Включаем синюю рамку выделения инженера только в границах колонок
                 cell.IsSelected = (cell.Col >= startCol && cell.Col <= endCol);
             }
+
+            // 3. 🔥 СВЯЗУЮЩИЙ МОСТ: Прыгаем в базу, чтобы зажечь неоновый прицел моторной точки! [1.14]
+            base.UpdateSelectionHighlight();
         }
 
 

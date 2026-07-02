@@ -211,6 +211,7 @@ public partial class MainViewModel : INotifyPropertyChanged
                     axisXData,
                     axisYData
                 );
+                tableVar.UpdateSelectionHighlight();
             }
         }
 

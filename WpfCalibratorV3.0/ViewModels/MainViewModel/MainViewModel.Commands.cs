@@ -289,16 +289,18 @@ public partial class MainViewModel
             // Открываем окно модально. Если пользователь нажал "ПРИМЕНИТЬ" (true)
             if (settingsWindow.ShowDialog() == true)
             {
-                // Принудительно заставляем таблицу обновить ячейки на экране ноутбука [1.14]
-                if (widgetVm.DataSource is TableVariableViewModelBase tableVar)
-                {
-                    tableVar.UpdateSelectionHighlight(); // Наш новый базовый метод отрисовки рамок! [1.14]
-                }
-
-                // Автоматически сохраняем обновленные связи экрана в JSON
+                // 1. Сначала принудительно сохраняем обновленные связи осей в JSON-конфиг на диск, 
+                // чтобы SwitchToLayout смог прочитать уже измененные данные! [1.14]
                 if (_parent.SaveLayoutCommand.CanExecute(null))
                 {
                     _parent.SaveLayoutCommand.Execute(null);
+                }
+
+                // 2. 🔥 ТВОЙ ГЕНИАЛЬНЫЙ ХАК: Полностью перезагружаем текущий рабочий стол!
+                // Софт сотрет залипшие таблицы и мгновенно отрендерит их заново с новыми осями!
+                if (!string.IsNullOrEmpty(_parent.CurrentLayoutName))
+                {
+                    _parent.SwitchToLayout(_parent.CurrentLayoutName);
                 }
             }
 

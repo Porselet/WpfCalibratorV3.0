@@ -99,14 +99,28 @@ namespace WpfCalibrator.Services
                 // Извлекаем из активных виджетов только уникальные переменные ТЕЛЕМЕТРИИ (IsParam == false)
                 var uniqueTelemetrySources = new HashSet<ViewModels.VariableViewModelBase>();
 
+                // Модернизированный обход виджетов в RebuildTelemetryLoop:
                 foreach (var widget in _mainVm.ActiveWidgets)
                 {
-                    // Безопасная проверка: страхуемся от пустых виджетов на холсте
-                    if (widget != null && widget.DataSource != null && !widget.DataSource.IsParam)
-                    {
+                    if (widget?.DataSource == null) continue;
+
+                    // 1. Собираем стандартные датчики
+                    if (!widget.DataSource.IsParam)
                         uniqueTelemetrySources.Add(widget.DataSource);
+
+                    // 2. 🔥 НАШ СВЯЗУЮЩИЙ ШЛЮЗ ДЛЯ ПРИЦЕЛА ТАБЛИЦ (1D/3D) [1.14]
+                    if (widget.DataSource is TableVariableViewModelBase tableVar)
+                    {
+                        // Добавляем X (Обороты)
+                        if (tableVar.BoundInputX != null && !tableVar.BoundInputX.IsParam)
+                            uniqueTelemetrySources.Add(tableVar.BoundInputX);
+
+                        // Добавляем Y (Наддув) для 3D
+                        if (tableVar is Map3DVariableViewModel map3D && map3D.BoundInputY != null && !map3D.BoundInputY.IsParam)
+                            uniqueTelemetrySources.Add(map3D.BoundInputY);
                     }
                 }
+
 
                 // Для каждого уникального датчика на холсте создаем ОДИН постоянный объект команды чтения
                 foreach (var source in uniqueTelemetrySources)

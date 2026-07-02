@@ -122,10 +122,23 @@ namespace WpfCalibrator.ViewModels
         // для всех типов интерактивных таблиц (и 1D, и 3D)!
         public System.Collections.ObjectModel.ObservableCollection<MatrixCellViewModel> MatrixCells { get; } = new();
 
+
         /// <summary>
-        /// Локальное обновление подсветки для одномерной шкалы
+        /// Базовый метод: зажигает неоновый прицел моторной точки на основе ActiveRowIndex/ColIndex [1.14]
         /// </summary>
-        public abstract void UpdateSelectionHighlight();
+        public virtual void UpdateSelectionHighlight()
+        {
+            if (MatrixCells == null || MatrixCells.Count == 0) return;
+
+            foreach (var cell in MatrixCells)
+            {
+                if (cell == null) continue;
+
+                // Взводим флаг для DataTrigger в XAML
+                cell.IsActive = (cell.Row == ActiveRowIndex && cell.Col == ActiveColIndex);
+            }
+        }
+
 
         public override void AdjustValue(double step)
         {
@@ -359,7 +372,20 @@ namespace WpfCalibrator.ViewModels
                 baseRowIdx = (rowIdx < axisYData.Length - 1) ? rowIdx : (axisYData.Length - 2);
             }
         }
+        /// <summary>
+        /// Принудительно заставляет интерфейс WPF полностью перестроить сетку и заголовки шкал
+        /// </summary>
+        public void NotifyStructureChanged()
+        {
+            // 1. Уведомляем об изменении самих осей
+            OnPropertyChanged(nameof(BoundAxisX));
+            OnPropertyChanged(nameof(BoundInputX));
 
+            // 2. 🔥 ХИТРЫЙ ХАК: Выстреливаем PropertyChanged для MatrixCells.
+            // Если этого мало, можно на мгновение подменить коллекцию ячеек, 
+            // но обычно вызова уведомления ItemsSource достаточно, чтобы DataGrid перерисовал шапки!
+            OnPropertyChanged(nameof(MatrixCells));
+        }
 
     }
 }

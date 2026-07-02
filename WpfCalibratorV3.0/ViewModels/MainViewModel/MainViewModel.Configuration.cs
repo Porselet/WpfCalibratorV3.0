@@ -153,7 +153,7 @@ public partial class MainViewModel
 
         try
         {
-            await Task.Delay(800);
+            await Task.Delay(200);
             // Собираем в уникальный список (HashSet) вообще все параметры, которые нужно обновить
             var parametersToUpdate = new HashSet<VariableViewModelBase>();
 
