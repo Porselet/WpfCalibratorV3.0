@@ -36,6 +36,7 @@ namespace WpfCalibrator.Services
 
             if (e.Key == Key.Escape && !string.IsNullOrEmpty(activeWidget.InputBuffer))
             {
+                activeWidget.CancelEditing();
                 activeWidget.ClearGraphBuffer(); // Сброс черновика набора
                 return true;
             }
