@@ -44,7 +44,7 @@
                 <!-- 1. ТВЕРДОТЕЛЬНАЯ ПОВЕРХНОСТЬ КАРТЫ -->
                 <ModelVisual3D>
                     <ModelVisual3D.Content>
-                        <GeometryModel3D Geometry="{Binding DataSource.SurfaceMesh}">
+                        <GeometryModel3D Geometry="{Binding SurfaceMesh}">
 
                             <!-- 1. ЛИЦЕВОЙ МАТЕРИАЛ (Верх карты) -->
                             <GeometryModel3D.Material>
@@ -88,12 +88,12 @@
                 </ModelVisual3D>
 
                 <!-- 2. СЕТКА РЕБЕР НА ПОВЕРХНОСТИ (Четкие линии ячеек) -->
-                <helix:LinesVisual3D Points="{Binding DataSource.SurfaceLines}" 
+                <helix:LinesVisual3D Points="{Binding SurfaceLines}" 
                                  Color="#111111" 
                                  Thickness="2.0"/>
 
                 <!-- 3. ДИНАМИЧЕСКАЯ ИЗМЕРИТЕЛЬНАЯ КОРОБКА-ОБРЕШЕТКА -->
-                <helix:LinesVisual3D Points="{Binding DataSource.BoundingBoxLines}" 
+                <helix:LinesVisual3D Points="{Binding BoundingBoxLines}" 
                                  Color="#888888" 
                                  Thickness="1.5"/>
 
@@ -129,7 +129,7 @@
                 <!-- Биндимся на LaserBeamMesh, накладываем самосветящийся неоновый зеленый материал -->
                 <ModelVisual3D>
                     <ModelVisual3D.Content>
-                        <GeometryModel3D Geometry="{Binding DataSource.LaserBeamMesh}">
+                        <GeometryModel3D Geometry="{Binding LaserBeamMesh}">
                             <GeometryModel3D.Material>
                                 <MaterialGroup>
                                     <!-- Базовый матовый зеленый цвет для объема граней -->
@@ -145,7 +145,7 @@
                 <!-- 3. ОБЪЕМНАЯ КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Честные матовые сферы) -->
                 <ModelVisual3D>
                     <ModelVisual3D.Content>
-                        <GeometryModel3D Geometry="{Binding DataSource.AllSpheresMesh}">
+                        <GeometryModel3D Geometry="{Binding AllSpheresMesh}">
                             <GeometryModel3D.Material>
                                 <DiffuseMaterial Brush="#2A3D54"/>
                             </GeometryModel3D.Material>
@@ -156,7 +156,7 @@
                 <!-- 4. ГЛЯНЦЕВЫЙ НЕОНОВЫЙ КУРСОР ВЫДЕЛЕНИЯ (3D-Шары с бликами MoTeC-Style) -->
                 <ModelVisual3D>
                     <ModelVisual3D.Content>
-                        <GeometryModel3D Geometry="{Binding DataSource.SelectedSpheresMesh}">
+                        <GeometryModel3D Geometry="{Binding SelectedSpheresMesh}">
                             <GeometryModel3D.Material>
                                 <MaterialGroup>
                                     <DiffuseMaterial Brush="#0080FF"/>

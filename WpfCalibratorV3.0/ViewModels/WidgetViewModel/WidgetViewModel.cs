@@ -12,20 +12,31 @@ namespace WpfCalibrator.ViewModels;
 /// </summary>
 public partial class WidgetViewModel : INotifyPropertyChanged
 {
-    // Уникальный идентификатор виджета
+    /// <summary>
+    /// Уникальный криптографический идентификатор (GUID) текущего экземпляра виджета на холсте.
+    /// Используется менеджером макетов (DashboardManager) для однозначной привязки геометрии окна в JSON.
+    /// </summary>
+
     public Guid Id { get; } = Guid.NewGuid();
 
     // Переменная, данные которой отображает виджет
     private VariableViewModelBase? _dataSource;
 
- 
-    // ======================================================================
-    // ЧАСТЬ 1: КОНСТРУКТОРЫ СВЯЗИ UI С ПОЛИМОРФНЫМ ОЗУ
-    // ======================================================================
+
+    /// <summary>
+    /// Конструктор по умолчанию. Необходим для корректной работы визуального дизайнера XAML (Blend),
+    /// а также для корректной инициализации фабрик динамического рендеринга.
+    /// </summary>
     public WidgetViewModel()
     {
         // Пустой конструктор для Blend / XAML-Designer
     }
+    /// <summary>
+    /// Боевой конструктор виджета. Привязывает живую переменную ОЗУ, настраивает сквозную
+    /// реактивную лямбда-подписку на прерывания UART и принудительно синхронизирует 
+    /// стрелочные индикаторы и аварийные зоны под текущие физические значения.
+    /// </summary>
+
     public WidgetViewModel(VariableViewModelBase dataSource)
     {
         // Намертво подписываем обработчик OnDataSourcePropertyChanged на изменения в UART
@@ -53,6 +64,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
     // Тип виджета (TextBox, Graph, Gauge...)
     private string _controlView = "TextBox";
+    /// <summary>
+    /// Строковый идентификатор визуального типа прибора (например, TextBox, Graph, Gauge, TimePlot).
+    /// Используется движком WPF в качестве ключа переключения динамических шаблонов DataTemplate.
+    /// </summary>
+
     public string ControlView
     {
         get => _controlView;
@@ -68,6 +84,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         }
     }
     private bool _isEditing = false;
+    /// <summary>
+    /// Флаг ручного редактирования ячейки инженером. Переводит прибор в бесфокусный режим
+    /// накопления текстовых символов в локальном буфере, блокируя обновление цифр из сети.
+    /// </summary>
+
     public bool IsEditing
     {
         get => _isEditing;
@@ -81,8 +102,17 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Физическая координата смещения моторной точки по горизонтали (ось X) на координатной сетке.
+    /// Безопасно вычисляется интерполятором только в том случае, если DataSource является табличным типом.
+    /// </summary>
 
     public double RadarGridOffsetX => (DataSource is TableVariableViewModelBase t) ? t.RadarGridOffsetX : 0;
+    /// <summary>
+    /// Физическая координата смещения моторной точки по горизонтали (ось Y) на координатной сетке.
+    /// Безопасно вычисляется интерполятором только в том случае, если DataSource является табличным типом.
+    /// </summary>
+
     public double RadarGridOffsetY => (DataSource is TableVariableViewModelBase t) ? t.RadarGridOffsetY : 0;
 
 
@@ -90,9 +120,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
     private bool _showRadarTracker = true;
     /// <summary>
-    /// Настройка UI: true — отображать неоновый маркер режимной точки на приборе, 
-    /// false — скрыть маркер (например, для чистой визуализации 3D-рельефа) [1.14].
+    /// Настройка UI: разрешает или запрещает отображение зелёного неонового маркера-прицела
+    /// текущей рабочей точки поверх сетки калибровочной таблицы.
     /// </summary>
+
     public bool ShowRadarTracker
     {
         get => _showRadarTracker;
@@ -102,8 +133,8 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
     private bool _show3DSurface;
     /// <summary>
-    /// Настройка UI: true — переключить виджет в режим отображения 3D-рельефа Helix Toolkit,
-    /// false — отображать классическую плоскую таблицу ячеек.
+    /// Настройка UI: переключает графический виджет таблицы в режим отрисовки 
+    /// трехмерной полигональной горы рельефа Helix Toolkit.
     /// </summary>
     public bool Show3DSurface
     {
@@ -119,9 +150,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
 
-    // Координаты и размер (для свободного позиционирования)
-    // ИСПРАВЛЕНО: Теперь свойства уведомляют XAML о движении
     private double _left = 0;
+    /// <summary>
+    /// Горизонтальная координата X левой границы контейнера виджета на холсте WorkspaceCanvas (в пикселях).
+    /// </summary>
     public double Left
     {
         get => _left;
@@ -129,12 +161,20 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     private double _top = 0;
+    /// <summary>
+    /// Вертикальная координата Y левой границы контейнера виджета на холсте WorkspaceCanvas (в пикселях).
+    /// </summary>
+
     public double Top
     {
         get => _top;
         set { _top = value; OnPropertyChanged(); }
     }
     private double _width = 100;
+    /// <summary>
+    /// Ширина  контейнера виджета на холсте WorkspaceCanvas (в пикселях).
+    /// </summary>
+
     public double Width
     {
         get => _width;
@@ -149,6 +189,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     private bool _isActiveWidget = false;
+    /// <summary>
+    /// Флаг фокуса окна. Срабатывает, когда калибровщик кликает по прибору мышкой,
+    /// подсвечивая рамку виджета и передавая ему монопольное право на перехват горячих клавиш.
+    /// </summary>
+
     public bool IsActiveWidget
     {
         get => _isActiveWidget;
@@ -164,6 +209,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
     private float _incrementStep = 1.0f;
+    /// <summary>
+    /// Масштабирующий шаг изменения значения калибровки (индекса наката) при быстром 
+    /// инженерном изменении ячеек кнопками PageUp и PageDown.
+    /// </summary>
+
     public float IncrementStep
     {
         get => _incrementStep;
@@ -192,14 +242,29 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         }
     }
 
-    // Реализация INotifyPropertyChanged
+    /// <summary>
+    /// Событие, уведомляющее систему привязок данных WPF о том, что какое-то свойство изменило своё значение.
+    /// </summary>
+
     public event PropertyChangedEventHandler? PropertyChanged;
+    /// <summary>
+    /// Вспомогательный метод вызова прерывания PropertyChanged. Использует атрибут CallerMemberName
+    /// для автоматического подставления имени вызывающего свойства в рантайме.
+    /// </summary>
+
+
     public void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
    private int _zIndex = 0;
+
+    /// <summary>
+    /// Порядок перекрытия слоев окна в пространстве Canvas. Гарантирует, что выделенный активный
+    /// прибор всплывает на передний план над остальными окнами приборной панели.
+    /// </summary>
+
     public int ZIndex
     {
         get => _zIndex;
@@ -215,8 +280,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
     private bool _isVertical = false;
     /// <summary>
-    /// Флаг вертикальной ориентации для одномерных таблиц-векторов на холсте
+    /// Флаг ориентации для одномерных таблиц-векторов (оцифровок шкал). РазворачиваетUniformGrid
+    /// ячеек на холсте вертикально или горизонтально для удобства верстки макета.
     /// </summary>
+
     public bool IsVertical
     {
         get => _isVertical;

@@ -13,10 +13,12 @@ namespace WpfCalibrator.ViewModels;
 public partial class WidgetViewModel : INotifyPropertyChanged
 {
 
-
     /// <summary>
-    /// Статус 10 LED Shift-Light (true = горит) [1.14]
+    /// Возвращает массив из 10 логических флагов состояния светодиодов панели Shift-Light.
+    /// Вычисляет процент заполнения шкалы на основе текущего значения скаляра телеметрии
+    /// и последовательно активирует индикаторы с шагом в 10%.
     /// </summary>
+
     public bool[] LedStates
     {
         get
@@ -36,8 +38,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
     /// <summary>
-    /// Метод для принудительного обновления графики треугольников извне
+    /// Принудительно генерирует уведомления PropertyChanged для всех визуальных маркеров аварийных лимитов.
+    /// Синхронно смещает красные треугольники варнингов на горизонтальных, вертикальных,
+    /// круглых и дуговых приборах, а также обновляет ограничительные линии осциллографа.
     /// </summary>
+
     public void RefreshAlarmTriangles()
     {
         OnPropertyChanged(nameof(MinAlarmX));
@@ -61,8 +66,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
     /// <summary>
-    /// Открытый метод для принудительного уведомления UI об изменении угла живой стрелки
+    /// Реактивно уведомляет интерфейс WPF об изменении положения динамических элементов индикации.
+    /// Перерисовывает углы поворота живых стрелок круглых и дуговых приборов MoTeC,
+    /// а также обновляет радиальную длину заполнения цветного сектора барграфа.
     /// </summary>
+
     public void NotifyValueAngleChanged()
     {
         OnPropertyChanged(nameof(GaugeValueAngle));
@@ -73,16 +81,21 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
     private System.Windows.Media.PointCollection _plotPoints = new System.Windows.Media.PointCollection();
     /// <summary>
-    /// Коллекция точек для отрисовки ползущего осциллографа TimePlot
+    /// Коллекция двухмерных пиксельных координат (PointCollection) для отрисовки
+    /// непрерывной лог-линии ползущего осциллографа TimePlot.
     /// </summary>
+
     public System.Windows.Media.PointCollection PlotPoints
     {
         get => _plotPoints;
         set { _plotPoints = value; OnPropertyChanged(); }
     }
     /// <summary>
-    /// Добавляет новое значение в историю заезда и сдвигает график осциллографа влево
+    /// Интегрирует свежее физическое значение телеметрии в историю заезда осциллографа.
+    /// Масштабирует число в инвертированную пиксельную координату Y (0..100), сдвигает весь график
+    /// влево на 2 пикселя, удаляет устаревшие точки и атомарно обновляет коллекцию для XAML.
     /// </summary>
+
     public void AppendPlotPoint(double newValue)
     {
         if (DataSource == null) return;
@@ -127,9 +140,15 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         // 3. Аппаратно обновляем свойство для мгновенной перерисовки в XAML
         PlotPoints = currentPoints;
     }
+
+
+
     /// <summary>
-    /// Пиксельная координата Y для линии минимального аларма (0..100)
+    /// Вычисляет пиксельную координату Y (0..100) для отрисовки нижней пунктирной линии
+    /// критического лимита внутри осциллографа. Уводит линию на -100 пикселей за экран,
+    /// если минимальный аларм отключен в прошивке контроллера.
     /// </summary>
+
     public double PlotMinLimitY
     {
         get
@@ -147,8 +166,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Пиксельная координата Y для линии максимального аларма (0..100)
+    /// Вычисляет пиксельную координату Y (0..100) для отрисовки верхней пунктирной линии
+    /// критического лимита внутри осциллографа. Уводит линию за пределы видимости,
+    /// если максимальный аларм равен положительной бесконечности.
     /// </summary>
+
     public double PlotMaxLimitY
     {
         get
@@ -166,8 +188,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
     /// <summary>
-    /// Координата Y для треугольника минимального аларма на вертикальном слайдере (0..180 пикселей)
+    /// Рассчитывает высоту Y (0..180 пикселей) для размещения аварийного треугольника
+    /// на вертикальных гоночных слайдерах-барграфах. Инвертирует координату для движения снизу вверх
+    /// и смещает острие на 5 пикселей для точной центровки по сетке верстки.
     /// </summary>
+
     public double MinAlarmY
     {
         get
@@ -187,8 +212,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Координата Y для треугольника максимального аларма на вертикальном слайдере (0..180 пикселей)
+    /// Рассчитывает высоту Y (0..180 пикселей) для размещения треугольника максимальной
+    /// аварии на вертикальных слайдерах. Смещает маркер за экран, если лимит отключен.
     /// </summary>
+
     public double MaxAlarmY
     {
         get
@@ -207,8 +234,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
     private bool _enableVisualAlarm = false;
     /// <summary>
-    /// Разрешение окрашивать фон этого конкретного виджета при критическом аларме
+    /// Разрешает или запрещает динамическое окрашивание фоновой подложки виджета
+    /// в критических зонах аларма (настраивается калибровщиком индивидуально для каждого прибора).
     /// </summary>
+
     public bool EnableVisualAlarm
     {
         get => _enableVisualAlarm;
@@ -224,11 +253,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
     /// <summary>
-    /// Текущий угол поворота живой стрелки прибора в градусах (Ноль = 150° (8 часов), Макс = 60° (4 часа))
+    /// Вычисляет текущий угол поворота живой стрелки классического круглого будильника в градусах.
+    /// Безопасно масштабирует скалярное значение в рабочий сектор 240 градусов, стартуя от базовой
+    /// точки 210° (положение на 8 часов) по часовой стрелке.
     /// </summary>
-    /// <summary>
-    /// Текущий угол поворота живой стрелки прибора в градусах (Возврат к проверенной логике прибавки)
-    /// </summary>
+
     public double GaugeValueAngle
     {
         get
@@ -247,8 +276,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Угол поворота для красного треугольника минимального аларма (Gauge Min)
+    /// Рассчитывает угол поворота в градусах для размещения красного маркера минимальной
+    /// аварии на внешнем ободке шкалы круглого аналогового прибора.
     /// </summary>
+
     public double GaugeMinAlarmAngle
     {
         get
@@ -265,8 +296,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Угол поворота для красного треугольника максимального аларма (Gauge Max)
+    /// Рассчитывает угол поворота в градусах для размещения маркера максимального
+    /// критического лимита на ободке шкалы круглого прибора.
     /// </summary>
+
     public double GaugeMaxAlarmAngle
     {
         get
@@ -284,8 +317,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
     /// <summary>
-    /// Координата X для треугольника минимального аларма (смещенная на центр острия) [1.14]
+    /// Вычисляет горизонтальную координату X для аварийного треугольника на линейных индикаторах (длина 230px).
+    /// Использует Math.Clamp для жесткой фиксации маркера в границах физического корпуса прибора
+    /// при получении аномальных чисел из ОЗУ.
     /// </summary>
+
     public double MinAlarmX
     {
         get
@@ -305,8 +341,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Координата X для треугольника максимального аларма (смещенная на центр острия) [1.14]
+    /// Вычисляет горизонтальную координату X для треугольника максимального лимита
+    /// на линейных горизонтальных приборах с учетом смещения центра острия на 5 пикселей.
     /// </summary>
+
     public double MaxAlarmX
     {
         get
@@ -326,8 +364,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
     /// <summary>
-    /// Угол поворота/заполнения для дугового прибора MoTeC Style (Ноль = 180° (9 часов), Финиш = 360° (3 часа))
+    /// Масштабирует положение живой стрелки современного дугового прибора MoTeC Style в градусах.
+    /// Разворачивает стрелку строго в пределах 180 градусов верхнего полукруга (от 9 до 3 часов).
     /// </summary>
+
     public double ArcGaugeValueAngle
     {
         get
@@ -346,8 +386,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Угол поворота для красного треугольника минимального аларма на дуге MoTeC
+    /// Вычисляет угол поворота для размещения треугольника минимального критического аларма
+    /// на радиусной дуге прибора MoTeC Style.
     /// </summary>
+
     public double ArcGaugeMinAlarmAngle
     {
         get
@@ -364,8 +406,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Угол поворота для красного треугольника максимального аларма на дуге MoTeC
+    /// Вычисляет угол поворота для размещения треугольника максимального лимита
+    /// на радиусной дуге прибора MoTeC Style.
     /// </summary>
+
     public double ArcGaugeMaxAlarmAngle
     {
         get
@@ -382,8 +426,10 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Длина заполнения гоночного барграфа MoTeC (от 0.0 на нуле до 3.14 на максимуме)
+    /// Рассчитывает точную радиальную длину заполнения цветного светодиодного сектора дугового барграфа.
+    /// Возвращает значение в радианах: от 0.0 на минимальной границе шкалы до числа Пи (3.1415) на максимуме.
     /// </summary>
+
     public double ArcBarFillLength
     {
         get
@@ -391,8 +437,8 @@ public partial class WidgetViewModel : INotifyPropertyChanged
             if (DataSource == null || (DataSource.ScaleMax <= DataSource.ScaleMin)) return 0;
 
             double pct = (DataSource is ScalarVariableViewModel scalar)
-    ? (scalar.CurrentValue - scalar.ScaleMin) / (scalar.ScaleMax - scalar.ScaleMin)
-    : 0.0; // Fallback-значение 0% для таблиц или осей
+                ? (scalar.CurrentValue - scalar.ScaleMin) / (scalar.ScaleMax - scalar.ScaleMin)
+                : 0.0; // Fallback-значение 0% для таблиц или осей
             if (pct < 0) pct = 0;
             if (pct > 1) pct = 1;
 

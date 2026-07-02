@@ -7,9 +7,7 @@ using System.Windows.Media.Media3D;
 
 namespace WpfCalibrator.ViewModels;
 
-/// <summary>
-/// Обертка для виджета на приборной панели.
-/// </summary>
+// Часть WidgetViewModel, отвечающая за обработку ввода с клавиатуры/потенциометров
 public partial class WidgetViewModel : INotifyPropertyChanged
 {
 

@@ -8,14 +8,19 @@ using System.Windows.Media.Media3D;
 namespace WpfCalibrator.ViewModels;
 
 /// <summary>
-/// Обертка для виджета на приборной панели.
+/// Логическая вьюмодель визуального контейнера (виджета) приборной панели.
+/// Наследует интерфейс INotifyPropertyChanged и связывает элементы отображения UI
+/// с полиморфными объектами оперативной памяти параметров ЭБУ.
 /// </summary>
+
 public partial class WidgetViewModel : INotifyPropertyChanged
 {
     /// <summary>
-    /// Источник данных прибора (его цифровая переменная в ОЗУ).
-    /// Привязывается в момент создания виджета инженером.
+    /// Физический источник данных для прибора (его цифровая переменная в ОЗУ контроллера).
+    /// При установке автоматически отписывается от старого объекта для предотвращения утечек памяти
+    /// и подписывает реактивный диспетчер на события PropertyChanged нового датчика.
     /// </summary>
+
     public VariableViewModelBase? DataSource
     {
         get => _dataSource;
@@ -37,8 +42,11 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     }
 
     /// <summary>
-    /// Реактивный диспетчер: срабатывает КАЖДЫЙ РАЗ, когда в недрах UART меняется цифра датчика.
+    /// Реактивный сетевой диспетчер прерываний: вызывается при изменении любого свойства в связанной переменной.
+    /// Перехватывает обновления из потока приёма UART и маршрутизирует их по двум независимым потокам
+    /// (для одиночных скаляров-датчиков и для смещения прицела радарных UniformGrid-мишеней).
     /// </summary>
+
     private void OnDataSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         // ПОТОК 1: Логика обработки живого скаляра-датчика телеметрии
@@ -59,13 +67,26 @@ public partial class WidgetViewModel : INotifyPropertyChanged
             OnPropertyChanged(nameof(CurrentValueText));
         }
 
-        // ПОТОК 2: Логика обработки табличного прицела MoTeC-радара (Вынесено из скалярного блока!)
+        // ПОТОК 2: Логика обработки таблиц (2D Радар + 3D Поверхность Helix)
         if (DataSource is TableVariableViewModelBase tableVar)
         {
-            // Если обновились координаты смещения радара в ОЗУ — виджет мгновенно перерисовывает мишень!
+            // А) Если обновились координаты смещения радара в ОЗУ — двигаем мишень
             if (e.PropertyName == "RadarGridOffsetX") OnPropertyChanged(nameof(RadarGridOffsetX));
             if (e.PropertyName == "RadarGridOffsetY") OnPropertyChanged(nameof(RadarGridOffsetY));
+
+            // Б) 🔥 ВОТ ОН — СЕТЕВОЙ ЗАПУСК 3D-ГОР:
+            // Если бэкэнд сообщает, что изменился массив калибровок, 
+            // и перед инженером сейчас открыта именно 3D-поверхность...
+            if (e.PropertyName == "MatrixData" || e.PropertyName == "CurrentValue")
+            {
+                if (ControlView == "Matrix3DSurface")
+                {
+                    // Вызываем наш тяжелый метод пересчета мешей и триангуляции!
+                    this.Rebuild3DSurfaceMesh();
+                }
+            }
         }
+
     }
 
 }

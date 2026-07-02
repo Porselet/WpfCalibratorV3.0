@@ -76,29 +76,33 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     /// </summary>
     public void Rebuild3DSurfaceMesh()
     {
-        // 
-
-        // Получение данных [1.14]
+        // ПОЛУЧЕНИЕ ДАННЫХ [1.14]
         if (DataSource is not Map3DVariableViewModel map3D) return;
         if (map3D.Rows <= 1 || map3D.Cols <= 1 || map3D.MatrixData == null) return;
 
-        // 1. Сначала объявляем maxVal (так как её ниже в методе ещё нет)
+        // Объявляем локальные переменные для триангуляции Helix [1.14]
+        double minVal;
         double maxVal;
-        double minVal = FixedMinVal.Value;
-        double delta = FixedMaxVal.Value - minVal;
-        // 2. Взводим расчёт масштаба (защита от «желе»)
+        double delta;
+
+        // 🚀 ПРОВЕРКА МАСШТАБА (Защита от «эффекта желе»)
         if (FixedScaleZ == null || FixedMinVal == null || FixedMaxVal == null)
         {
-            // 🔥 ХИТРЫЙ ХАК: убираем ключевое слово "double" перед minVal и delta!
-            // Компилятор просто запишет результаты в переменные, которые объявлены ниже!
+            // Если это первый запуск — принудительно сканируем пики матрицы в ОЗУ ЭБУ! [1.14]
             this.FindMatrixExtremes(map3D, out minVal, out maxVal, out delta);
 
+            // Замораживаем масштаб для этой таблицы [1.14]
             FixedMinVal = minVal;
             FixedMaxVal = maxVal;
             FixedScaleZ = (delta > 0.001) ? (MaxHeightZ / delta) : 1.0;
         }
-
-
+        else
+        {
+            // Если масштаб уже зафиксирован ранее — просто безопасно вытягиваем его из памяти! [1.14]
+            minVal = FixedMinVal.Value;
+            maxVal = FixedMaxVal.Value;
+            delta = maxVal - minVal;
+        }
         // Габариты измерительного куба
         double halfWidth = ((map3D.Cols - 1) * StepX) / 2.0;
         double halfLength = ((map3D.Rows - 1) * StepY) / 2.0;
@@ -106,6 +110,7 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         // double minVal = FixedMinVal.Value;
         //double delta = FixedMaxVal.Value - minVal;
         double scaleZ = FixedScaleZ.Value;
+
 
         var mesh = BuildSurfaceMesh(map3D, minVal, delta, scaleZ, halfWidth, halfLength, out var positions);
         var surfaceEdges = BuildSurfaceEdges(map3D, positions, minVal, delta);
