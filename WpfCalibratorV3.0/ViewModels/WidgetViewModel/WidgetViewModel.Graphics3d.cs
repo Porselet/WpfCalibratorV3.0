@@ -31,7 +31,13 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         get => _surfaceLines;
         set { _surfaceLines = value; OnPropertyChanged(); }
     }
-
+    private Point3DCollection _boundingBoxLines;
+    /// <summary> Линии измерительного куба-обрешетки шкал. </summary>
+    public Point3DCollection BoundingBoxLines
+    {
+        get => _boundingBoxLines;
+        set { _boundingBoxLines = value; OnPropertyChanged(); } // 🔥 ПИНОК ДЛЯ XAML!
+    }
     private System.Windows.Media.Media3D.MeshGeometry3D _laserBeamMesh = new();
     public System.Windows.Media.Media3D.MeshGeometry3D LaserBeamMesh
     {
@@ -41,7 +47,7 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     // Геометрия фоновых шариков решетки, синих шаров курсора и куба-обрешетки шкал
     public System.Windows.Media.Media3D.MeshGeometry3D AllSpheresMesh { get; set; } = new();
     public System.Windows.Media.Media3D.MeshGeometry3D SelectedSpheresMesh { get; set; } = new();
-    public System.Windows.Media.Media3D.Point3DCollection BoundingBoxLines { get; set; } = new();
+
     private Model3DGroup _axisLabelsContainer = new();
     /// <summary>
     /// Контейнер для 3D-надписей осей шкал (будет биндиться в XAML) [1.14]
@@ -80,36 +86,48 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         if (DataSource is not Map3DVariableViewModel map3D) return;
         if (map3D.Rows <= 1 || map3D.Cols <= 1 || map3D.MatrixData == null) return;
 
-        // Объявляем локальные переменные для триангуляции Helix [1.14]
         double minVal;
         double maxVal;
         double delta;
 
-        // 🚀 ПРОВЕРКА МАСШТАБА (Защита от «эффекта желе»)
-        if (FixedScaleZ == null || FixedMinVal == null || FixedMaxVal == null)
+        // 🚀 УМНАЯ ФИКСАЦИЯ МАСШТАБА:
+        // Мы пересчитываем масштаб, если он ЕЩЕ НЕ зафиксирован, 
+        // ЛИБО если прошлый расчет зафиксировался на пустых нулях (delta была равна 0)
+        if (FixedScaleZ == null || FixedMinVal == null || FixedMaxVal == null || Math.Abs(FixedMaxVal.Value - FixedMinVal.Value) < 0.001)
         {
-            // Если это первый запуск — принудительно сканируем пики матрицы в ОЗУ ЭБУ! [1.14]
+            // Сканируем живую матрицу углов зажигания в ОЗУ [1.14]
             this.FindMatrixExtremes(map3D, out minVal, out maxVal, out delta);
 
-            // Замораживаем масштаб для этой таблицы [1.14]
-            FixedMinVal = minVal;
-            FixedMaxVal = maxVal;
-            FixedScaleZ = (delta > 0.001) ? (MaxHeightZ / delta) : 1.0;
+            // Замораживаем масштаб ТОЛЬКО если прошивка реально прислала боевые числа (delta > 0)
+            if (delta > 0.001)
+            {
+                FixedMinVal = minVal;
+                FixedMaxVal = maxVal;
+                FixedScaleZ = MaxHeightZ / delta; // Вычисляем постоянный коэффициент высоты Z
+            }
+            else
+            {
+                // Если сеть еще спит и в массиве нули — подставляем временные дефолты, НЕ замораживая шкалу намертво
+                minVal = 0.0;
+                maxVal = 10.0;
+                delta = 10.0;
+            }
         }
         else
         {
-            // Если масштаб уже зафиксирован ранее — просто безопасно вытягиваем его из памяти! [1.14]
+            // Если масштаб уже был успешно заморожен на живых данных — держим его намертво!
             minVal = FixedMinVal.Value;
             maxVal = FixedMaxVal.Value;
             delta = maxVal - minVal;
         }
+
+        // Твой дальнейший честный код генерации геометрии, куба и вызова Dispatcher... [1.14]
+        double scaleZ = FixedScaleZ ?? 1.0;
+
         // Габариты измерительного куба
         double halfWidth = ((map3D.Cols - 1) * StepX) / 2.0;
         double halfLength = ((map3D.Rows - 1) * StepY) / 2.0;
         // 🚀 СБОРКА ГЕОМЕТРИИ (Вызываем подфункции генерации Helix)
-        // double minVal = FixedMinVal.Value;
-        //double delta = FixedMaxVal.Value - minVal;
-        double scaleZ = FixedScaleZ.Value;
 
 
         var mesh = BuildSurfaceMesh(map3D, minVal, delta, scaleZ, halfWidth, halfLength, out var positions);

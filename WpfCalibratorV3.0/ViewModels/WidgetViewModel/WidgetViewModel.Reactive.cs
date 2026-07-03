@@ -81,7 +81,7 @@ public partial class WidgetViewModel : INotifyPropertyChanged
             {
                 if (ControlView == "Matrix3DSurface")
                 {
-                    if (IsEditing || DataSource.IsUpdatingFromNetwork) return; // Защита Helix [1.14]
+                    //if (IsEditing || DataSource.IsUpdatingFromNetwork) return; // Защита Helix [1.14]
                     // Вызываем наш тяжелый метод пересчета мешей и триангуляции!
                     this.Rebuild3DSurfaceMesh();
                 }
