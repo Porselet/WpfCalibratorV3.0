@@ -142,30 +142,25 @@
                     </ModelVisual3D.Content>
                 </ModelVisual3D>
 
-                <!-- 3. ОБЪЕМНАЯ КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Честные матовые сферы) -->
-                <ModelVisual3D>
-                    <ModelVisual3D.Content>
-                        <GeometryModel3D Geometry="{Binding AllSpheresMesh}">
-                            <GeometryModel3D.Material>
-                                <DiffuseMaterial Brush="#2A3D54"/>
-                            </GeometryModel3D.Material>
-                        </GeometryModel3D>
-                    </ModelVisual3D.Content>
-                </ModelVisual3D>
+                <!-- 3. ОБЪЕМНАЯ КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Аппаратные 3D-шарики Helix) -->
+                <!-- 3. ОБЪЕМНАЯ КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Аппаратные 3D-шарики Helix) -->
+                <!-- ItemsSource — биндимся на плоский список координат вершин из ОЗУ -->
+                <!-- 3. ОБЪЕМНАЯ КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Официальные 3D-шарики Helix) -->
+                <!-- Биндимся на плоский список координат вершин из ОЗУ -->
+                <!-- 3. КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Аппаратные круглые 3D-маркеры Helix) -->
+                <!-- Points — биндимся на плоский список координат вершин из out Point3DCollection positions -->
+                <!-- Size — жирный пиксельный диаметр (выставляем 12, чтобы маркеры стали крупными объемными шарами) -->
+                <!-- 3. ОБЪЕМНАЯ КРИСТАЛЛИЧЕСКАЯ РЕШЕТКА ВЕРШИН (Чистый нативный 3D-контейнер WPF) -->
+                <!-- Просто стёрли "helix:" перед именем компонента! -->
+                <ModelVisual3D Content="{Binding AllSpheresModel}"/>
 
-                <!-- 4. ГЛЯНЦЕВЫЙ НЕОНОВЫЙ КУРСОР ВЫДЕЛЕНИЯ (3D-Шары с бликами MoTeC-Style) -->
-                <ModelVisual3D>
-                    <ModelVisual3D.Content>
-                        <GeometryModel3D Geometry="{Binding SelectedSpheresMesh}">
-                            <GeometryModel3D.Material>
-                                <MaterialGroup>
-                                    <DiffuseMaterial Brush="#0080FF"/>
-                                    <SpecularMaterial Brush="#FFFFFF" SpecularPower="40"/>
-                                </MaterialGroup>
-                            </GeometryModel3D.Material>
-                        </GeometryModel3D>
-                    </ModelVisual3D.Content>
-                </ModelVisual3D>
+                <!-- 4. КУРСОР ВЫДЕЛЕНИЯ МЫШИ (Большие неоновые синие сферы MoTeC-Style) -->
+                <ModelVisual3D Content="{Binding SelectedSpheresModel}"/>
+
+
+
+
+
 
 
 

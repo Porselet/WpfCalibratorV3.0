@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Если проект на версии v3.0+, MeshBuilder лежит в корне HelixToolkit:
+using HelixToolkit;
+using HelixToolkit.Geometry;
+using HelixToolkit.Wpf;          // Базовое пространство для MeshGeometryVisual3D
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -12,6 +16,21 @@ namespace WpfCalibrator.ViewModels;
 /// </summary>
 public partial class WidgetViewModel : INotifyPropertyChanged
 {
+    private System.Windows.Media.Media3D.Model3DGroup _allSpheresModel = new();
+    /// <summary> Готовая группа 3D-моделей фоновых объемных шариков решетки. </summary>
+    public System.Windows.Media.Media3D.Model3DGroup AllSpheresModel
+    {
+        get => _allSpheresModel;
+        set { _allSpheresModel = value; OnPropertyChanged(); } // 🔥 Пинок реактивности для XAML!
+    }
+
+    private System.Windows.Media.Media3D.Model3DGroup _selectedSpheresModel = new();
+    /// <summary> Готовая группа 3D-моделей больших синих шаров выделения курсора. </summary>
+    public System.Windows.Media.Media3D.Model3DGroup SelectedSpheresModel
+    {
+        get => _selectedSpheresModel;
+        set { _selectedSpheresModel = value; OnPropertyChanged(); }
+    }
 
 
     // ======================================================================
@@ -44,9 +63,19 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         get => _laserBeamMesh;
         set { _laserBeamMesh = value; OnPropertyChanged(); }
     }
-    // Геометрия фоновых шариков решетки, синих шаров курсора и куба-обрешетки шкал
-    public System.Windows.Media.Media3D.MeshGeometry3D AllSpheresMesh { get; set; } = new();
-    public System.Windows.Media.Media3D.MeshGeometry3D SelectedSpheresMesh { get; set; } = new();
+
+
+    private System.Windows.Media.Media3D.Point3DCollection _cachedPositions;
+
+
+    private Point3DCollection _surfacePoints = new();
+    /// <summary> Координаты всех вершин калибровочной сетки для XAML-шаров. </summary>
+    public Point3DCollection SurfacePoints
+    {
+        get => _surfacePoints;
+        set { _surfacePoints = value; OnPropertyChanged(); }
+    }
+
 
     private Model3DGroup _axisLabelsContainer = new();
     /// <summary>
@@ -121,37 +150,53 @@ public partial class WidgetViewModel : INotifyPropertyChanged
             delta = maxVal - minVal;
         }
 
-        // Твой дальнейший честный код генерации геометрии, куба и вызова Dispatcher... [1.14]
         double scaleZ = FixedScaleZ ?? 1.0;
-
-        // Габариты измерительного куба
         double halfWidth = ((map3D.Cols - 1) * StepX) / 2.0;
         double halfLength = ((map3D.Rows - 1) * StepY) / 2.0;
-        // 🚀 СБОРКА ГЕОМЕТРИИ (Вызываем подфункции генерации Helix)
-
 
         var mesh = BuildSurfaceMesh(map3D, minVal, delta, scaleZ, halfWidth, halfLength, out var positions);
         var surfaceEdges = BuildSurfaceEdges(map3D, positions, minVal, delta);
         var boundingBox = BuildBoundingBox(map3D, halfWidth, halfLength);
 
-        // Оцифровка шкал осей
-        //BuildAxisLabels(map3D, minVal, FixedMaxVal.Value, delta, halfWidth, halfLength);
+        // 1. Создаем контейнер для группы 3D-моделей
+        var spheresGroup = new System.Windows.Media.Media3D.Model3DGroup();
 
-        // Атомарный заброс мешей в графический конвейер WPF
-        // Атомарный заброс мешей в графический конвейер WPF
+        // 2. Генерируем шаблон фонового шарика радиусом 0.15 через наш чистый метод
+        var sphereTemplate = GenerateWpfSphere(1);
+
+        // 3. Создаем материал для фоновых шариков (матовый серо-синий)
+        var sphereMaterial = new System.Windows.Media.Media3D.DiffuseMaterial(
+            new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2A3D54")));
+
+        // 4. Размножаем готовую сферу по всем координатам вершин
+        foreach (var pt in positions)
+        {
+            var model = new System.Windows.Media.Media3D.GeometryModel3D(sphereTemplate, sphereMaterial);
+            model.Transform = new System.Windows.Media.Media3D.TranslateTransform3D(pt.X, pt.Y, pt.Z);
+            model.Freeze();
+            spheresGroup.Children.Add(model);
+        }
+        spheresGroup.Freeze();
+        // Кэшируем точки рельефа в памяти вьюмодели
+        _cachedPositions = positions;
+        // Атомарно закидываем меши в графический конвейер WPF
         System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
         {
             SurfaceMesh = mesh;
             SurfaceLines = surfaceEdges;
             BoundingBoxLines = boundingBox;
 
-            // 🔥 ФИКС: Передаем ТОЛЬКО коллекцию positions!
-            // Никаких map3D в скобках быть не должно!
+            // Привязываем готовую группу моделей к свойству для XAML
+            AllSpheresModel = spheresGroup;
+
+            // Запускаем пересчет больших синих шаров курсора мыши
             UpdateCursorVerticesHighlight(positions);
 
-            // Включаем лазерный трекер над точкой калибровки
             UpdateLaserBeamPosition(map3D.ActiveColIndex, map3D.ActiveRowIndex);
         });
+
+
+
 
     } // Конец метода Rebuild3DSurfaceMesh
 
@@ -187,7 +232,7 @@ public partial class WidgetViewModel : INotifyPropertyChanged
                 positions.Add(new Point3D(x, y, z));
 
                 double normZ = (delta > 0.001) ? ((val - minVal) / delta) : 0.5;
-                //texCoords.Add(new System.Windows.Foundation.Point(0.5, 1.0 - normZ));
+                texCoords.Add(new System.Windows.Point(0, normZ));
             }
         }
         mesh.Positions = positions;
@@ -344,110 +389,117 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         delta = maxVal - minVal;
     }
 
+    /// <summary>
+    /// Генерирует честную полигональную 3D-сферу штатными средствами WPF Media3D без сторонних библиотек.
+    /// </summary>
+    private System.Windows.Media.Media3D.MeshGeometry3D GenerateWpfSphere(double radius)
+    {
+        var mesh = new System.Windows.Media.Media3D.MeshGeometry3D();
+        int slices = 10;
+        int stacks = 10;
+
+        for (int stack = 0; stack <= stacks; stack++)
+        {
+            double phi = Math.PI * stack / stacks;
+            double sinPhi = Math.Sin(phi);
+            double cosPhi = Math.Cos(phi);
+
+            for (int slice = 0; slice <= slices; slice++)
+            {
+                double theta = 2 * Math.PI * slice / slices;
+                double sinTheta = Math.Sin(theta);
+                double cosTheta = Math.Cos(theta);
+
+                // Вычисляем координаты вершины сферы
+                double x = radius * sinPhi * cosTheta;
+                double y = radius * sinPhi * sinTheta;
+                double z = radius * cosPhi;
+
+                mesh.Positions.Add(new System.Windows.Media.Media3D.Point3D(x, y, z));
+            }
+        }
+
+        for (int stack = 0; stack < stacks; stack++)
+        {
+            for (int slice = 0; slice < slices; slice++)
+            {
+                int p0 = stack * (slices + 1) + slice;
+                int p1 = p0 + 1;
+                int p2 = p0 + slices + 1;
+                int p3 = p2 + 1;
+
+                // Триангуляция четырехугольника сферы (два треугольника для GPU)
+                mesh.TriangleIndices.Add(p0);
+                mesh.TriangleIndices.Add(p2);
+                mesh.TriangleIndices.Add(p1);
+
+                mesh.TriangleIndices.Add(p1);
+                mesh.TriangleIndices.Add(p2);
+                mesh.TriangleIndices.Add(p3);
+            }
+        }
+
+        mesh.Freeze(); // Замораживаем в ОЗУ для ультра-быстрого FPS видеокарты
+        return mesh;
+    }
 
     /// <summary>
-    /// Обновляет кристаллическую решетку и подсвечивает синим цветом вершины под курсором таблицы.
+    /// Быстрое перемещение синего 3D-курсора без тяжелого пересчета рельефа горы.
+    /// Вызывается при кликах мыши по DataGrid и перемещении стрелок клавиатуры.
     /// </summary>
-    public void UpdateCursorVerticesHighlight(System.Windows.Media.Media3D.Point3DCollection sourcePositions)
+    public void Refresh3DSelectionOnly()
+    {
+        // Если гора еще ни разу не строилась — бежать некуда
+        if (_cachedPositions == null || _cachedPositions.Count == 0) return;
+
+        // Вызываем только легкий метод обновления синих шаров, используя сохраненный кэш!
+        UpdateCursorVerticesHighlight(_cachedPositions);
+    }
+
+
+    private void UpdateCursorVerticesHighlight(System.Windows.Media.Media3D.Point3DCollection sourcePositions)
     {
         if (sourcePositions == null || sourcePositions.Count == 0 || DataSource is not Map3DVariableViewModel map3D) return;
 
-        var allMesh = new System.Windows.Media.Media3D.MeshGeometry3D();
-        var selectedMesh = new System.Windows.Media.Media3D.MeshGeometry3D();
+        var selectedGroup = new System.Windows.Media.Media3D.Model3DGroup();
 
-        foreach (var pt in sourcePositions)
-        {
-            AddSphereToMesh(allMesh, pt, 0.4);
-        }
-        allMesh.Freeze();
+        // Генерируем шаблон БОЛЬШОГО шара для курсора (радиус 0.4)
+        var cursorTemplate = GenerateWpfSphere(1.2);
+
+        // Глянцевый неоновый материал MoTeC-Style с зеркальным бликом
+        var materialGroup = new System.Windows.Media.Media3D.MaterialGroup();
+        materialGroup.Children.Add(new System.Windows.Media.Media3D.DiffuseMaterial(
+            new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#0080FF"))));
+        materialGroup.Children.Add(new System.Windows.Media.Media3D.SpecularMaterial(
+            System.Windows.Media.Brushes.White, 40));
 
         int minRow = Math.Max(0, Math.Min(map3D.AnchorRow, map3D.SelectedRow));
         int maxRow = Math.Min(map3D.Rows - 1, Math.Max(map3D.AnchorRow, map3D.SelectedRow));
         int minCol = Math.Max(0, Math.Min(map3D.AnchorCol, map3D.SelectedCol));
         int maxCol = Math.Min(map3D.Cols - 1, Math.Max(map3D.AnchorCol, map3D.SelectedCol));
-        bool hasSelection = false;
 
         for (int r = minRow; r <= maxRow; r++)
         {
             for (int c = minCol; c <= maxCol; c++)
             {
-                int targetIndex = r * map3D.Cols + c;
-                if (targetIndex >= 0 && targetIndex < sourcePositions.Count)
+                int index = r * map3D.Cols + c;
+                if (index >= 0 && index < sourcePositions.Count)
                 {
-                    AddSphereToMesh(selectedMesh, sourcePositions[targetIndex], 1.0);
-                    hasSelection = true;
+                    var model = new System.Windows.Media.Media3D.GeometryModel3D(cursorTemplate, materialGroup);
+                    var pt = sourcePositions[index];
+                    model.Transform = new System.Windows.Media.Media3D.TranslateTransform3D(pt.X, pt.Y, pt.Z);
+                    model.Freeze();
+                    selectedGroup.Children.Add(model);
                 }
             }
         }
-
-        if (hasSelection) selectedMesh.Freeze();
-        else selectedMesh = new System.Windows.Media.Media3D.MeshGeometry3D();
+        selectedGroup.Freeze();
 
         System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
         {
-            AllSpheresMesh = allMesh;
-            SelectedSpheresMesh = selectedMesh;
+            SelectedSpheresModel = selectedGroup;
         });
     }
 
-    /// <summary>
-    /// Нативный математический генератор 3D-сферы (WPF 3D Core)
-    /// </summary>
-    private void AddSphereToMesh(MeshGeometry3D mesh, Point3D center, double radius)
-    {
-        int slices = 10;
-        int stacks = 10;
-        int baseIndex = mesh.Positions.Count;
 
-        // Генерируем вершины И нормали сферы (синусы и косинусы)
-        for (int stack = 0; stack <= stacks; stack++)
-        {
-            double phi = Math.PI * stack / stacks;
-            double y = radius * Math.Cos(phi);
-            double rStrata = radius * Math.Sin(phi);
-
-            for (int slice = 0; slice <= slices; slice++)
-            {
-                double theta = 2.0 * Math.PI * slice / slices;
-                double x = rStrata * Math.Cos(theta);
-                double z = rStrata * Math.Sin(theta);
-
-                // 1. Физическая точка на экране
-                mesh.Positions.Add(new Point3D(center.X + x, center.Y + y, center.Z + z));
-
-                // 2. 🔥 ХАК НЕПРОЗРАЧНОСТИ: Рассчитываем вектор нормали (направление взгляда из центра сферы наружу)
-                // Это заставит видеокарту включить жесткую Z-отсечку буфера глубины
-                double normalX = x / radius;
-                double normalY = y / radius;
-                double normalZ = z / radius;
-                mesh.Normals.Add(new Vector3D(normalX, normalY, normalZ));
-            }
-        }
-
-        // Собираем треугольники сферы (Исправленный обход: нормали смотрят СТРОГО наружу!)
-        for (int stack = 0; stack < stacks; stack++)
-        {
-            for (int slice = 0; slice < slices; slice++)
-            {
-                int nextStack = stack + 1;
-                int nextSlice = slice + 1;
-                int stride = slices + 1;
-
-                int tL = baseIndex + stack * stride + slice;
-                int tR = baseIndex + stack * stride + nextSlice;
-                int bL = baseIndex + nextStack * stride + slice;
-                int bR = baseIndex + nextStack * stride + nextSlice;
-
-                // Первый треугольник ячейки сферы (TL -> TR -> BL)
-                mesh.TriangleIndices.Add(tL);
-                mesh.TriangleIndices.Add(tR);
-                mesh.TriangleIndices.Add(bL);
-
-                // Второй треугольник ячейки сферы (TR -> BR -> BL)
-                mesh.TriangleIndices.Add(tR);
-                mesh.TriangleIndices.Add(bR);
-                mesh.TriangleIndices.Add(bL);
-            }
-        }
-    }
 }

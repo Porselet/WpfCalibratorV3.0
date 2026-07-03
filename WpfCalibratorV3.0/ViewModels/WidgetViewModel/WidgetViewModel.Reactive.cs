@@ -77,6 +77,14 @@ public partial class WidgetViewModel : INotifyPropertyChanged
             // Б) 🔥 ВОТ ОН — СЕТЕВОЙ ЗАПУСК 3D-ГОР:
             // Если бэкэнд сообщает, что изменился массив калибровок, 
             // и перед инженером сейчас открыта именно 3D-поверхность...
+            if (e.PropertyName == "SelectedRow" || e.PropertyName == "SelectedCol" || e.PropertyName == "AnchorRow" || e.PropertyName == "AnchorCol")
+            {
+                if (ControlView == "Matrix3DSurface")
+                {
+                    // Мгновенно двигаем синие шары со скоростью 60 FPS, вообще не трогая саму гору!
+                    this.Refresh3DSelectionOnly();
+                }
+            }
             if (e.PropertyName == "MatrixData" || e.PropertyName == "CurrentValue")
             {
                 if (ControlView == "Matrix3DSurface")
