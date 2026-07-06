@@ -24,6 +24,12 @@ public sealed partial class CommunicationService : ICommunicationService, IDispo
     {
         if (cmd == null) return false;
 
+        // 🔥 ПЯТНИЧНЫЙ АППАРАТНЫЙ ДЕМО-ШЛЮЗ:
+        // Если тумблер поднят — полностью обходим COM-порт и уходим в Loopback!
+        if (IsDemoMode)
+        {
+            return await ExecuteCommandDemoLoopbackAsync(cmd);
+        }
         // 1. ШЛАГБАУМ: Запрашиваем монопольный доступ к шине
         await _networkSemaphore.WaitAsync();
 

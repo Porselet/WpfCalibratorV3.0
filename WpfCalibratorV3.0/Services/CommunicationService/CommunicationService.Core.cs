@@ -42,7 +42,13 @@ namespace WpfCalibrator.Services
         // ======================================================================
         // 📢 РЕАЛИЗАЦИЯ ИНТЕРФЕЙСНЫХ СВОЙСТВ И СОБЫТИЙ (Контракт)
         // ======================================================================
-        public bool IsConnected => _serialPort?.IsOpen ?? false;
+        private bool _isDemoConnected = false;
+
+        // 🔥 УМНЫЙ ШЛЮЗ ПОДКЛЮЧЕНИЯ:
+        // Если мы в Демо-режиме — возвращаем статус симулятора, 
+        // если в обычном — честно опрашиваем состояние железного SerialPort!
+        public bool IsConnected => IsDemoMode ? _isDemoConnected : (_serialPort?.IsOpen ?? false);
+
         public DeviceConfig? CurrentDeviceConfig { get; set; }
 
         public event Action<NetworkCommand>? DataPacketReceived;
@@ -65,6 +71,20 @@ namespace WpfCalibrator.Services
         /// </summary>
         public void Connect(string portName, int baudRate)
         {
+            // 🔥 ПЯТНИЧНЫЙ ДЕМО-ШЛЮЗ:
+            if (IsDemoMode)
+            {
+                // 1. Обязательно взводим внутренний флаг подключения, 
+                // чтобы открылись все шлагбаумы для RefreshAllLayoutParameters!
+                // Зажигаем виртуальный шлагбаум для RefreshAllLayoutParameters!
+                _isDemoConnected = true;
+
+                LogPacket("SYS -->", "#00FF00", $"[DEMO LOOPBACK] Виртуальный симулятор шины запущен на {portName}", Array.Empty<byte>());
+                return;
+            }
+
+            // Твой дальнейший оригинальный код открытия SerialPort...
+
             if (_serialPort != null && _serialPort.IsOpen) return;
 
             try
@@ -98,6 +118,13 @@ namespace WpfCalibrator.Services
         /// </summary>
         public void Disconnect()
         {
+            // 🔥 ДЕМО-ШЛЮЗ:
+            if (IsDemoMode)
+            {
+                _isDemoConnected = false;
+                LogPacket("SYS -->", "#FF5555", "[DEMO LOOPBACK] Виртуальный симулятор шины остановлен", Array.Empty<byte>());
+                return;
+            }
             lock (_lock)
             {
                 _cts.Cancel();

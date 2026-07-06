@@ -126,8 +126,10 @@ namespace WpfCalibrator.ViewModels
             foreach (var cell in MatrixCells)
             {
                 if (cell == null) continue;
-
-                if (double.TryParse(cell.ValueText, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double parsedVal))
+                // 🚀 ПУЛЕНЕПРОБИВАЕМЫЙ ПАРСЕР: 
+                // 1. Берем строку, вырезаем пробелы и принудительно меняем любые запятые на точки!
+                string safeText = cell.ValueText?.Replace(',', '.').Trim() ?? "0";
+                if (double.TryParse(safeText, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double parsedVal))
                 {
                     // У 1D кривой строка всегда 0, пишем строго в индекс колонки [1.14]
                     if (cell.Col >= 0 && cell.Col < VectorData.Length)

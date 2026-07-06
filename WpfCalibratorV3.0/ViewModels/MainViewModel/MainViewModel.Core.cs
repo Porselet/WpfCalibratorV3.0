@@ -166,7 +166,14 @@ public partial class MainViewModel : INotifyPropertyChanged
             }));
         };
 
-
+        // 🔥 НАПОЛНЯЕМ КЭШ СЕРВИСА СВЯЗИ ДЛЯ ДЕМО-СИМУЛЯТОРА:
+        // Склеиваем параметры и телеметрию в один плоский список и отдаем Синглтону связи
+        // 🔥 ЖЕСТКОЕ ЗАКРЕПЛЕНИЕ КЭША В ОЗУ:
+        // Принудительно вычитываем элементы из ObservableCollection прямо сейчас в UI-потоке,
+        // превращая их в безопасный, независимый плоский массив array! [1.14]
+/*        WpfCalibrator.Services.CommunicationService.DemoVariablesCache =
+            this.ParameterVariables.Concat(this.TelemetryVariables).ToArray();
+*/
 
     }
 

@@ -129,6 +129,7 @@ public sealed class ConfigurationManager
 
     // Добавляем свойство для хранения последнего порта
     public string? LastUsedComPort { get; set; }
+    public string? IsDemoMode { get; set; }
 
     // Метод для загрузки настроек (пример)
 
