@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
-
+using WpfCalibrator.Services;
 namespace WpfCalibrator.ViewModels;
 
 /// <summary>
@@ -106,6 +106,8 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     private const double StepY = 15.0;
     private const double MaxHeightZ = 30.0;
 
+
+    private IMatrix3DGeometryService matrix3DGeometryService = new Matrix3DGeometryService();
     /// <summary>
     /// Главный диспетчер пересчета 3D-сцены
     /// </summary>
@@ -115,61 +117,20 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         if (DataSource is not Map3DVariableViewModel map3D) return;
         if (map3D.Rows <= 1 || map3D.Cols <= 1 || map3D.MatrixData == null) return;
 
-        double minVal;
-        double maxVal;
-        double delta;
+        var res = matrix3DGeometryService.BuildGeometry(map3D.MatrixData, map3D.Rows, map3D.Cols, FixedMinVal, FixedMaxVal, FixedScaleZ);
 
-        // 🚀 УМНАЯ ФИКСАЦИЯ МАСШТАБА:
-        // Мы пересчитываем масштаб, если он ЕЩЕ НЕ зафиксирован, 
-        // ЛИБО если прошлый расчет зафиксировался на пустых нулях (delta была равна 0)
-        if (FixedScaleZ == null || FixedMinVal == null || FixedMaxVal == null || Math.Abs(FixedMaxVal.Value - FixedMinVal.Value) < 0.001)
-        {
-            // Сканируем живую матрицу углов зажигания в ОЗУ [1.14]
-            this.FindMatrixExtremes(map3D, out minVal, out maxVal, out delta);
-
-            // Замораживаем масштаб ТОЛЬКО если прошивка реально прислала боевые числа (delta > 0)
-            if (delta > 0.001)
-            {
-                FixedMinVal = minVal;
-                FixedMaxVal = maxVal;
-                FixedScaleZ = MaxHeightZ / delta; // Вычисляем постоянный коэффициент высоты Z
-            }
-            else
-            {
-                // Если сеть еще спит и в массиве нули — подставляем временные дефолты, НЕ замораживая шкалу намертво
-                minVal = 0.0;
-                maxVal = 10.0;
-                delta = 10.0;
-            }
-        }
-        else
-        {
-            // Если масштаб уже был успешно заморожен на живых данных — держим его намертво!
-            minVal = FixedMinVal.Value;
-            maxVal = FixedMaxVal.Value;
-            delta = maxVal - minVal;
-        }
-
-        double scaleZ = FixedScaleZ ?? 1.0;
-        double halfWidth = ((map3D.Cols - 1) * StepX) / 2.0;
-        double halfLength = ((map3D.Rows - 1) * StepY) / 2.0;
-
-        var mesh = BuildSurfaceMesh(map3D, minVal, delta, scaleZ, halfWidth, halfLength, out var positions);
-        var surfaceEdges = BuildSurfaceEdges(map3D, positions, minVal, delta);
-        var boundingBox = BuildBoundingBox(map3D, halfWidth, halfLength);
 
         // 1. Создаем контейнер для группы 3D-моделей
         var spheresGroup = new System.Windows.Media.Media3D.Model3DGroup();
 
         // 2. Генерируем шаблон фонового шарика радиусом 0.15 через наш чистый метод
         var sphereTemplate = GenerateWpfSphere(1);
-
         // 3. Создаем материал для фоновых шариков (матовый серо-синий)
         var sphereMaterial = new System.Windows.Media.Media3D.DiffuseMaterial(
             new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#2A3D54")));
 
         // 4. Размножаем готовую сферу по всем координатам вершин
-        foreach (var pt in positions)
+        foreach (var pt in res.Positions)
         {
             var model = new System.Windows.Media.Media3D.GeometryModel3D(sphereTemplate, sphereMaterial);
             model.Transform = new System.Windows.Media.Media3D.TranslateTransform3D(pt.X, pt.Y, pt.Z);
@@ -178,19 +139,19 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         }
         spheresGroup.Freeze();
         // Кэшируем точки рельефа в памяти вьюмодели
-        _cachedPositions = positions;
+        _cachedPositions = res.Positions;
         // Атомарно закидываем меши в графический конвейер WPF
         System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
         {
-            SurfaceMesh = mesh;
-            SurfaceLines = surfaceEdges;
-            BoundingBoxLines = boundingBox;
+            SurfaceMesh = res.Mesh;
+            SurfaceLines = res.Edges;
+            BoundingBoxLines = res.BoundingBox;
 
             // Привязываем готовую группу моделей к свойству для XAML
             AllSpheresModel = spheresGroup;
 
             // Запускаем пересчет больших синих шаров курсора мыши
-            UpdateCursorVerticesHighlight(positions);
+            UpdateCursorVerticesHighlight(res.Positions);
 
             UpdateLaserBeamPosition(map3D.ActiveColIndex, map3D.ActiveRowIndex);
         });
@@ -204,129 +165,6 @@ public partial class WidgetViewModel : INotifyPropertyChanged
 
 
 
-
-    /// <summary>
-    /// Шаг 2: Сборка твердотельного полигонального рельефа и расчет тепловой карты текстур [1.14]
-    /// </summary>
-    private System.Windows.Media.Media3D.MeshGeometry3D BuildSurfaceMesh(Map3DVariableViewModel map3D, double minVal, double delta, double scaleZ, double halfWidth, double halfLength, out System.Windows.Media.Media3D.Point3DCollection positions)
-    {
-        var mesh = new System.Windows.Media.Media3D.MeshGeometry3D();
-        positions = new System.Windows.Media.Media3D.Point3DCollection();
-        var indices = new System.Windows.Media.Int32Collection();
-        var texCoords = new System.Windows.Media.PointCollection();
-
-        // Расчет вершин, текстурных координат и триангуляция
-        for (int r = 0; r < map3D.Rows; r++)
-        {
-            for (int c = 0; c < map3D.Cols; c++)
-            {
-                // Заменяем парсинг строк на чтение прямого ОЗУ-массива ЭБУ!
-                double val = map3D.GetTableValue(r, c); // Вызовет return MatrixData[r, c]; из бэкэнда
-
-                double x = (c * StepX) - halfWidth;
-                // Твоя инвертированная гоночная формула оси Y
-                double y = ((map3D.Rows - 1 - r) * StepY) - halfLength;
-                // Рассчитываем честную высоту вершины Z в пространстве Helix
-                double z = (val - minVal) * scaleZ;
-
-                positions.Add(new Point3D(x, y, z));
-
-                double normZ = (delta > 0.001) ? ((val - minVal) / delta) : 0.5;
-                texCoords.Add(new System.Windows.Point(0, normZ));
-            }
-        }
-        mesh.Positions = positions;
-        mesh.TextureCoordinates = texCoords;
-
-        // Заполнение треугольников
-        for (int r = 0; r < map3D.Rows - 1; r++)
-        {
-            for (int c = 0; c < map3D.Cols - 1; c++)
-            {
-                int i = r * map3D.Cols + c;
-                int nextR = (r + 1) * map3D.Cols + c;
-                indices.Add(i); indices.Add(i + 1); indices.Add(nextR);
-                indices.Add(i + 1); indices.Add(nextR + 1); indices.Add(nextR);
-            }
-        }
-        mesh.TriangleIndices = indices;
-        mesh.Normals = new System.Windows.Media.Media3D.Vector3DCollection(Enumerable.Repeat(new System.Windows.Media.Media3D.Vector3D(0, 0, 1), positions.Count));
-        mesh.Freeze();
-        return mesh;
-    }
-
-    /// <summary>
-    /// Шаг 3: Нарезка четырехугольных ребер (БЕЗ ДИАГОНАЛЕЙ) [1.14]
-    /// </summary>
-    private System.Windows.Media.Media3D.Point3DCollection BuildSurfaceEdges(Map3DVariableViewModel map3D, System.Windows.Media.Media3D.Point3DCollection positions, double minVal, double delta)
-    {
-        var lines = new System.Windows.Media.Media3D.Point3DCollection();
-        // Горизонтальные ребра
-        for (int r = 0; r < map3D.Rows; r++)
-            for (int c = 0; c < map3D.Cols - 1; c++)
-            {
-                lines.Add(positions[r * map3D.Cols + c]);
-                lines.Add(positions[r * map3D.Cols + (c + 1)]);
-            }
-        // Вертикальные ребра
-        for (int c = 0; c < map3D.Cols; c++)
-            for (int r = 0; r < map3D.Rows - 1; r++)
-            {
-                lines.Add(positions[r * map3D.Cols + c]);
-                lines.Add(positions[(r + 1) * map3D.Cols + c]);
-            }
-        lines.Freeze();
-        return lines;
-    }
-    /// <summary>
-    /// Шаг 4: Динамическая сборка коробки-обрешетки под размер Rows и Cols (ChipTuningPRO Style) [1.14]
-    /// </summary>
-    private System.Windows.Media.Media3D.Point3DCollection BuildBoundingBox(Map3DVariableViewModel map3D, double halfWidth, double halfLength)
-    {
-        var boxLines = new System.Windows.Media.Media3D.Point3DCollection();
-
-        // 1. СЕТКА ПОЛА (XY) — строго под рядами и колонками калибровки [1.14]
-        for (int c = 0; c < map3D.Cols; c++)
-        {
-            double x = (c * StepX) - halfWidth;
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(x, -halfLength, 0));
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(x, halfLength, 0));
-        }
-        for (int r = 0; r < map3D.Rows; r++)
-        {
-            double y = (r * StepY) - halfLength;
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(-halfWidth, y, 0));
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(halfWidth, y, 0));
-        }
-
-        // 2. ВЕРТИКАЛЬНЫЕ СТЕНКИ (ЗАДНЯЯ Y=halfLength И БОКОВАЯ X=-halfWidth) [1.14]
-        for (int c = 0; c < map3D.Cols; c++)
-        {
-            double x = (c * StepX) - halfWidth;
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(x, halfLength, 0));
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(x, halfLength, MaxHeightZ));
-        }
-        for (int r = 0; r < map3D.Rows; r++)
-        {
-            double y = (r * StepY) - halfLength;
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(-halfWidth, y, 0));
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(-halfWidth, y, MaxHeightZ));
-        }
-
-        // Нарезаем фиксированные 5 уровней высоты коробки [1.14]
-        int heightLevels = 5;
-        for (int i = 0; i <= heightLevels; i++)
-        {
-            double z = (MaxHeightZ / heightLevels) * i;
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(-halfWidth, halfLength, z));
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(halfWidth, halfLength, z));
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(-halfWidth, -halfLength, z));
-            boxLines.Add(new System.Windows.Media.Media3D.Point3D(-halfWidth, halfLength, z));
-        }
-
-        boxLines.Freeze();
-        return boxLines;
-    }
 
 
 
@@ -369,25 +207,7 @@ public partial class WidgetViewModel : INotifyPropertyChanged
         System.Windows.Application.Current?.Dispatcher?.Invoke(() => LaserBeamMesh = mesh);
     }
 
-    /// <summary>
-    /// Локальная подфункция: вычисляет экстремумы 3D-матрицы для расчета стабильного масштаба [1.14]
-    /// </summary>
-    private void FindMatrixExtremes(Map3DVariableViewModel map3D, out double minVal, out double maxVal, out double delta)
-    {
-        minVal = double.MaxValue;
-        maxVal = double.MinValue;
 
-        for (int r = 0; r < map3D.Rows; r++)
-        {
-            for (int c = 0; c < map3D.Cols; c++)
-            {
-                double v = map3D.MatrixData[r, c];
-                if (v < minVal) minVal = v;
-                if (v > maxVal) maxVal = v;
-            }
-        }
-        delta = maxVal - minVal;
-    }
 
     /// <summary>
     /// Генерирует честную полигональную 3D-сферу штатными средствами WPF Media3D без сторонних библиотек.
