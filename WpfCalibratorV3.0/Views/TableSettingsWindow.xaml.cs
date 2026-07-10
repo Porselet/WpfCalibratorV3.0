@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Windows;
+using WpfCalibrator.Services;
 using WpfCalibrator.ViewModels;
 using WpfCalibrator.ViewModels.WidgetViewModel;
 
@@ -256,15 +257,14 @@ namespace WpfCalibrator.Views
                 {
                     if (existingRadar == null)
                     {
-                        mainVm.ActiveWidgets.Add(new LegacyWidgetViewModel(_targetTable)
-                        {
-                            //DataSource = _targetTable,
-                            ControlView = "RadarTracker",
-                            Left = _targetWidget.Left + _targetWidget.Width + 20,
-                            Top = _targetWidget.Top,
-                            Width = 220,
-                            Height = 220
-                        });
+                        var widget = WidgetFactory.Create("RadarTracker", _targetTable);
+                        widget.ControlView = "RadarTracker";
+                        widget.Left = _targetWidget.Left + _targetWidget.Width + 20;
+                        widget.Top = _targetWidget.Top;
+                        widget.Width = 220;
+                        widget.Height = 220;
+                        mainVm.ActiveWidgets.Add(widget);
+                                                
                     }
                 }
                 else if (existingRadar != null)
@@ -279,15 +279,12 @@ namespace WpfCalibrator.Views
                 {
                     if (existing3D == null)
                     {
-                        mainVm.ActiveWidgets.Add(new Matrix3DWidgetViewModel(_targetTable)
-                        {
-                            //DataSource = _targetTable,
-                            ControlView = "Matrix3DSurface",
-                            Left = _targetWidget.Left,
-                            Top = _targetWidget.Top + _targetWidget.Height + 20,
-                            Width = 400,
-                            Height = 300
-                        });
+                        var widget = WidgetFactory.Create("Matrix3DSurface", _targetTable);
+                        widget.Left = _targetWidget.Left;
+                        widget.Top = _targetWidget.Top + _targetWidget.Height + 20;
+                        widget.Width = 400;
+                        widget.Height = 300;
+                        mainVm.ActiveWidgets.Add(widget);
                     }
                 }
                 else if (existing3D != null)

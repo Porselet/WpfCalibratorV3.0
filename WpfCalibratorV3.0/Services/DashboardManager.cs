@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Media.Media3D;
 using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels;
 using WpfCalibrator.ViewModels.WidgetViewModel;
@@ -96,21 +97,18 @@ namespace WpfCalibrator.Services
                 // Ищем переменную в ОЗУ реестра через переданный делегат [1.14]
                 var realVar = findVariableSelector(info.VarName);
                 if (realVar == null) continue;
+                BaseWidgetViewModel newWidget = WidgetFactory.Create(info.ControlView, realVar);
+                newWidget.Left = info.Left;
+                newWidget.Top = info.Top;
+                newWidget.Width = info.Width;
+                newWidget.Height = info.Height;
+                newWidget.ControlView = info.ControlView;
+                newWidget.IncrementStep = info.IncrementStep;
+                newWidget.IsVertical = info.IsVertical;
+                newWidget.EnableVisualAlarm = info.EnableVisualAlarm;
+                newWidget.ShowRadarTracker = info.TableBindings?.ShowRadarTracker ?? true;
+                newWidget.Show3DSurface = info.TableBindings?.Show3DSurface ?? false;     
 
-                // Создаем чистый прибор и восстанавливаем его геометрический паспорт
-                var newWidget = new LegacyWidgetViewModel(realVar)
-                {
-                    Left = info.Left,
-                    Top = info.Top,
-                    Width = info.Width,
-                    Height = info.Height,
-                    ControlView = info.ControlView,
-                    IncrementStep = info.IncrementStep,
-                    IsVertical = info.IsVertical,
-                    EnableVisualAlarm = info.EnableVisualAlarm,
-                    ShowRadarTracker = info.TableBindings?.ShowRadarTracker ?? true, // Наш утренний флаг [1.14]
-                    Show3DSurface = info.TableBindings?.Show3DSurface ?? false       // Наш утренний флаг [1.14]
-                };
 
                 // Восстанавливаем физические масштабы шкал
                 realVar.ScaleMin = info.ScaleMin;

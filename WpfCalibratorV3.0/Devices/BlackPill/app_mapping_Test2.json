@@ -34,6 +34,36 @@
     },
     {
       "Id": 3,
+      "Name": "TEST_IN_1_32",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": false,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "входной сигнал 1"
+    },
+    {
+      "Id": 4,
+      "Name": "TEST_IN_2_32",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": false,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "входной сигнал 2"
+    },
+    {
+      "Id": 5,
+      "Name": "TEST_OUT_32",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": false,
+      "Rows": 1,
+      "Cols": 1,
+      "Comment": "выходной сигнал"
+    },
+    {
+      "Id": 6,
       "Name": "T2_Gain",
       "Type": "single",
       "ElementSize": 4,
@@ -41,6 +71,36 @@
       "Rows": 1,
       "Cols": 1,
       "Comment": "Коэффициент усиления"
+    },
+    {
+      "Id": 7,
+      "Name": "TEST_Axle1_32",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": true,
+      "Rows": 1,
+      "Cols": 32,
+      "Comment": "параметр ось 1"
+    },
+    {
+      "Id": 8,
+      "Name": "TEST_Axle2_32",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": true,
+      "Rows": 1,
+      "Cols": 32,
+      "Comment": "параметр ось 2"
+    },
+    {
+      "Id": 9,
+      "Name": "TEST_Data_32",
+      "Type": "single",
+      "ElementSize": 4,
+      "IsParam": true,
+      "Rows": 32,
+      "Cols": 32,
+      "Comment": "параметр таблица"
     }
   ]
 }

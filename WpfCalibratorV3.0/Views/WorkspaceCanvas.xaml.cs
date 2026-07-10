@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using WpfCalibrator.Models;
+using WpfCalibrator.Services;
 using WpfCalibrator.ViewModels;
 using WpfCalibrator.ViewModels.WidgetViewModel;
 
@@ -34,7 +35,7 @@ public partial class WorkspaceCanvas : UserControl
         // Если оператор кликнул по кнопке закрытия ❌, игнорируем перемещение
         if (e.OriginalSource is Button || e.OriginalSource is TextBlock tb && tb.Text == "❌") return;
 
-        if (sender is Border headerBorder)
+        if (sender is Grid headerBorder)
         {
             // Достаем BaseWidgetViewModel через контейнер
             var container = GetParentOfType<ContentPresenter>(headerBorder);
@@ -78,7 +79,7 @@ public partial class WorkspaceCanvas : UserControl
 
     private void WidgetHeader_MouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (_isMovingWidget && sender is Border headerBorder)
+        if (_isMovingWidget && sender is Grid headerBorder)
         {
             _isMovingWidget = false;
             headerBorder.ReleaseMouseCapture(); // Освобождаем мышь
@@ -211,31 +212,33 @@ public partial class WorkspaceCanvas : UserControl
         }
 
         // Создаем графический контейнер, который теперь смотрит на ЕДИНСТВЕННЫЙ правильный источник данных
-        var widget = new LegacyWidgetViewModel(realVariableVm)
-        {
-            Left = x,
-            Top = y,
-            ControlView = viewType,
-            
-        };
+        BaseWidgetViewModel widget;
 
-        if (variable.IsParam && variable.TotalElements > 1) // Карты LUT
+        if (viewType == "Matrix3DSurface")
         {
+            // Для 3D создаем строго специализированный класс!
+            widget = WidgetFactory.Create(viewType, realVariableVm);//new Matrix3DWidgetViewModel(realVariableVm)
+
+            widget.Left = x;
+            widget.Top = y;
             widget.Width = 500;
             widget.Height = 280;
+            
         }
-        else if (viewType == "Gauge") // Стрелочный круглый прибор требует квадратное окно побольше
+        else
         {
-            widget.Width = 180;
-            widget.Height = 210;
-        }
-        else // Скаляры, Крупные цифры и линейные Слайдеры
-        {
-            widget.Width = 260;
-            widget.Height = 110;
+            // Все остальные приборы пока создаются как Legacy
+            widget = WidgetFactory.Create(viewType, realVariableVm);//new Matrix3DWidgetViewModel(realVariableVm)
+
+            widget.Left = x;
+            widget.Top = y;
+
+
+            // Тут оставляешь свои старые ветки if/else для размеров Gauge и Скаляров
+            if (viewType == "Gauge") { widget.Width = 180; widget.Height = 210; }
+            else { widget.Width = 260; widget.Height = 110; }
         }
 
-        
         vm.ActiveWidgets.Add(widget);
 
         // 🔥 ДОБАВЛЕННЫЙ ТРИГГЕР: Если это калибровочный параметр (скаляр или таблица), 
@@ -347,12 +350,7 @@ public partial class WorkspaceCanvas : UserControl
     }
 
 
-    private void WidgetClose_Click(object sender, System.Windows.RoutedEventArgs e)
-    { 
-    }
-    private void WidgetSettings_Click(object sender, System.Windows.RoutedEventArgs e)
-    {
-    }
+
     
 
 

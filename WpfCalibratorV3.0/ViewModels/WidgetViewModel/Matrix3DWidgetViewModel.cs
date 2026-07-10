@@ -9,7 +9,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
 {
     public class Matrix3DWidgetViewModel: BaseWidgetViewModel 
     {
-        public Matrix3DWidgetViewModel(VariableViewModelBase dataSource) :base(dataSource)
+        public Matrix3DWidgetViewModel(VariableViewModelBase dataSource) : base(dataSource)
         {
 
             if (ControlView == "Matrix3DSurface")
