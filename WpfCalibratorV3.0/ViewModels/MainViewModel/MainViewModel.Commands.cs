@@ -3,6 +3,7 @@ using System.Windows.Input;
 
 using WpfCalibrator.Services;
 using WpfCalibrator.Views;
+using WpfCalibrator.ViewModels.WidgetViewModel;
 
 
 namespace WpfCalibrator.ViewModels;
@@ -208,7 +209,7 @@ public partial class MainViewModel
 
         public override void Execute(object? parameter)
         {
-            var widgetVm = parameter as WidgetViewModel;
+            var widgetVm = parameter as BaseWidgetViewModel;
             if (widgetVm != null && _parent.ActiveWidgets.Contains(widgetVm))
             {
                 // Удаляем виджет из коллекции активных окон на холсте
@@ -268,7 +269,7 @@ public partial class MainViewModel
         public override void Execute(object? parameter)
         {
             // Из параметра команды (CommandParameter) достаем вьюмодель виджета таблицы
-            var widgetVm = parameter as WidgetViewModel;
+            var widgetVm = parameter as BaseWidgetViewModel;
             if (widgetVm == null || widgetVm.DataSource == null) return;
 
             // Собираем все переменные текущей модели в один плоский список

@@ -5,6 +5,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels;
+using WpfCalibrator.ViewModels.WidgetViewModel;
+
 
 namespace WpfCalibrator.Views;
 
@@ -12,7 +14,7 @@ public partial class WorkspaceCanvas : UserControl
 {
     private bool _isMovingWidget = false;
     private Point _widgetStartMousePosition;
-    private WidgetViewModel? _draggedWidgetDataContext;
+    private BaseWidgetViewModel? _draggedWidgetDataContext;
 
     public WorkspaceCanvas()
     {
@@ -34,9 +36,9 @@ public partial class WorkspaceCanvas : UserControl
 
         if (sender is Border headerBorder)
         {
-            // Достаем WidgetViewModel через контейнер
+            // Достаем BaseWidgetViewModel через контейнер
             var container = GetParentOfType<ContentPresenter>(headerBorder);
-            _draggedWidgetDataContext = container?.Content as WidgetViewModel;
+            _draggedWidgetDataContext = container?.Content as BaseWidgetViewModel;
 
             if (_draggedWidgetDataContext != null)
             {
@@ -209,7 +211,7 @@ public partial class WorkspaceCanvas : UserControl
         }
 
         // Создаем графический контейнер, который теперь смотрит на ЕДИНСТВЕННЫЙ правильный источник данных
-        var widget = new WidgetViewModel(realVariableVm)
+        var widget = new LegacyWidgetViewModel(realVariableVm)
         {
             Left = x,
             Top = y,
@@ -264,7 +266,7 @@ public partial class WorkspaceCanvas : UserControl
     private Point _resizeStartPoint;
     private double _widgetStartWidth;
     private double _widgetStartHeight;
-    private WidgetViewModel? _resizingWidget;
+    private BaseWidgetViewModel? _resizingWidget;
 
     // 1. Нажатие на маркер в углу окна
     private void ResizeMarker_MouseDown(object sender, MouseButtonEventArgs e)
@@ -273,7 +275,7 @@ public partial class WorkspaceCanvas : UserControl
         if (element == null) return;
 
         // Ищем вьюмодель виджета, размер которого меняем
-        _resizingWidget = element.DataContext as WidgetViewModel;
+        _resizingWidget = element.DataContext as BaseWidgetViewModel;
         if (_resizingWidget == null) return;
 
         _isResizing = true;
@@ -345,8 +347,13 @@ public partial class WorkspaceCanvas : UserControl
     }
 
 
-
-
+    private void WidgetClose_Click(object sender, System.Windows.RoutedEventArgs e)
+    { 
+    }
+    private void WidgetSettings_Click(object sender, System.Windows.RoutedEventArgs e)
+    {
+    }
+    
 
 
 

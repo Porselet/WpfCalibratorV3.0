@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Data;
+using WpfCalibrator.ViewModels.WidgetViewModel;
+
 
 namespace WpfCalibrator.ViewModels
 {
@@ -189,9 +191,9 @@ namespace WpfCalibrator.ViewModels
         {
             // Находим виджет этой карты на экране и принудительно перестраиваем Helix-сцену!
             var mainVm = System.Windows.Application.Current?.MainWindow?.DataContext as MainViewModel;
-            var myWidget = mainVm?.ActiveWidgets?.FirstOrDefault(w => w.DataSource == this && w.ControlView == "Matrix3DSurface");
+            Matrix3DWidgetViewModel myWidget = (mainVm?.ActiveWidgets?.FirstOrDefault(w => w.DataSource == this && (w is Matrix3DWidgetViewModel)) as Matrix3DWidgetViewModel);
 
-            myWidget?.Rebuild3DSurfaceMesh();
+            myWidget?.Refresh();
 
             // Тут же в будущем будет выстрел TX-команды записи обновленной карты по UART!
         }
@@ -259,7 +261,7 @@ namespace WpfCalibrator.ViewModels
         {
             // Безопасно пинаем виджет 3D-поверхности, у которого живет лазерный меш [1.14]
             var mainVm = System.Windows.Application.Current?.MainWindow?.DataContext as MainViewModel;
-            var my3DWidget = mainVm?.ActiveWidgets?.FirstOrDefault(w => w.DataSource == this && w.ControlView == "Matrix3DSurface");
+            Matrix3DWidgetViewModel my3DWidget = (mainVm?.ActiveWidgets?.FirstOrDefault(w => w.DataSource == this && (w is Matrix3DWidgetViewModel)) as Matrix3DWidgetViewModel);
 
             my3DWidget?.UpdateLaserBeamPosition(exactCol, exactRow);
         }

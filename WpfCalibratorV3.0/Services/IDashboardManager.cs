@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels;
+using WpfCalibrator.ViewModels.WidgetViewModel;
 
 namespace WpfCalibrator.Services;
 
@@ -10,18 +11,18 @@ namespace WpfCalibrator.Services;
 /// </summary>
 public interface IDashboardManager
 {
-    void AddWidget(WidgetViewModel widget);
+    void AddWidget(BaseWidgetViewModel widget);
     void RemoveWidget(Guid widgetId);
 
     /// <summary>
     /// Конвертер «Туда»: Сериализует живые окна холста в DTO-список для сохранения в JSON [1.14]
     /// </summary>
-    List<SavedWidgetInfo> PackActiveWidgets(IEnumerable<WidgetViewModel> activeWidgets);
+    List<SavedWidgetInfo> PackActiveWidgets(IEnumerable<BaseWidgetViewModel> activeWidgets);
 
     /// <summary>
     /// Конвертер «Обратно»: Пересоздает живые виджеты из DTO-списка [1.14]
     /// </summary>
-    List<WidgetViewModel> UnpackSavedWidgets(List<SavedWidgetInfo> savedWidgets, Func<string, VariableViewModelBase> findVariableSelector);
+    List<BaseWidgetViewModel> UnpackSavedWidgets(List<SavedWidgetInfo> savedWidgets, Func<string, VariableViewModelBase> findVariableSelector);
 
     void RestoreSavedWidgets(UserViewConfig config, DeviceConfig device);
 }

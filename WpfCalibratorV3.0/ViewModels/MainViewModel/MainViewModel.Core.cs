@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 using System.Windows.Threading;
 using WpfCalibrator.Models;
 using WpfCalibrator.Services;
+using WpfCalibrator.ViewModels.WidgetViewModel;
+
 
 
 
@@ -36,8 +38,8 @@ public partial class MainViewModel : INotifyPropertyChanged
     public ObservableCollection<VariableViewModelBase> TelemetryVariables { get; } = new();
 
     // Коллекция активных виджетов на свободном холсте (Flexible Layout)
-    private ObservableCollection<WidgetViewModel> _activeWidgets = new();
-    public ObservableCollection<WidgetViewModel> ActiveWidgets
+    private ObservableCollection<BaseWidgetViewModel> _activeWidgets = new();
+    public ObservableCollection<BaseWidgetViewModel> ActiveWidgets
     {
         get => _activeWidgets;
         set

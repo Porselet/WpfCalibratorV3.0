@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels;
+using WpfCalibrator.ViewModels.WidgetViewModel;
 
 namespace WpfCalibrator.Services
 {
@@ -11,9 +12,9 @@ namespace WpfCalibrator.Services
     /// </summary>
     public class DashboardManager : IDashboardManager
     {
-        private readonly Dictionary<Guid, WidgetViewModel> _widgets = new();
+        private readonly Dictionary<Guid, BaseWidgetViewModel> _widgets = new();
 
-        public void AddWidget(WidgetViewModel widget)
+        public void AddWidget(BaseWidgetViewModel widget)
         {
             if (widget != null) _widgets[widget.Id] = widget;
         }
@@ -26,7 +27,7 @@ namespace WpfCalibrator.Services
         /// <summary>
         /// Конвертер «Туда»: Снимает слепок окон холста и пакует в структуры Гитхаба [1.14]
         /// </summary>
-        public List<SavedWidgetInfo> PackActiveWidgets(IEnumerable<WidgetViewModel> activeWidgets)
+        public List<SavedWidgetInfo> PackActiveWidgets(IEnumerable<BaseWidgetViewModel> activeWidgets)
         {
             var savedList = new List<SavedWidgetInfo>();
             if (activeWidgets == null) return savedList;
@@ -85,9 +86,9 @@ namespace WpfCalibrator.Services
         /// <summary>
         /// Конвертер «Обратно»: Создает живые объекты виджетов из DTO-списка [1.14].
         /// </summary>
-        public List<WidgetViewModel> UnpackSavedWidgets(List<SavedWidgetInfo> savedWidgets, Func<string, VariableViewModelBase> findVariableSelector)
+        public List<BaseWidgetViewModel> UnpackSavedWidgets(List<SavedWidgetInfo> savedWidgets, Func<string, VariableViewModelBase> findVariableSelector)
         {
-            var liveWidgets = new List<WidgetViewModel>();
+            var liveWidgets = new List<BaseWidgetViewModel>();
             if (savedWidgets == null || findVariableSelector == null) return liveWidgets;
 
             foreach (var info in savedWidgets)
@@ -97,7 +98,7 @@ namespace WpfCalibrator.Services
                 if (realVar == null) continue;
 
                 // Создаем чистый прибор и восстанавливаем его геометрический паспорт
-                var newWidget = new WidgetViewModel(realVar)
+                var newWidget = new LegacyWidgetViewModel(realVar)
                 {
                     Left = info.Left,
                     Top = info.Top,

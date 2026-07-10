@@ -5,12 +5,11 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
 
-namespace WpfCalibrator.ViewModels;
-
+namespace WpfCalibrator.ViewModels.WidgetViewModel;
 /// <summary>
 /// Обертка для виджета на приборной панели.
 /// </summary>
-public partial class WidgetViewModel : INotifyPropertyChanged
+public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
 {
     /// <summary>
     /// Уникальный криптографический идентификатор (GUID) текущего экземпляра виджета на холсте.
@@ -27,7 +26,7 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     /// Конструктор по умолчанию. Необходим для корректной работы визуального дизайнера XAML (Blend),
     /// а также для корректной инициализации фабрик динамического рендеринга.
     /// </summary>
-    public WidgetViewModel()
+    public BaseWidgetViewModel()
     {
         // Пустой конструктор для Blend / XAML-Designer
     }
@@ -37,31 +36,15 @@ public partial class WidgetViewModel : INotifyPropertyChanged
     /// стрелочные индикаторы и аварийные зоны под текущие физические значения.
     /// </summary>
 
-    public WidgetViewModel(VariableViewModelBase dataSource)
+    public BaseWidgetViewModel(VariableViewModelBase dataSource)
     {
         // Намертво подписываем обработчик OnDataSourcePropertyChanged на изменения в UART
         DataSource = dataSource;
 
         // Синхронизируем стартовый шаг PageUp/PageDown (например, 1.0 для таблиц)
         IncrementStep = 1.0f;
-        // 🚀 СВЯЗУЮЩИЙ МОСТ: Слушаем UART-изменения из бэкэнда данных!
-        DataSource.PropertyChanged += (s, e) =>
-        {
-            // Если в ОЗУ изменилось физическое число, заставляем UI-текст пересчитаться! [1.14]
-            if (e.PropertyName == "CurrentValue")
-            {
-                OnPropertyChanged(nameof(CurrentValueText));
-                NotifyValueAngleChanged(); // Поворачиваем стрелку круглого прибора!
-            }
-        };
-        // Аппаратно выставляем стрелки круглых и дуговых приборов под текущее рантайм-значение МК
-        NotifyValueAngleChanged();
-        RefreshAlarmTriangles();
-        // Если этот виджет создали как 3D-поверхность, сразу же принудительно строим рельеф!
-        if (ControlView == "Matrix3DSurface")
-        {
-            this.Rebuild3DSurfaceMesh();
-        }
+        return;
+
     }
 
 

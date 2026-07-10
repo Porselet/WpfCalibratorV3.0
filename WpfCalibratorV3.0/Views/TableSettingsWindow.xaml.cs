@@ -3,19 +3,20 @@ using System.Globalization;
 using System.Linq;
 using System.Windows;
 using WpfCalibrator.ViewModels;
+using WpfCalibrator.ViewModels.WidgetViewModel;
 
 namespace WpfCalibrator.Views
 {
     public partial class TableSettingsWindow : Window
     {
-        private readonly WidgetViewModel _targetWidget;
+        private readonly BaseWidgetViewModel _targetWidget;
         private readonly VariableViewModelBase _targetTable;
 
-        // Конструктор теперь принимает сам виджет WidgetViewModel
+        // Конструктор теперь принимает сам виджет BaseWidgetViewModel
         // ======================================================================
         // ЧАСТЬ 1: КОНСТРУКТОР И ВЫДЕЛЕННАЯ ФИЛЬТРАЦИЯ СПИСКОВ (ПОДФУНКЦИЯ)
         // ======================================================================
-        public TableSettingsWindow(WidgetViewModel targetWidget, List<VariableViewModelBase> allVariables)
+        public TableSettingsWindow(BaseWidgetViewModel targetWidget, List<VariableViewModelBase> allVariables)
         {
             InitializeComponent();
             _targetWidget = targetWidget;
@@ -255,7 +256,7 @@ namespace WpfCalibrator.Views
                 {
                     if (existingRadar == null)
                     {
-                        mainVm.ActiveWidgets.Add(new WidgetViewModel(_targetTable)
+                        mainVm.ActiveWidgets.Add(new LegacyWidgetViewModel(_targetTable)
                         {
                             //DataSource = _targetTable,
                             ControlView = "RadarTracker",
@@ -278,7 +279,7 @@ namespace WpfCalibrator.Views
                 {
                     if (existing3D == null)
                     {
-                        mainVm.ActiveWidgets.Add(new WidgetViewModel(_targetTable)
+                        mainVm.ActiveWidgets.Add(new Matrix3DWidgetViewModel(_targetTable)
                         {
                             //DataSource = _targetTable,
                             ControlView = "Matrix3DSurface",

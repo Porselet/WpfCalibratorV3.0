@@ -3,6 +3,8 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Windows.Input;
 using WpfCalibrator.ViewModels;
+using WpfCalibrator.ViewModels.WidgetViewModel;
+
 
 namespace WpfCalibrator.Services
 {
@@ -16,7 +18,7 @@ namespace WpfCalibrator.Services
         /// Главная точка входа: обрабатывает нажатие клавиши для активного виджета.
         /// </summary>
         /// <returns>true — если клавиша была перехвачена и обработана драйвером; false — пропустить клавишу дальше.</returns>
-        public static bool ProcessKeyDown(WidgetViewModel activeWidget, KeyEventArgs e)
+        public static bool ProcessKeyDown(BaseWidgetViewModel activeWidget, KeyEventArgs e)
         {
             if (activeWidget == null || activeWidget.DataSource == null) return false;
 
@@ -185,7 +187,7 @@ namespace WpfCalibrator.Services
             return false; // Все остальные системные клавиши пропускаем мимо
 
         }
-        private static void SendBulkUpdateToNetwork(WidgetViewModel activeWidget)
+        private static void SendBulkUpdateToNetwork(BaseWidgetViewModel activeWidget)
         {
 
             if (activeWidget?.DataSource == null) return;

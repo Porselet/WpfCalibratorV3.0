@@ -5,10 +5,10 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
 
-namespace WpfCalibrator.ViewModels;
+namespace WpfCalibrator.ViewModels.WidgetViewModel;
 
-// Часть WidgetViewModel, отвечающая за обработку ввода с клавиатуры/потенциометров
-public partial class WidgetViewModel : INotifyPropertyChanged
+// Часть BaseWidgetViewModel, отвечающая за обработку ввода с клавиатуры/потенциометров
+public partial class BaseWidgetViewModel : INotifyPropertyChanged
 {
 
     /// <summary>
