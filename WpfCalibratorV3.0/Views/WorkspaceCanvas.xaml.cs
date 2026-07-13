@@ -218,7 +218,7 @@ public partial class WorkspaceCanvas : UserControl
         {
             // Для 3D создаем строго специализированный класс!
             widget = WidgetFactory.Create(viewType, realVariableVm);//new Matrix3DWidgetViewModel(realVariableVm)
-
+            widget.Title = realVariableVm.Name;
             widget.Left = x;
             widget.Top = y;
             widget.Width = 500;
@@ -229,7 +229,7 @@ public partial class WorkspaceCanvas : UserControl
         {
             // Все остальные приборы пока создаются как Legacy
             widget = WidgetFactory.Create(viewType, realVariableVm);//new Matrix3DWidgetViewModel(realVariableVm)
-
+            widget.Title = realVariableVm.Name;
             widget.Left = x;
             widget.Top = y;
 

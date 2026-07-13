@@ -19,10 +19,29 @@ namespace WpfCalibrator.Services
                     widget = new Matrix3DWidgetViewModel(dataSource);
                     break;
 
-                // Сюда в будущем ты будешь добавлять новые чистые классы, например:
-                // case "Digital":
-                //     widget = new DigitalSensorWidgetViewModel(dataSource);
-                //     break;
+                case "RadarTracker":
+                    widget = new RadarTrackerWidgetViewModel(dataSource);
+                    break;
+
+                // Слайдеры получают свой класс геометрии линеек
+                case "SliderHorizontal":
+                case "SliderVertical":
+                    widget = new ScalarSliderWidgetViewModel(dataSource);
+                    break;
+
+                // Круглый будильник получает свой класс тригонометрии стрелок
+                case "GaugeCircular270":
+                    widget = new ScalarGaugeWidgetViewModel(dataSource);
+                    break;
+                // Выдаем светодиодной линейке её личный тригонометрический класс
+                case "GaugeArc120":
+                    widget = new ScalarLedStripWidgetViewModel(dataSource);
+                    break;
+                // Текстовое поле не считает ни пиксели, ни углы — ему хватает подродителя!
+                case "TextBox":
+                    widget = new ScalarSliderWidgetViewModel(dataSource); // можно использовать слайдерный или сделать легкий пустой класс
+                    break;
+
 
                 default:
                     // Все остальные приборы (датчики, слайдеры, радары) временно улетают в Legacy

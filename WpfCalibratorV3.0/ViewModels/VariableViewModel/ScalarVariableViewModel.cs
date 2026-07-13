@@ -29,9 +29,18 @@ namespace WpfCalibrator.ViewModels
         }
 
 
-        public double MinLimit { get; set; } // + OnPropertyChanged с обновлением SliderTicks
-        public double MaxLimit { get; set; } // + OnPropertyChanged с обновлением SliderTicks
-        //public System.Windows.Media.DoubleCollection SliderTicks { get; set; }
+        /// <summary> 1. АБСОЛЮТНЫЕ ФИЗИЧЕСКИЕ ГРАНИЦЫ ДАТЧИКА (Края шкалы слайдера) </summary>
+        private double _scaleMin = 0, _scaleMax = 100;
+        public double ScaleMin { get => _scaleMin; set { if (Math.Abs(_scaleMin - value) > 0.001) { _scaleMin = value; OnPropertyChanged(); OnPropertyChanged("MinAlarmPercent"); } } }
+        public double ScaleMax { get => _scaleMax; set { if (Math.Abs(_scaleMax - value) > 0.001) { _scaleMax = value; OnPropertyChanged(); } } }
+
+        /// <summary> 2. АВАРИЙНЫЕ ГРАНИЦЫ (Приводит к AlarmStatus.Danger и двигает треугольники) </summary>
+        public double AlarmMin { get; set; } = 1000;
+        public double AlarmMax { get; set; } = 6200;
+
+        /// <summary> 3. ЦЕЛЕВОЙ / РАБОЧИЙ ДИАПАЗОН ("Зеленая зона" нормы на приборе) </summary>
+        public double TargetMin { get; set; } = 2000;
+        public double TargetMax { get; set; } = 5000;
 
 
         /// <summary>
@@ -77,7 +86,7 @@ namespace WpfCalibrator.ViewModels
         private void CheckAlarmStatus()
         {
             if (IsParam) { IsAlarmActive = false; return; }
-            IsAlarmActive = CurrentValue < MinLimit || CurrentValue > MaxLimit;
+            IsAlarmActive = CurrentValue < AlarmMin || CurrentValue > AlarmMax;
         }
 
 

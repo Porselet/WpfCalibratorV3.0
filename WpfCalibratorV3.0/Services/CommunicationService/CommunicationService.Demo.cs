@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using WpfCalibrator.Models;
+using WpfCalibrator.ViewModels;
 
 namespace WpfCalibrator.Services
 {
@@ -115,8 +116,8 @@ namespace WpfCalibrator.Services
             double[] signalData = new double[totalElements];
 
             // Базовый дефолтный откат на шкалы прибора
-            double min = liveVariable?.ScaleMin ?? 0.0;
-            double max = liveVariable?.ScaleMax ?? 7000.0;
+            double min = (liveVariable as ScalarVariableViewModel)?.ScaleMin ?? 0.0;
+            double max = (liveVariable as ScalarVariableViewModel)?.ScaleMax ?? 7000.0;
 
             // Ищем на экране любую активную 3D-таблицу, чтобы узнать, к какой оси привязан этот датчик
             var linkedTable = DemoVariablesCache?
@@ -264,8 +265,8 @@ namespace WpfCalibrator.Services
             var liveVariable = DemoVariablesCache?.FirstOrDefault(v => v.Id == cmd.VarId);
 
             // Безопасные дефолты: если это таблица — углы 10-45°, если это ось — например, обороты до 7000
-            double min = liveVariable?.ScaleMin ?? (totalElements > 1 ? 10.0 : 0.0);
-            double max = liveVariable?.ScaleMax ?? (totalElements > 1 ? 45.0 : 7000.0);
+            double min = (liveVariable as ScalarVariableViewModel)?.ScaleMin ?? (totalElements > 1 ? 10.0 : 0.0);
+            double max = (liveVariable as ScalarVariableViewModel)?.ScaleMax ?? (totalElements > 1 ? 45.0 : 7000.0);
             double delta = max - min;
 
             // Ищем, к какому типу относится переменная в бэкэнде

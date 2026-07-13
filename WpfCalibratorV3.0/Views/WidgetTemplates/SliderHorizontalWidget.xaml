@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels.WidgetViewModel">
     <!-- ====================================================================== -->
     <!-- ШАБЛОН ГОРИЗОНТАЛЬНОГО ПОЛЗУНКА (SLIDER HORIZONTAL WIDGET)            -->
     <!-- 1. Использует Viewbox для сохранения пропорций всего виджета на экране.-->
@@ -9,7 +9,9 @@
     <!--    позволяя инженеру плавно изменять калибровки линейными движениями.  -->
     <!-- ====================================================================== -->
 
-    <DataTemplate x:Key="WidgetSliderTemplate">
+    <DataTemplate
+        x:Key="WidgetSliderTemplate"
+        DataType="{x:Type viewmodels:BaseScalarWidgetViewModel}">
         <Grid Margin="5">
             <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <!-- Компактный, узкий прибор строго под шкалу -->

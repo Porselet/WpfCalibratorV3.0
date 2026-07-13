@@ -49,15 +49,15 @@ namespace WpfCalibrator.Services
                     ModelId = widget.DataSource.ModelId,
                     IncrementStep = widget.IncrementStep,
                     IsVertical = widget.IsVertical,
-                    ScaleMin = (float)widget.DataSource.ScaleMin,
-                    ScaleMax = (float)widget.DataSource.ScaleMax
                 };
 
                 // Безопасно вытягиваем лимиты из скаляра через паттерн-матчинг [1.14]
                 if (widget.DataSource is ScalarVariableViewModel scalar)
                 {
-                    info.MinLimit = (float)scalar.MinLimit;
-                    info.MaxLimit = (float)scalar.MaxLimit;
+                    info.MinLimit = (float)scalar.AlarmMin;
+                    info.MaxLimit = (float)scalar.AlarmMax;
+                    info.ScaleMin = (float)scalar.ScaleMin;
+                    info.ScaleMax = (float)scalar.ScaleMax;
                 }
 
                 // Запись утренних флагов графики и связей Look-Up таблиц [1.14]
@@ -98,6 +98,7 @@ namespace WpfCalibrator.Services
                 var realVar = findVariableSelector(info.VarName);
                 if (realVar == null) continue;
                 BaseWidgetViewModel newWidget = WidgetFactory.Create(info.ControlView, realVar);
+                newWidget.Title = info.VarName;
                 newWidget.Left = info.Left;
                 newWidget.Top = info.Top;
                 newWidget.Width = info.Width;
@@ -110,15 +111,15 @@ namespace WpfCalibrator.Services
                 newWidget.Show3DSurface = info.TableBindings?.Show3DSurface ?? false;     
 
 
-                // Восстанавливаем физические масштабы шкал
-                realVar.ScaleMin = info.ScaleMin;
-                realVar.ScaleMax = info.ScaleMax;
+
 
                 // Безопасно накатываем лимиты алармов только на скаляры-датчики [1.14]
                 if (realVar is ScalarVariableViewModel scalar)
                 {
-                    scalar.MinLimit = info.MinLimit;
-                    scalar.MaxLimit = info.MaxLimit;
+                    scalar.AlarmMin = info.MinLimit;
+                    scalar.AlarmMax = info.MaxLimit;
+                    scalar.ScaleMin = info.ScaleMin;
+                    scalar.ScaleMax = info.ScaleMax;
                 }
 
                 // Полиморфно линкуем оцифрованные оси шкал (только для табличной базы) [1.14]

@@ -47,12 +47,23 @@
             <ItemsControl.Resources>
                 <DataTemplate
                     DataType="{x:Type viewmodels:Matrix3DWidgetViewModel}">
+                    <!-- Передаем сам объект вьюмодели внутрь шаблона 3D-сцены! -->
                     <ContentControl
+                        Content="{Binding}"
                         ContentTemplate="{StaticResource Matrix3DSurfaceTemplate}" />
                 </DataTemplate>
+                <DataTemplate
+                    DataType="{x:Type viewmodels:RadarTrackerWidgetViewModel}">
+                    <ContentControl
+                        Content="{Binding}"
+                        ContentTemplate="{StaticResource RadarTrackerTrackerTemplate}" />
+                </DataTemplate>
+
+
                 <Style
-                    x:Key="LegacyWidgetStyle"
-                    TargetType="ContentControl">
+                    TargetType="ContentControl"
+                    BasedOn="{StaticResource {x:Type ContentControl}}">
+
                     <Style.Triggers>
                         <!-- Добавь DataTrigger для 3D, digital, матриц и т.д. -->
 
@@ -127,14 +138,7 @@
                         </DataTrigger>
 
 
-                        <!-- АВИАЦИОННЫЙ СУБСЕТОЧНЫЙ ПРИЦЕЛ -->
-                        <DataTrigger
-                            Binding="{Binding ControlView}"
-                            Value="RadarTracker">
-                            <Setter
-                                Property="ContentTemplate"
-                                Value="{StaticResource RadarTrackerTrackerTemplate}" />
-                        </DataTrigger>
+
 
 
                     </Style.Triggers>
@@ -213,7 +217,7 @@
                             <ContentControl
                                 Grid.Row="1"
                                 Content="{Binding}"
-                                Style="{StaticResource LegacyWidgetStyle}" />
+                                 />
                             <Border
                                 Grid.Row="1"
                                 Panel.ZIndex="10"

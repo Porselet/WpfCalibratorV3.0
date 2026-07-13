@@ -189,7 +189,10 @@ public partial class BaseWidgetViewModel : INotifyPropertyChanged
         // Ручной ввод с ограничением по лимитам
         if (float.TryParse(InputBuffer, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out float currentValue))
         {
-            float newValue = Math.Clamp(currentValue + step, (float)DataSource.ScaleMin, (float)DataSource.ScaleMax);
+            float newValue = currentValue + step;
+            if (DataSource is ScalarVariableViewModel ds)
+                Math.Clamp(currentValue + step, (float)ds.ScaleMin, (float)ds.ScaleMax);
+
             InputBuffer = newValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
             // Синхронизация ячейки через TableVariableViewModelBase

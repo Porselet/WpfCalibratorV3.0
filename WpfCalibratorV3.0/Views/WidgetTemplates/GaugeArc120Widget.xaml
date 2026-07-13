@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels.WidgetViewModel">
 
     <!-- ====================================================================== -->
     <!-- ШАБЛОН СВЕТОДИОДНОГО БАРГРАФА (ИНДИКАТОР ИЗ 10 LED-ДИОДОВ)             -->
@@ -12,7 +12,9 @@
     <!-- ====================================================================== -->
 
 
-    <DataTemplate x:Key="WidgetArcGaugeTemplate">
+    <DataTemplate
+        x:Key="WidgetArcGaugeTemplate"
+        DataType="{x:Type viewmodels:ScalarLedStripWidgetViewModel}">
         <Grid Margin="5">
             <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <!-- Узкий компактный блок строго под размер LED-линейки -->
@@ -65,7 +67,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[0]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[0]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -84,7 +86,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[1]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[1]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -103,7 +105,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[2]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[2]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -122,7 +124,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[3]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[3]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -141,7 +143,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[4]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[4]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -160,7 +162,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[5]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[5]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -181,7 +183,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[6]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[6]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -200,7 +202,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[7]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[7]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -221,7 +223,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[8]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[8]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">
@@ -240,7 +242,7 @@
                                     <Ellipse.Style>
                                         <Style TargetType="Ellipse" BasedOn="{StaticResource {x:Type Ellipse}}">
                                             <Style.Triggers>
-                                                <DataTrigger Binding="{Binding DataSource.LedStates[9]}" Value="True">
+                                                <DataTrigger Binding="{Binding LedStates[9]}" Value="True">
                                                     <Setter Property="Fill">
                                                         <Setter.Value>
                                                             <RadialGradientBrush Center="0.4,0.4" RadiusX="0.7" RadiusY="0.7">

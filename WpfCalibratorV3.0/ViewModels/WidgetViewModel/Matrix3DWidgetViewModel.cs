@@ -11,6 +11,14 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
     {
         public Matrix3DWidgetViewModel(VariableViewModelBase dataSource) : base(dataSource)
         {
+            // Принудительно прописываем свойство сразу, чтобы Rebuild его увидел!
+            this.DataSource = dataSource;
+
+            if (DataSource != null)
+            {
+                DataSource.PropertyChanged += OnDataSourcePropertyChanged;
+            }
+
 
             if (ControlView == "Matrix3DSurface")
             {
@@ -25,8 +33,8 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             if (DataSource is TableVariableViewModelBase tableVar)
             {
                 // А) Если обновились координаты смещения радара в ОЗУ — двигаем мишень
-                if (e.PropertyName == "RadarGridOffsetX") OnPropertyChanged(nameof(RadarGridOffsetX));
-                if (e.PropertyName == "RadarGridOffsetY") OnPropertyChanged(nameof(RadarGridOffsetY));
+                //if (e.PropertyName == "RadarGridOffsetX") OnPropertyChanged(nameof(RadarGridOffsetX));
+                //if (e.PropertyName == "RadarGridOffsetY") OnPropertyChanged(nameof(RadarGridOffsetY));
 
                 // Б) 🔥 ВОТ ОН — СЕТЕВОЙ ЗАПУСК 3D-ГОР:
                 // Если бэкэнд сообщает, что изменился массив калибровок, 
@@ -37,6 +45,11 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
                     {
                         // Мгновенно двигаем синие шары со скоростью 60 FPS, вообще не трогая саму гору!
                         this.Refresh3DSelectionOnly();
+                        // 2. 🔥 ЖИЗНЕННО ВАЖНО: Хакерский пинок для WPF, чтобы он перерисовал Helix!
+                        OnPropertyChanged(nameof(SurfaceMesh));
+                        OnPropertyChanged(nameof(SurfaceLines));
+                        OnPropertyChanged(nameof(AllSpheresModel)); // если используешь шарики на узлах
+
                     }
                 }
                 if (e.PropertyName == "MatrixData" || e.PropertyName == "CurrentValue")
@@ -46,6 +59,11 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
                         //if (IsEditing || DataSource.IsUpdatingFromNetwork) return; // Защита Helix [1.14]
                         // Вызываем наш тяжелый метод пересчета мешей и триангуляции!
                         this.Rebuild3DSurfaceMesh();
+                        // 2. 🔥 ЖИЗНЕННО ВАЖНО: Хакерский пинок для WPF, чтобы он перерисовал Helix!
+                        OnPropertyChanged(nameof(SurfaceMesh));
+                        OnPropertyChanged(nameof(SurfaceLines));
+                        OnPropertyChanged(nameof(AllSpheresModel)); // если используешь шарики на узлах
+
                     }
                 }
             }
@@ -190,6 +208,13 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             // Атомарно закидываем меши в графический конвейер WPF
             System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
             {
+
+                // 🔥 ХАКЕРСКАЯ ЗАМОРОЗКА: делаем объекты общими для всех потоков!
+                res.Mesh?.Freeze();
+                res.Edges?.Freeze();
+                res.BoundingBox?.Freeze();
+
+
                 SurfaceMesh = res.Mesh;
                 SurfaceLines = res.Edges;
                 BoundingBoxLines = res.BoundingBox;

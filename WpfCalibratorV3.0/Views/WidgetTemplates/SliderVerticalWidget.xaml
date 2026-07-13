@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels.WidgetViewModel">
 
     <!-- ====================================================================== -->
     <!-- ШАБЛОН ВЕРТИКАЛЬНОГО ПОЛЗУНКА (SLIDER VERTICAL WIDGET)                -->
@@ -10,7 +10,9 @@
     <!-- 3. Обеспечивает линейное изменение параметра при перемещении вверх-вниз.-->
     <!-- ====================================================================== -->
 
-    <DataTemplate x:Key="WidgetVerticalSliderTemplate">
+    <DataTemplate
+        x:Key="WidgetVerticalSliderTemplate"
+        DataType="{x:Type viewmodels:BaseScalarWidgetViewModel}">
         <Grid Margin="5">
             <Viewbox Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                 <!-- Компактный вертикальный прибор MoTeC-Style -->

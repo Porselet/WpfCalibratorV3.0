@@ -1,6 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels">
+                     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels.WidgetViewModel">
 
     <!-- ====================================================================== -->
     <!-- ШАБЛОН ДВУМЕРНОГО РАДАР-ТРЕКЕРА (ПОЛЯРНЫЙ АВИАЦИОННЫЙ ПРИЦЕЛ)          -->
@@ -12,7 +12,9 @@
     <!--    на основе живого математического потока данных из прошивки МК.      -->
     <!-- ====================================================================== -->
 
-    <DataTemplate x:Key="RadarTrackerTrackerTemplate">
+    <DataTemplate
+        x:Key="RadarTrackerTrackerTemplate"
+        DataType="{x:Type viewmodels:RadarTrackerWidgetViewModel}">
         <Grid Margin="5">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>

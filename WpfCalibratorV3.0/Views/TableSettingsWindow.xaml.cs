@@ -111,7 +111,9 @@ namespace WpfCalibrator.Views
                             LabelLimits, PanelLimits,
                             LabelScaleRange, PanelScaleRange,
                             LabelOrientation, PanelOrientation,
-                            LabelStyle, ComboStyle
+                            LabelStyle, ComboStyle,
+                            CheckShowRadar, LabelShowRadar,
+                            LabelShow3D, CheckShow3D
 
                         );
 
@@ -162,6 +164,7 @@ namespace WpfCalibrator.Views
             }
             else
             {
+                var _targetTableScalar = _targetTable as ScalarVariableViewModel;
                 // === ТИП 4: СИГНАЛ ТЕЛЕМЕТРИИ / ЖИВОЙ ДАТЧИК ===
                 TableNameText.Text = _targetTable.Name;
 
@@ -173,12 +176,12 @@ namespace WpfCalibrator.Views
                     LabelEnableVisualAlarm, CheckEnableVisualAlarm);
 
                 // Безопасно выводим лимиты алармов (если бесконечность — оставляем поле пустым) [1.14]
-                TextMinLimit.Text = double.IsNegativeInfinity(_targetTable.MinLimit) ? string.Empty : _targetTable.MinLimit.ToString("F1");
-                TextMaxLimit.Text = double.IsPositiveInfinity(_targetTable.MaxLimit) ? string.Empty : _targetTable.MaxLimit.ToString("F1");
+                TextMinLimit.Text = double.IsNegativeInfinity(_targetTableScalar.AlarmMin) ? string.Empty : _targetTableScalar.AlarmMin.ToString("F1");
+                TextMaxLimit.Text = double.IsPositiveInfinity(_targetTableScalar.AlarmMax) ? string.Empty : _targetTableScalar.AlarmMax.ToString("F1");
 
                 // Выводим границы шкал слайдеров/графиков
-                TextScaleMin.Text = _targetTable.ScaleMin.ToString("F1");
-                TextScaleMax.Text = _targetTable.ScaleMax.ToString("F1");
+                TextScaleMin.Text = (_targetTable as ScalarVariableViewModel)?.ScaleMin.ToString("F1");
+                TextScaleMax.Text = (_targetTable as ScalarVariableViewModel)?.ScaleMax.ToString("F1");
 
                 // Подтягиваем состояние аларм-светодиода из виджета
                 CheckEnableVisualAlarm.IsChecked = _targetWidget.EnableVisualAlarm;
@@ -258,6 +261,7 @@ namespace WpfCalibrator.Views
                     if (existingRadar == null)
                     {
                         var widget = WidgetFactory.Create("RadarTracker", _targetTable);
+                        widget.Title = _targetTable.Name;
                         widget.ControlView = "RadarTracker";
                         widget.Left = _targetWidget.Left + _targetWidget.Width + 20;
                         widget.Top = _targetWidget.Top;
@@ -280,6 +284,7 @@ namespace WpfCalibrator.Views
                     if (existing3D == null)
                     {
                         var widget = WidgetFactory.Create("Matrix3DSurface", _targetTable);
+                        widget.Title = _targetTable.Name;
                         widget.Left = _targetWidget.Left;
                         widget.Top = _targetWidget.Top + _targetWidget.Height + 20;
                         widget.Width = 400;
@@ -298,12 +303,13 @@ namespace WpfCalibrator.Views
             if (_targetTable != null && !_targetTable.IsParam)
             {
                 var inv = System.Globalization.CultureInfo.InvariantCulture;
+                var _targetTableScalar = _targetTable as ScalarVariableViewModel;
 
-                _targetTable.MinLimit = (float)(double.TryParse(TextMinLimit.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double min) ? min : double.NegativeInfinity);
-                _targetTable.MaxLimit = (float)(double.TryParse(TextMaxLimit.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double max) ? max : double.PositiveInfinity);
+                _targetTableScalar.AlarmMin = (float)(double.TryParse(TextMinLimit.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double min) ? min : double.NegativeInfinity);
+                _targetTableScalar.AlarmMax = (float)(double.TryParse(TextMaxLimit.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double max) ? max : double.PositiveInfinity);
 
-                if (double.TryParse(TextScaleMin.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMin)) _targetTable.ScaleMin = (float)sMin;
-                if (double.TryParse(TextScaleMax.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMax)) _targetTable.ScaleMax = (float)sMax;
+                if (double.TryParse(TextScaleMin.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMin)) (_targetTable as ScalarVariableViewModel)?.ScaleMin = (float)sMin;
+                if (double.TryParse(TextScaleMax.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMax)) (_targetTable as ScalarVariableViewModel)?.ScaleMax = (float)sMax;
 
                 _targetWidget.EnableVisualAlarm = CheckEnableVisualAlarm.IsChecked == true;
             }

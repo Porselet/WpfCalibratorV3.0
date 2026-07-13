@@ -153,8 +153,8 @@ namespace WpfCalibrator.ViewModels
                         double newValue = currentValue + step;
 
                         // Жесткая отсечка по краям
-                        if (newValue > ScaleMax) newValue = ScaleMax;
-                        if (newValue < ScaleMin) newValue = ScaleMin;
+                        //if (newValue > ScaleMax) newValue = ScaleMax;
+                        //if (newValue < ScaleMin) newValue = ScaleMin;
 
                         cell.ValueText = newValue.ToString("F2");
                     }
@@ -232,8 +232,8 @@ namespace WpfCalibrator.ViewModels
         {
             // Зажимаем число в физические лимиты шкалы прибора
             double finalValue = parsedValue;
-            if (finalValue > ScaleMax) finalValue = ScaleMax;
-            if (finalValue < ScaleMin) finalValue = ScaleMin;
+            //if (finalValue > ScaleMax) finalValue = ScaleMax;
+            //if (finalValue < ScaleMin) finalValue = ScaleMin;
 
             // Бежим по общей коллекции ячеек UniformGrid
             foreach (var cell in MatrixCells)

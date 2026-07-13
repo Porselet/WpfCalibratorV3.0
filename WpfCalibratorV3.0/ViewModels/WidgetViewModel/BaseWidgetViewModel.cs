@@ -22,6 +22,21 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
     private VariableViewModelBase? _dataSource;
 
 
+    private string _title = "";
+    public string Title
+    {
+        get => _title;
+        set
+        {
+            if (_title != value)
+            {
+                _title = value;
+                // Вызываем твой родной метод уведомления WPF:
+                OnPropertyChanged(nameof(Title));
+            }
+        }
+    }
+
     /// <summary>
     /// Конструктор по умолчанию. Необходим для корректной работы визуального дизайнера XAML (Blend),
     /// а также для корректной инициализации фабрик динамического рендеринга.
@@ -90,19 +105,6 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Физическая координата смещения моторной точки по горизонтали (ось X) на координатной сетке.
-    /// Безопасно вычисляется интерполятором только в том случае, если DataSource является табличным типом.
-    /// </summary>
-
-    public double RadarGridOffsetX => (DataSource is TableVariableViewModelBase t) ? t.RadarGridOffsetX : 0;
-    /// <summary>
-    /// Физическая координата смещения моторной точки по горизонтали (ось Y) на координатной сетке.
-    /// Безопасно вычисляется интерполятором только в том случае, если DataSource является табличным типом.
-    /// </summary>
-
-    public double RadarGridOffsetY => (DataSource is TableVariableViewModelBase t) ? t.RadarGridOffsetY : 0;
-
 
  
 
@@ -133,7 +135,41 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
 
 
 
+    /// <summary>
+    /// Физический источник данных для прибора (его цифровая переменная в ОЗУ контроллера).
+    /// При установке автоматически отписывается от старого объекта для предотвращения утечек памяти
+    /// и подписывает реактивный диспетчер на события PropertyChanged нового датчика.
+    /// </summary>
 
+    public VariableViewModelBase? DataSource
+    {
+        get => _dataSource;
+        set
+        {
+            // Если датчик тот же самый — ничего не делаем
+            if (_dataSource == value) return;
+
+            // Отписываемся от старого (страховка для сборщика мусора при удалении виджета)
+            if (_dataSource != null) _dataSource.PropertyChanged -= OnDataSourcePropertyChanged;
+
+            _dataSource = value;
+
+            // Намертво привязываем уши виджета к новому датчику
+            if (_dataSource != null) _dataSource.PropertyChanged += OnDataSourcePropertyChanged;
+
+            OnPropertyChanged();
+        }
+    }
+
+    /// <summary>
+    /// Реактивный сетевой диспетчер прерываний: вызывается при изменении любого свойства в связанной переменной.
+    /// Перехватывает обновления из потока приёма UART и маршрутизирует их по двум независимым потокам
+    /// (для одиночных скаляров-датчиков и для смещения прицела радарных UniformGrid-мишеней).
+    /// </summary>
+
+    protected virtual void OnDataSourcePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+    }
 
 
 
