@@ -17,7 +17,7 @@ class LegacyWidgetViewModel: BaseWidgetViewModel
             // Если в ОЗУ изменилось физическое число, заставляем UI-текст пересчитаться! [1.14]
             if (e.PropertyName == "CurrentValue")
             {
-                OnPropertyChanged(nameof(CurrentValueText));
+                //OnPropertyChanged(nameof(CurrentValueText));
                
             }
         };

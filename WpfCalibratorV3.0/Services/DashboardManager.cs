@@ -45,7 +45,7 @@ namespace WpfCalibrator.Services
                     Top = widget.Top,
                     Width = widget.Width,
                     Height = widget.Height,
-                    EnableVisualAlarm = widget.EnableVisualAlarm,
+                    EnableVisualAlarm = (widget as BaseScalarWidgetViewModel)?.EnableVisualAlarm ?? false,
                     ModelId = widget.DataSource.ModelId,
                     IncrementStep = widget.IncrementStep,
                     IsVertical = widget.IsVertical,
@@ -66,8 +66,8 @@ namespace WpfCalibrator.Services
                     info.TableBindings = new LutBindings
                     {
                         HasBindings = true,
-                        ShowRadarTracker = widget.ShowRadarTracker, // Наш утренний флаг [1.14]
-                        Show3DSurface = widget.Show3DSurface,       // Наш утренний флаг [1.14]
+                        ShowRadarTracker = (widget as MatrixTableWidgetViewModel)?.ShowRadarTracker ?? false, // Наш утренний флаг [1.14]
+                        Show3DSurface = (widget as MatrixTableWidgetViewModel)?.Show3DSurface ?? false,       // Наш утренний флаг [1.14]
                         AxisX_VarName = tableVar.BoundAxisX?.Name ?? "",
                         InputX_VarName = tableVar.BoundInputX?.Name ?? ""
                     };
@@ -106,10 +106,16 @@ namespace WpfCalibrator.Services
                 newWidget.ControlView = info.ControlView;
                 newWidget.IncrementStep = info.IncrementStep;
                 newWidget.IsVertical = info.IsVertical;
-                newWidget.EnableVisualAlarm = info.EnableVisualAlarm;
-                newWidget.ShowRadarTracker = info.TableBindings?.ShowRadarTracker ?? true;
-                newWidget.Show3DSurface = info.TableBindings?.Show3DSurface ?? false;     
-
+                
+                if (newWidget is BaseScalarWidgetViewModel sw)
+                {
+                    sw.EnableVisualAlarm = info.EnableVisualAlarm;
+                }
+                if (newWidget is MatrixTableWidgetViewModel nw)
+                {
+                    nw.ShowRadarTracker = info.TableBindings?.ShowRadarTracker ?? true;
+                    nw.Show3DSurface = info.TableBindings?.Show3DSurface ?? false;
+                }
 
 
 

@@ -11,7 +11,7 @@ namespace WpfCalibrator.Views
     public partial class TableSettingsWindow : Window
     {
         private readonly BaseWidgetViewModel _targetWidget;
-        private readonly VariableViewModelBase _targetTable;
+        private readonly VariableViewModelBase _targetVariableViewModel;
 
         // Конструктор теперь принимает сам виджет BaseWidgetViewModel
         // ======================================================================
@@ -21,11 +21,11 @@ namespace WpfCalibrator.Views
         {
             InitializeComponent();
             _targetWidget = targetWidget;
-            _targetTable = targetWidget.DataSource;
+            _targetVariableViewModel = targetWidget.DataSource;
 
-            if (_targetTable != null)
+            if (_targetVariableViewModel != null)
             {
-                TableNameText.Text = _targetTable.Name;
+                TableNameText.Text = _targetVariableViewModel.Name;
             }
 
             TextIncrementStep.Text = _targetWidget.IncrementStep.ToString("F3", CultureInfo.InvariantCulture);
@@ -64,10 +64,10 @@ namespace WpfCalibrator.Views
         /// </summary>
         private void RestoreExistingBindings()
         {
-            if (_targetTable == null) return;
+            if (_targetVariableViewModel == null) return;
 
             // Распознаем общую табличную базу (1D и 3D) [1.14]
-            if (_targetTable is TableVariableViewModelBase tableVar)
+            if (_targetVariableViewModel is TableVariableViewModelBase tableVar)
             {
                 if (tableVar.BoundAxisX != null && ComboAxisX.ItemsSource is List<CurveVariableViewModel> axisList)
                     ComboAxisX.SelectedItem = axisList.FirstOrDefault(v => v.Name == tableVar.BoundAxisX.Name);
@@ -77,7 +77,7 @@ namespace WpfCalibrator.Views
             }
 
             // Эксклюзивные проверки вертикальной оси Y для 3D-матриц [1.14]
-            if (_targetTable is Map3DVariableViewModel map3D)
+            if (_targetVariableViewModel is Map3DVariableViewModel map3D)
             {
                 if (map3D.BoundAxisY != null && ComboAxisY.ItemsSource is List<CurveVariableViewModel> axisList)
                     ComboAxisY.SelectedItem = axisList.FirstOrDefault(v => v.Name == map3D.BoundAxisY.Name);
@@ -92,11 +92,11 @@ namespace WpfCalibrator.Views
         /// </summary>
         private void SetupWindowLayout()
         {
-            if (_targetWidget == null || _targetTable == null) return;
+            if (_targetWidget == null || _targetVariableViewModel == null) return;
 
             // 1. Считываем настройки графики строго из виджета (для сохранения рабочих столов) [1.14]
-            CheckShowRadar.IsChecked = _targetWidget.ShowRadarTracker;
-            CheckShow3D.IsChecked = _targetWidget.Show3DSurface;
+            CheckShowRadar.IsChecked = (_targetWidget as MatrixTableWidgetViewModel)?.ShowRadarTracker;
+            CheckShow3D.IsChecked = (_targetWidget as MatrixTableWidgetViewModel)?.Show3DSurface;
             RadioVertical.IsChecked = _targetWidget.IsVertical;
             RadioHorizontal.IsChecked = !_targetWidget.IsVertical;
 
@@ -123,14 +123,14 @@ namespace WpfCalibrator.Views
             // ======================================================================
             if (_targetWidget.ControlView == "RadarTracker")
             {
-                TableNameText.Text = $"{_targetTable.Name} (Прицел)";
+                TableNameText.Text = $"{_targetVariableViewModel.Name} (Прицел)";
                 this.Height = 120;
             }
-            else if (_targetTable.IsParam)
+            else if (_targetVariableViewModel.IsParam)
             {
-                TableNameText.Text = _targetTable.Name;
+                TableNameText.Text = _targetVariableViewModel.Name;
 
-                if (_targetTable is Map3DVariableViewModel)
+                if (_targetVariableViewModel is Map3DVariableViewModel)
                 {
                     // ТИП 1: Двумерная 3D-Карта (видимость элементов)
                     SetVisibility(Visibility.Visible, 
@@ -143,7 +143,7 @@ namespace WpfCalibrator.Views
                         CheckShow3D, LabelShow3D);
                     this.Height = 400;
                 }
-                else if (_targetTable is CurveVariableViewModel)
+                else if (_targetVariableViewModel is CurveVariableViewModel)
                 {
                     // ТИП 2: Одномерный Вектор (видимость элементов)
                     SetVisibility(Visibility.Visible, 
@@ -154,7 +154,7 @@ namespace WpfCalibrator.Views
                         CheckShowRadar, LabelShowRadar);
                     this.Height = 290;
                 }
-                else if (_targetTable is ScalarVariableViewModel)
+                else if (_targetVariableViewModel is ScalarVariableViewModel)
                 {
                     // ТИП 3: Одиночная уставка-константа (видимость элементов)
                     SetVisibility(Visibility.Visible, 
@@ -164,9 +164,9 @@ namespace WpfCalibrator.Views
             }
             else
             {
-                var _targetTableScalar = _targetTable as ScalarVariableViewModel;
+                var _targetTableScalar = _targetVariableViewModel as ScalarVariableViewModel;
                 // === ТИП 4: СИГНАЛ ТЕЛЕМЕТРИИ / ЖИВОЙ ДАТЧИК ===
-                TableNameText.Text = _targetTable.Name;
+                TableNameText.Text = _targetVariableViewModel.Name;
 
                 // Включаем блоки стилей, критических алармов и масштаба шкал
                 SetVisibility(Visibility.Visible, 
@@ -180,11 +180,11 @@ namespace WpfCalibrator.Views
                 TextMaxLimit.Text = double.IsPositiveInfinity(_targetTableScalar.AlarmMax) ? string.Empty : _targetTableScalar.AlarmMax.ToString("F1");
 
                 // Выводим границы шкал слайдеров/графиков
-                TextScaleMin.Text = (_targetTable as ScalarVariableViewModel)?.ScaleMin.ToString("F1");
-                TextScaleMax.Text = (_targetTable as ScalarVariableViewModel)?.ScaleMax.ToString("F1");
+                TextScaleMin.Text = (_targetVariableViewModel as ScalarVariableViewModel)?.ScaleMin.ToString("F1");
+                TextScaleMax.Text = (_targetVariableViewModel as ScalarVariableViewModel)?.ScaleMax.ToString("F1");
 
                 // Подтягиваем состояние аларм-светодиода из виджета
-                CheckEnableVisualAlarm.IsChecked = _targetWidget.EnableVisualAlarm;
+                CheckEnableVisualAlarm.IsChecked = (_targetWidget as BaseScalarWidgetViewModel)?.EnableVisualAlarm ?? false;
 
                 // Настраиваем выбранный индекс графического стиля в комбобоксе
                 ComboStyle.SelectedIndex = _targetWidget.ControlView switch
@@ -230,7 +230,7 @@ namespace WpfCalibrator.Views
             // ======================================================================
             // 2. СОХРАНЕНИЕ ПРИВЯЗОК ОЦЕФРОВКИ ОСЕЙ (Универсальная табличная база)
             // ======================================================================
-            if (_targetTable is TableVariableViewModelBase tableVar)
+            if (_targetVariableViewModel is TableVariableViewModelBase tableVar)
             {
                 tableVar.BoundAxisX = ComboAxisX.SelectedItem as CurveVariableViewModel;
                 tableVar.BoundInputX = ComboInputX.SelectedItem as ScalarVariableViewModel;
@@ -249,19 +249,19 @@ namespace WpfCalibrator.Views
             if (mainVm != null && mainVm.ActiveWidgets != null)
             {
                 // Управление радаром и 3D-поверхностью на основе чекбоксов [1.14]
-                _targetWidget.ShowRadarTracker = CheckShowRadar.IsChecked == true;
-                _targetWidget.Show3DSurface = CheckShow3D.IsChecked == true;
+                (_targetWidget as MatrixTableWidgetViewModel)?.ShowRadarTracker = CheckShowRadar.IsChecked == true;
+                (_targetWidget as MatrixTableWidgetViewModel)?.Show3DSurface = CheckShow3D.IsChecked == true;
 
                 // --- УПРАВЛЕНИЕ ПЛАВАЮЩИМ ПРИЦЕЛОМ-РАДАРОМ ---
-                _targetWidget.ShowRadarTracker = CheckShowRadar.IsChecked == true;
-                var existingRadar = mainVm.ActiveWidgets.FirstOrDefault(w => w.DataSource == _targetTable && w.ControlView == "RadarTracker");
+                (_targetWidget as MatrixTableWidgetViewModel)?.ShowRadarTracker = CheckShowRadar.IsChecked == true;
+                var existingRadar = mainVm.ActiveWidgets.FirstOrDefault(w => w.DataSource == _targetVariableViewModel && w.ControlView == "RadarTracker");
 
-                if (_targetWidget.ShowRadarTracker)
+                if ((_targetWidget as MatrixTableWidgetViewModel)?.ShowRadarTracker ?? false)
                 {
                     if (existingRadar == null)
                     {
-                        var widget = WidgetFactory.Create("RadarTracker", _targetTable);
-                        widget.Title = _targetTable.Name;
+                        var widget = WidgetFactory.Create("RadarTracker", _targetVariableViewModel);
+                        widget.Title = _targetVariableViewModel.Name;
                         widget.ControlView = "RadarTracker";
                         widget.Left = _targetWidget.Left + _targetWidget.Width + 20;
                         widget.Top = _targetWidget.Top;
@@ -276,15 +276,15 @@ namespace WpfCalibrator.Views
                     mainVm.ActiveWidgets.Remove(existingRadar);
                 }
                 // --- УПРАВЛЕНИЕ 3D-РЕЛЬЕФОМ HELIX ---
-                _targetWidget.Show3DSurface = CheckShow3D.IsChecked == true;
-                var existing3D = mainVm.ActiveWidgets.FirstOrDefault(w => w.DataSource == _targetTable && w.ControlView == "Matrix3DSurface");
+                (_targetWidget as MatrixTableWidgetViewModel)?.Show3DSurface = CheckShow3D.IsChecked == true;
+                var existing3D = mainVm.ActiveWidgets.FirstOrDefault(w => w.DataSource == _targetVariableViewModel && w.ControlView == "Matrix3DSurface");
 
-                if (_targetWidget.Show3DSurface)
+                if ((_targetWidget as MatrixTableWidgetViewModel)?.Show3DSurface ?? false)
                 {
                     if (existing3D == null)
                     {
-                        var widget = WidgetFactory.Create("Matrix3DSurface", _targetTable);
-                        widget.Title = _targetTable.Name;
+                        var widget = WidgetFactory.Create("Matrix3DSurface", _targetVariableViewModel);
+                        widget.Title = _targetVariableViewModel.Name;
                         widget.Left = _targetWidget.Left;
                         widget.Top = _targetWidget.Top + _targetWidget.Height + 20;
                         widget.Width = 400;
@@ -300,18 +300,18 @@ namespace WpfCalibrator.Views
               // ======================================================================
               // 4. ПАРСИНГ КРИТИЧЕСКИХ ЛИМИТОВ ДАТЧИКОВ ТЕЛЕМЕТРИИ
               // ======================================================================
-            if (_targetTable != null && !_targetTable.IsParam)
+            if (_targetVariableViewModel != null && !_targetVariableViewModel.IsParam)
             {
                 var inv = System.Globalization.CultureInfo.InvariantCulture;
-                var _targetTableScalar = _targetTable as ScalarVariableViewModel;
+                var _targetTableScalar = _targetVariableViewModel as ScalarVariableViewModel;
 
                 _targetTableScalar.AlarmMin = (float)(double.TryParse(TextMinLimit.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double min) ? min : double.NegativeInfinity);
                 _targetTableScalar.AlarmMax = (float)(double.TryParse(TextMaxLimit.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double max) ? max : double.PositiveInfinity);
 
-                if (double.TryParse(TextScaleMin.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMin)) (_targetTable as ScalarVariableViewModel)?.ScaleMin = (float)sMin;
-                if (double.TryParse(TextScaleMax.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMax)) (_targetTable as ScalarVariableViewModel)?.ScaleMax = (float)sMax;
+                if (double.TryParse(TextScaleMin.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMin)) (_targetVariableViewModel as ScalarVariableViewModel)?.ScaleMin = (float)sMin;
+                if (double.TryParse(TextScaleMax.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMax)) (_targetVariableViewModel as ScalarVariableViewModel)?.ScaleMax = (float)sMax;
 
-                _targetWidget.EnableVisualAlarm = CheckEnableVisualAlarm.IsChecked == true;
+                (_targetWidget as BaseScalarWidgetViewModel)?.EnableVisualAlarm = CheckEnableVisualAlarm.IsChecked == true;
             }
             // ======================================================================
             // 5. ВЫБОР ГРАФИЧЕСКОГО СТИЛЯ И ЗАКРЫТИЕ ОКНА
@@ -320,7 +320,7 @@ namespace WpfCalibrator.Views
             {
                 _targetWidget.ControlView = ComboStyle.SelectedIndex switch
                 {
-                    0 => _targetTable.IsParam ? "TextBox" : "Digital",
+                    0 => _targetVariableViewModel.IsParam ? "TextBox" : "Digital",
                     1 => "SliderHorizontal",
                     2 => "SliderVertical",
                     3 => "GaugeCircular270",
@@ -330,8 +330,8 @@ namespace WpfCalibrator.Views
                 };
             }
 
-            if (_targetTable != null && !_targetTable.IsParam) _targetWidget.RefreshAlarmTriangles();
-            //if (_targetTable is Map3DVariableViewModel)                 _targetWidget.
+            //if (_targetVariableViewModel != null && !_targetVariableViewModel.IsParam) _targetWidget.RefreshAlarmTriangles();
+            //if (_targetVariableViewModel is Map3DVariableViewModel)                 _targetWidget.
                 _targetWidget.IsVertical = RadioVertical.IsChecked == true;
             DialogResult = true;
         } // 🔥 Финал метода ApplyButton_Click!

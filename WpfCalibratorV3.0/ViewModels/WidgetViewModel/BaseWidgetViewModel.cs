@@ -86,51 +86,7 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
             }
         }
     }
-    private bool _isEditing = false;
-    /// <summary>
-    /// Флаг ручного редактирования ячейки инженером. Переводит прибор в бесфокусный режим
-    /// накопления текстовых символов в локальном буфере, блокируя обновление цифр из сети.
-    /// </summary>
-
-    public bool IsEditing
-    {
-        get => _isEditing;
-        set
-        {
-            if (_isEditing != value)
-            {
-                _isEditing = value;
-                OnPropertyChanged();
-            }
-        }
-    }
-
-
- 
-
-    private bool _showRadarTracker = true;
-    /// <summary>
-    /// Настройка UI: разрешает или запрещает отображение зелёного неонового маркера-прицела
-    /// текущей рабочей точки поверх сетки калибровочной таблицы.
-    /// </summary>
-
-    public bool ShowRadarTracker
-    {
-        get => _showRadarTracker;
-        set { if (_showRadarTracker != value) { _showRadarTracker = value; OnPropertyChanged(); } }
-    }
-
-
-    private bool _show3DSurface;
-    /// <summary>
-    /// Настройка UI: переключает графический виджет таблицы в режим отрисовки 
-    /// трехмерной полигональной горы рельефа Helix Toolkit.
-    /// </summary>
-    public bool Show3DSurface
-    {
-        get => _show3DSurface;
-        set { if (_show3DSurface != value) { _show3DSurface = value; OnPropertyChanged(); } }
-    }
+    
 
 
 

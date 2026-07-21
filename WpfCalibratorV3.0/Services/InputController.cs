@@ -18,7 +18,7 @@ namespace WpfCalibrator.Services
         /// Главная точка входа: обрабатывает нажатие клавиши для активного виджета.
         /// </summary>
         /// <returns>true — если клавиша была перехвачена и обработана драйвером; false — пропустить клавишу дальше.</returns>
-        public static bool ProcessKeyDown(BaseWidgetViewModel activeWidget, KeyEventArgs e)
+        public static bool ProcessKeyDown(EditableWidgetViewModel activeWidget, KeyEventArgs e)
         {
             if (activeWidget == null || activeWidget.DataSource == null) return false;
 

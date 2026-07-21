@@ -18,6 +18,9 @@ namespace WpfCalibrator.Services
                 case "Matrix3DSurface":
                     widget = new Matrix3DWidgetViewModel(dataSource);
                     break;
+                case "MatrixTable":
+                    widget = new MatrixTableWidgetViewModel(dataSource);
+                    break;
 
                 case "RadarTracker":
                     widget = new RadarTrackerWidgetViewModel(dataSource);

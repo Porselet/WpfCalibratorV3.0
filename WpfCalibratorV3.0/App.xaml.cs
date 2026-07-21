@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Windows;
+using WpfCalibrator.Services;
 
 namespace WpfCalibrator
 {
@@ -11,10 +12,13 @@ namespace WpfCalibrator
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            // Создаем батник для демо режима. 
+            EnvironmentPreparer.EnsureScriptsCreated();
+
             base.OnStartup(e);
 
             // Проверяем, есть ли в аргументах запуска наш ключ
-            if (e.Args.Contains("-demo"))
+            if (e.Args != null && Array.IndexOf(e.Args, "-demo") >= 0)
             {
                 WpfCalibrator.Services.CommunicationService.IsDemoMode = true;
             }
