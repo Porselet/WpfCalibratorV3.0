@@ -66,6 +66,13 @@
 
                     <Style.Triggers>
                         <!-- Добавь DataTrigger для 3D, digital, матриц и т.д. -->
+                        <DataTrigger
+                            Binding="{Binding ControlView}"
+                            Value="TimePlot">
+                            <Setter
+                                Property="ContentTemplate"
+                                Value="{StaticResource TimePlotTemplate}" />
+                        </DataTrigger>
 
                         <DataTrigger
                             Binding="{Binding ControlView}"
@@ -134,7 +141,7 @@
                             Value="TimePlot">
                             <Setter
                                 Property="ContentTemplate"
-                                Value="{StaticResource WidgetTimePlotTemplate}" />
+                                Value="{StaticResource TimePlotTemplate}" />
                         </DataTrigger>
 
 

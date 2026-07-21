@@ -44,7 +44,9 @@ namespace WpfCalibrator.Services
                 case "TextBox":
                     widget = new ScalarSliderWidgetViewModel(dataSource); // можно использовать слайдерный или сделать легкий пустой класс
                     break;
-
+                case "TimePlot":
+                    widget = new TimePlotWidgetViewModel(dataSource);
+                    break;
 
                 default:
                     // Все остальные приборы (датчики, слайдеры, радары) временно улетают в Legacy

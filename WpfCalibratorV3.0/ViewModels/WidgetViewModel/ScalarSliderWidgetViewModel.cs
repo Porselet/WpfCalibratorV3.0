@@ -1,4 +1,8 @@
-﻿namespace WpfCalibrator.ViewModels.WidgetViewModel
+﻿using System;
+using System.Collections.ObjectModel;
+using WpfCalibrator.ViewModels;
+
+namespace WpfCalibrator.ViewModels.WidgetViewModel
 {
     public class ScalarSliderWidgetViewModel : BaseScalarWidgetViewModel
     {
