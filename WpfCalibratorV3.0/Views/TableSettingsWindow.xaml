@@ -99,6 +99,42 @@
                 Property="FontWeight"
                 Value="Bold" />
         </Style>
+        <!-- Стиль-сократитель для подписей (Лейблов) -->
+        <Style
+            x:Key="RowLabelStyle"
+            TargetType="TextBlock">
+            <Setter
+                Property="Width"
+                Value="150" />
+            <Setter
+                Property="Foreground"
+                Value="Gray" />
+            <Setter
+                Property="VerticalAlignment"
+                Value="Center" />
+            <Setter
+                Property="FontSize"
+                Value="12" />
+            <Setter
+                Property="FontFamily"
+                Value="Consolas" />
+        </Style>
+
+        <!-- Стиль-сократитель для горизонтальных строк контейнеров -->
+        <Style
+            x:Key="RowContainerStyle"
+            TargetType="StackPanel">
+            <Setter
+                Property="Orientation"
+                Value="Horizontal" />
+            <Setter
+                Property="Margin"
+                Value="0,0,0,10" />
+            <Setter
+                Property="Visibility"
+                Value="Collapsed" />
+            <!-- Скрыты по умолчанию! -->
+        </Style>
 
 
 
@@ -115,307 +151,242 @@
             <!-- Заголовок -->
             <RowDefinition
                 Height="Auto" />
-            <!-- Поля настроек -->
+            <!-- Умное Auto для динамического сжатия окна [1.22] -->
             <RowDefinition
                 Height="Auto" />
             <!-- Кнопки -->
         </Grid.RowDefinitions>
 
-        <!-- ЗАГОЛОВОК С ИМЕНЕМ ТАБЛИЦЫ -->
+        <!-- Строка 0: Текстовый заголовок окна калибратора -->
         <StackPanel
             Grid.Row="0"
             Orientation="Horizontal"
             Margin="0,0,0,15">
             <TextBlock
-                Text="📋 НАСТРОЙКА КАРТЫ: "
+                Text="📋 НАСТРОЙКА ВИДЖЕТА: "
                 Foreground="White"
                 FontSize="14"
-                FontFamily="Consolas" />
-            <TextBlock
-                x:Name="TableNameText"
-                Text="TEST_Data"
-                Foreground="#FF9100"
-                FontSize="14"
-                FontWeight="Bold"
-                FontFamily="Consolas" />
+                FontFamily="Consolas"
+                FontWeight="Bold" />
         </StackPanel>
 
-        <!-- СЕТКА С ВЫБОРОМ ПЕРЕМЕННЫХ -->
-        <!-- ЦЕНТРАЛЬНЫЙ ВЕРТИКАЛЬНЫЙ КОНТЕЙНЕР НАСТРОЕК (ЗАМЕНЯЕТ СТАРУЮ GRID) -->
+        <!-- СТРОКА 1: ЦЕНТРАЛЬНЫЙ КОНТЕЙНЕР НАСТРОЕК (ПРИВЯЗАН К GRID.ROW="1") -->
         <StackPanel
             x:Name="MainSettingsPanel"
-            Orientation="Vertical"
             Grid.Row="1"
-            Margin="20,10,20,10">
+            Orientation="Vertical">
 
-            <!-- Строка 1: Выбор стиля/типа виджета (ВИДИМА ВСЕГДА) -->
+            <!-- 1. Выбор стиля (Видим всегда, поэтому Visibility переопределен) [1.22] -->
             <StackPanel
-                x:Name="Row_WidgetStyle"
-                Orientation="Horizontal"
-                Margin="0,0,0,10">
+                x:Name="Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType"
+                Style="{StaticResource RowContainerStyle}"
+                >
                 <TextBlock
                     Text="Вид виджета:"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Style="{StaticResource RowLabelStyle}" />
                 <ComboBox
-                    x:Name="ComboStyle"
+                    x:Name="ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType"
                     Width="250"
                     Style="{StaticResource DarkComboBoxStyle}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Type" />
             </StackPanel>
 
-            <!-- Строка 2: Первый (основной) сигнал Канала 1. По умолчанию скрыта! -->
+            <!-- 2. Сигнал Канала 1 для Графика -->
             <StackPanel
-                x:Name="Row_InputX"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                x:Name="Row_ComboBox_GraphPlot_TelemetrySignalChannel1Source"
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
-                    Text="Сигнал / Канал 1:"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Text="Сигнал Канала 1:"
+                    Style="{StaticResource RowLabelStyle}" />
                 <ComboBox
-                    x:Name="ComboInputX"
+                    x:Name="ComboBox_GraphPlot_TelemetrySignalChannel1Source"
                     Width="250"
-                    Height="24"
-                    VerticalAlignment="Center"
                     Style="{StaticResource DarkComboBoxStyle}"
                     DisplayMemberPath="Name" />
             </StackPanel>
 
-            <!-- Строка 3: ВТОРОЙ СИГНАЛ (Для нашего TimePlot графика!). По умолчанию скрыта! -->
+            <!-- 3. Сигнал Канала 2 для Графика -->
             <StackPanel
-                x:Name="Row_InputY2"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                x:Name="Row_ComboBox_GraphPlot_TelemetrySignalChannel2Source"
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
                     Text="Сигнал Канала 2:"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Style="{StaticResource RowLabelStyle}" />
                 <ComboBox
-                    x:Name="ComboInputY2"
+                    x:Name="ComboBox_GraphPlot_TelemetrySignalChannel2Source"
                     Width="250"
                     Style="{StaticResource DarkComboBoxStyle}"
                     DisplayMemberPath="Name" />
             </StackPanel>
 
-            <!-- Строка 4: Привязка оси X (Для оцифровки шкал матриц) -->
+            <!-- 4. Рабочий сигнал оси X для Таблиц -->
             <StackPanel
-                x:Name="Row_AxisX"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                x:Name="Row_ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource"
+                Style="{StaticResource RowContainerStyle}">
+                <TextBlock
+                    Text="Сигнал оси X:"
+                    Style="{StaticResource RowLabelStyle}" />
+                <ComboBox
+                    x:Name="ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource"
+                    Width="250"
+                    Style="{StaticResource DarkComboBoxStyle}"
+                    DisplayMemberPath="Name" />
+            </StackPanel>
+
+            <!-- 5. Вектор-шкала оцифровки горизонтальной оси X -->
+            <StackPanel
+                x:Name="Row_ComboBox_CalibrationTable_HorizontalScaleBreakpointLut"
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
                     Text="Ось X (Обороты):"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Style="{StaticResource RowLabelStyle}" />
                 <ComboBox
-                    x:Name="ComboAxisX"
+                    x:Name="ComboBox_CalibrationTable_HorizontalScaleBreakpointLut"
                     Width="250"
                     Style="{StaticResource DarkComboBoxStyle}"
                     DisplayMemberPath="Name" />
             </StackPanel>
 
-            <!-- Строка 5: Привязка оси Y (Для оцифровки шкал матриц) -->
+            <!-- 6. Рабочий сигнал оси Y для Таблиц (Только 3D) -->
             <StackPanel
-                x:Name="Row_AxisY"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
-                <TextBlock
-                    Text="Ось Y (Нагрузка):"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
-                <ComboBox
-                    x:Name="ComboAxisY"
-                    Width="250"
-                    Style="{StaticResource DarkComboBoxStyle}"
-                    DisplayMemberPath="Name" />
-            </StackPanel>
-
-            <!-- Строка 6: Входной сигнал Y (Для тяжелых 3D матриц) -->
-            <StackPanel
-                x:Name="Row_InputY"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                x:Name="Row_ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource"
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
                     Text="Сигнал оси Y:"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Style="{StaticResource RowLabelStyle}" />
                 <ComboBox
-                    x:Name="ComboInputY"
+                    x:Name="ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource"
                     Width="250"
                     Style="{StaticResource DarkComboBoxStyle}"
                     DisplayMemberPath="Name" />
             </StackPanel>
-            <!-- Строка 7: Шаг изменения по PageUp/PageDown -->
+
+            <!-- 7. Вектор-шкала оцифровки вертикальной оси Y (Только 3D) -->
             <StackPanel
-                x:Name="Row_IncrementStep"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                x:Name="Row_ComboBox_CalibrationTable_VerticalScaleBreakpointLut"
+                Style="{StaticResource RowContainerStyle}">
+                <TextBlock
+                    Text="Ось Y (Нагрузка):"
+                    Style="{StaticResource RowLabelStyle}" />
+                <ComboBox
+                    x:Name="ComboBox_CalibrationTable_VerticalScaleBreakpointLut"
+                    Width="250"
+                    Style="{StaticResource DarkComboBoxStyle}"
+                    DisplayMemberPath="Name" />
+            </StackPanel>
+
+            <!-- 8. Шаг изменения параметра с клавиатуры -->
+            <StackPanel
+                x:Name="Row_TextBox_CalibrationStep_KeyboardIncrementValue"
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
                     Text="Шаг изменения:"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Style="{StaticResource RowLabelStyle}" />
                 <TextBox
-                    x:Name="TextIncrementStep"
+                    x:Name="TextBox_CalibrationStep_KeyboardIncrementValue"
                     Width="100"
                     Style="{StaticResource DarkTextBoxStyle}" />
             </StackPanel>
 
-            <!-- Строка 8: Границы физической шкалы прибора (ScaleMin и ScaleMax) -->
+            <!-- 9. Границы прорисовки физической шкалы прибора -->
             <StackPanel
                 x:Name="Row_ScaleRange"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
-                    Text="Шкала (Мин / Макс):"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Text="Шкала (Мин/Макс):"
+                    Style="{StaticResource RowLabelStyle}" />
                 <TextBox
-                    x:Name="TextScaleMin"
+                    x:Name="TextBox_GraphicScale_MinimumDisplayBoundary"
                     Width="70"
                     Style="{StaticResource DarkTextBoxStyle}"
                     Margin="0,0,10,0" />
                 <TextBox
-                    x:Name="TextScaleMax"
+                    x:Name="TextBox_GraphicScale_MaximumDisplayBoundary"
                     Width="70"
                     Style="{StaticResource DarkTextBoxStyle}" />
             </StackPanel>
 
-            <!-- Строка 9: Аварийные границы (AlarmMin и AlarmMax) -->
+            <!-- 10. Пороги срабатывания аварийных алармов -->
             <StackPanel
                 x:Name="Row_AlarmRange"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
-                    Text="Алармы (Мин / Макс):"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Text="Алармы (Мин/Макс):"
+                    Style="{StaticResource RowLabelStyle}" />
                 <TextBox
-                    x:Name="TextMinLimit"
+                    x:Name="TextBox_HardwareAlarm_CriticalMinimumThreshold"
                     Width="70"
                     Style="{StaticResource DarkTextBoxStyle}"
                     Margin="0,0,10,0" />
                 <TextBox
-                    x:Name="TextMaxLimit"
+                    x:Name="TextBox_HardwareAlarm_CriticalMaximumThreshold"
                     Width="70"
                     Style="{StaticResource DarkTextBoxStyle}" />
             </StackPanel>
 
-            <!-- Строка 10: Ориентация прибора (Для 1D слайдеров) -->
+            <!-- 11. Направление прорисовки 1D слайдеров -->
             <StackPanel
                 x:Name="Row_Orientation"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
                     Text="Ориентация:"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Style="{StaticResource RowLabelStyle}" />
                 <RadioButton
-                    x:Name="RadioHorizontal"
+                    x:Name="RadioButton_WidgetLayout_HorizontalOrientation"
                     Content="Горизонтально"
                     Foreground="White"
                     Margin="0,0,15,0"
                     VerticalAlignment="Center" />
                 <RadioButton
-                    x:Name="RadioVertical"
+                    x:Name="RadioButton_WidgetLayout_VerticalOrientation"
                     Content="Вертикально"
                     Foreground="White"
                     VerticalAlignment="Center" />
             </StackPanel>
 
-            <!-- Строка 11: Чекбоксы опций Радара и 3D-поверхности Helix -->
+            <!-- 12. Флаги отрисовки Радара и 3D сцены Helix -->
             <StackPanel
                 x:Name="Row_TableOptions"
-                Orientation="Horizontal"
-                Margin="0,0,0,10"
-                Visibility="Collapsed">
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
-                    Text="Опции отображения:"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Text="Опции таблицы:"
+                    Style="{StaticResource RowLabelStyle}" />
                 <CheckBox
-                    x:Name="CheckShowRadar"
-                    Content="Сетка радара"
+                    x:Name="CheckBox_UiRenderOptions_EnableNeonRadarTrackerTarget"
+                    Content="Маркер прицела"
                     Foreground="White"
                     Margin="0,0,15,0"
                     VerticalAlignment="Center" />
                 <CheckBox
-                    x:Name="CheckShow3D"
-                    Content="3D Сцена"
+                    x:Name="CheckBox_UiRenderOptions_EnableHelix3DPolygonSurface"
+                    Content="3D Рельеф Helix"
                     Foreground="White"
                     VerticalAlignment="Center" />
             </StackPanel>
 
-            <!-- Строка 12: Режим визуальной тревоги (Окрашивание фона датчика) -->
+            <!-- 13. Чекбокс включения вспышки фона при аварии -->
             <StackPanel
                 x:Name="Row_VisualAlarm"
-                Orientation="Horizontal"
-                Margin="0,0,0,15"
-                Visibility="Collapsed">
+                Style="{StaticResource RowContainerStyle}">
                 <TextBlock
                     Text="Визуальный аларм:"
-                    Width="150"
-                    Foreground="Gray"
-                    VerticalAlignment="Center"
-                    FontSize="12"
-                    FontFamily="Consolas" />
+                    Style="{StaticResource RowLabelStyle}" />
                 <CheckBox
-                    x:Name="CheckEnableVisualAlarm"
-                    Content="Включить вспышку при аварии"
+                    x:Name="CheckBox_UiRenderOptions_EnableRedBackgroundEmergencyFlash"
+                    Content="Мигать красным цветом при выходе за лимиты"
                     Foreground="White"
                     VerticalAlignment="Center" />
             </StackPanel>
 
-            <!-- КНОПКИ УПРАВЛЕНИЯ ОКНОМ НАСТРОЕК (СОХРАНИТЬ / ОТМЕНА) -->
-
         </StackPanel>
+
+        <!-- СТРОКА 2: ФИКСИРОВАННЫЕ КНОПКИ УПРАВЛЕНИЯ (ПРИВЯЗАНЫ К GRID.ROW="2") [1.22] -->
         <StackPanel
+            Grid.Row="2"
             Orientation="Horizontal"
             HorizontalAlignment="Right"
-            Margin="0,10,0,0"
-            Grid.Row="2">
+            Margin="0,15,0,0">
             <Button
                 x:Name="ButtonApply"
                 Content="Применить"
@@ -432,6 +403,5 @@
                 Style="{StaticResource DarkButtonStyle}"
                 Click="ButtonCancel_Click" />
         </StackPanel>
-
     </Grid>
 </Window>
