@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels;
+using WpfCalibrator.ViewModels.WidgetViewModel;
 
 namespace WpfCalibrator.Services
 {
@@ -118,6 +119,14 @@ namespace WpfCalibrator.Services
                         // Добавляем Y (Наддув) для 3D
                         if (tableVar is Map3DVariableViewModel map3D && map3D.BoundInputY != null && !map3D.BoundInputY.IsParam)
                             uniqueTelemetrySources.Add(map3D.BoundInputY);
+                    }
+                    if (widget.ControlView == WidgetViewType.TimePlot)
+                    {
+                        var tp = (widget as TimePlotWidgetViewModel);
+                        if (tp?.Signal2 is not null)
+                        {
+                            uniqueTelemetrySources.Add(tp.Signal2);
+                        }
                     }
                 }
 

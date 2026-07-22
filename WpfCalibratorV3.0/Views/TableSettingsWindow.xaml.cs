@@ -214,7 +214,9 @@ namespace WpfCalibrator.Views
             {
                 // Одиночный настраиваемый параметр
                 WidgetViewType.SingleParam => () =>
-                    SetVisibility(Visibility.Visible, Row_TextBox_CalibrationStep_KeyboardIncrementValue),
+                    SetVisibility(Visibility.Visible, 
+                        Row_TextBox_CalibrationStep_KeyboardIncrementValue,
+                        Row_ScaleRange),
 
                 // Чистый readonly цифровой индикатор логов
                 WidgetViewType.SingleDigitalIndicator => () =>

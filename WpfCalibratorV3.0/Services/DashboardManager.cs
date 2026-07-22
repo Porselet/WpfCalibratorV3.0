@@ -51,6 +51,12 @@ namespace WpfCalibrator.Services
                     
                     IsVertical = widget.IsVertical,
                 };
+
+                if (widget is TimePlotWidgetViewModel tpw)
+                {
+                    info.Signal1 = tpw.Signal1;
+                    info.Signal2 = tpw.Signal2;
+                }
                 if (widget is EditableWidgetViewModel editableWidget)
                 {
                     info.IncrementStep = editableWidget.IncrementStep; 
@@ -135,7 +141,11 @@ namespace WpfCalibrator.Services
                     nw.ShowRadarTracker = info.TableBindings?.ShowRadarTracker ?? true;
                     nw.Show3DSurface = info.TableBindings?.Show3DSurface ?? false;
                 }
-
+                if (newWidget is TimePlotWidgetViewModel tpw)
+                {
+                    tpw.Signal1 = info.Signal1;
+                    tpw.Signal2 = info.Signal2;
+                }
 
 
                 // Безопасно накатываем лимиты алармов только на скаляры-датчики [1.14]

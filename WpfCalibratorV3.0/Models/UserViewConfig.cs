@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using WpfCalibrator.ViewModels;
 
 namespace WpfCalibrator.Models
 {
@@ -45,6 +46,9 @@ namespace WpfCalibrator.Models
         public float ScaleMax { get; set; } = 100f;
         public float MinLimit { get; set; } = float.NegativeInfinity;
         public float MaxLimit { get; set; } = float.PositiveInfinity;
+
+        public ScalarVariableViewModel Signal1 { get; set; }
+        public ScalarVariableViewModel Signal2 { get; set; }
 
     }
 
