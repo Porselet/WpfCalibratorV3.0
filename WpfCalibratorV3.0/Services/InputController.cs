@@ -54,7 +54,7 @@ namespace WpfCalibrator.Services
             if (e.Key == Key.PageUp || e.Key == Key.PageDown)
             {
                 // Тут у тебя в коде использовался IncrementStep, пока передаем 1.0f или твой шаг
-                double step = 1.0;
+                double step = (activeWidget as EditableWidgetViewModel)?.IncrementStep ?? 1.0;
                 if (isCtrlPressed) step *= 10.0;
                 if (e.Key == Key.PageDown) step = -step;
 

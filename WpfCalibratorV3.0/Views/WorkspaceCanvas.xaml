@@ -53,14 +53,6 @@
                     <Style.Triggers>
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="TimePlot">
-                            <Setter
-                                Property="ContentTemplate"
-                                Value="{StaticResource TimePlotTemplate}" />
-                        </DataTrigger>
-
-                        <DataTrigger
-                            Binding="{Binding ControlView}"
                             Value="{x:Static models:WidgetViewType.SingleParam}">
                             <Setter
                                 Property="ContentTemplate"
@@ -76,7 +68,7 @@
                         </DataTrigger>
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="MatrixTable">
+                            Value="{x:Static models:WidgetViewType.MatrixTable}">
                             <Setter
                                 Property="ContentTemplate"
                                 Value="{StaticResource MatrixTableTemplate}" />
@@ -102,7 +94,7 @@
 
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="SliderHorizontal">
+                            Value="{x:Static models:WidgetViewType.SliderHorizontal}">
                             <Setter
                                 Property="ContentTemplate"
                                 Value="{StaticResource WidgetSliderTemplate}" />
@@ -110,7 +102,7 @@
                         <!-- Переключаем на кастомный ВЕРТИКАЛЬНЫЙ слайдер-столбик -->
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="SliderVertical">
+                            Value="{x:Static models:WidgetViewType.SliderVertical}">
                             <Setter
                                 Property="ContentTemplate"
                                 Value="{StaticResource WidgetVerticalSliderTemplate}" />
@@ -120,7 +112,7 @@
                         <!-- ИСПРАВЛЕНО: Указываем точный существующий ключ шаблона -->
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="GaugeCircular270">
+                            Value="{x:Static models:WidgetViewType.GaugeCircular270}">
                             <Setter
                                 Property="ContentTemplate"
                                 Value="{StaticResource WidgetGaugeTemplate}" />
@@ -128,7 +120,7 @@
 
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="GaugeArc120">
+                            Value="{x:Static models:WidgetViewType.GaugeLED}">
                             <Setter
                                 Property="ContentTemplate"
                                 Value="{StaticResource WidgetArcGaugeTemplate}" />
@@ -137,7 +129,7 @@
                         <!-- Включаем полноценный живой график времени! -->
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="TimePlot">
+                            Value="{x:Static models:WidgetViewType.TimePlot}">
                             <Setter
                                 Property="ContentTemplate"
                                 Value="{StaticResource TimePlotTemplate}" />
@@ -204,7 +196,30 @@
                                         BorderThickness="0"
                                         Command="{Binding DataContext.OpenTableSettingsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                         CommandParameter="{Binding}">
-                                        <!-- Style... -->
+                                        <Button.Style>
+                                            <Style
+                                                TargetType="Button">
+                                                <Style.Triggers>
+                                                    <!-- Гасим шестерёнку для Радара -->
+                                                    <DataTrigger
+                                                        Binding="{Binding ControlView}"
+                                                        Value="{x:Static models:WidgetViewType.RadarTracker}">
+                                                        <Setter
+                                                            Property="Visibility"
+                                                            Value="Collapsed" />
+                                                    </DataTrigger>
+                                                    <!-- Гасим шестерёнку для 3D Сцены Helix -->
+                                                    <DataTrigger
+                                                        Binding="{Binding ControlView}"
+                                                        Value="{x:Static models:WidgetViewType.Matrix3DSurface}">
+                                                        <Setter
+                                                            Property="Visibility"
+                                                            Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+
                                     </Button>
 
                                     <!-- КНОПКА ЗАКРЫТИЯ (MVVM) -->

@@ -48,10 +48,13 @@ namespace WpfCalibrator.Services
                     Height = widget.Height,
                     EnableVisualAlarm = (widget as BaseScalarWidgetViewModel)?.EnableVisualAlarm ?? false,
                     ModelId = widget.DataSource.ModelId,
-                    IncrementStep = widget.IncrementStep,
+                    
                     IsVertical = widget.IsVertical,
                 };
-
+                if (widget is EditableWidgetViewModel editableWidget)
+                {
+                    info.IncrementStep = editableWidget.IncrementStep; 
+                }
                 // Безопасно вытягиваем лимиты из скаляра через паттерн-матчинг [1.14]
                 if (widget.DataSource is ScalarVariableViewModel scalar)
                 {
@@ -115,9 +118,13 @@ namespace WpfCalibrator.Services
                 newWidget.Width = info.Width;
                 newWidget.Height = info.Height;
 
-                newWidget.IncrementStep = info.IncrementStep;
+                
                 newWidget.IsVertical = info.IsVertical;
 
+                if (newWidget is EditableWidgetViewModel ew)
+                {
+                    ew.IncrementStep = info.IncrementStep;
+                }
 
                 if (newWidget is BaseScalarWidgetViewModel sw)
                 {

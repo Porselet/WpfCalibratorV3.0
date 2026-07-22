@@ -58,7 +58,7 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
         DataSource = dataSource;
 
         // Синхронизируем стартовый шаг PageUp/PageDown (например, 1.0 для таблиц)
-        IncrementStep = 1.0f;
+        //IncrementStep = 1.0f;
         return;
 
     }
@@ -186,24 +186,7 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
     }
 
 
-    private float _incrementStep = 1.0f;
-    /// <summary>
-    /// Масштабирующий шаг изменения значения калибровки (индекса наката) при быстром 
-    /// инженерном изменении ячеек кнопками PageUp и PageDown.
-    /// </summary>
-
-    public float IncrementStep
-    {
-        get => _incrementStep;
-        set
-        {
-            if (_incrementStep != value)
-            {
-                _incrementStep = value;
-                OnPropertyChanged();
-            }
-        }
-    }
+    
 
 
     private double _height = 30;

@@ -8,6 +8,26 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
     public class EditableWidgetViewModel : BaseWidgetViewModel
     {
 
+        private float _incrementStep = 1.0f;
+        /// <summary>
+        /// Масштабирующий шаг изменения значения калибровки (индекса наката) при быстром 
+        /// инженерном изменении ячеек кнопками PageUp и PageDown.
+        /// </summary>
+
+        public float IncrementStep
+        {
+            get => _incrementStep;
+            set
+            {
+                if (_incrementStep != value)
+                {
+                    _incrementStep = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+
         private bool _isEditing = false;
         /// <summary>
         /// Флаг ручного редактирования ячейки инженером. Переводит прибор в бесфокусный режим

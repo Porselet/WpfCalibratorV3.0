@@ -130,7 +130,10 @@ namespace WpfCalibrator.Views
                     ? string.Empty
                     : scalarVar.AlarmMax.ToString("F1", CultureInfo.InvariantCulture);
             }
-
+            if (widget is EditableWidgetViewModel editableWidget)
+            {
+                TextBox_CalibrationStep_KeyboardIncrementValue.Text = editableWidget.IncrementStep.ToString("F3", CultureInfo.InvariantCulture);
+            }
             // 3. Восстанавливаем состояние чекбоксов, осей и сигналов каналов из ОЗУ
             RestoreExistingBindings();
 
@@ -219,23 +222,24 @@ namespace WpfCalibrator.Views
 
                 // Горизонтальный линейный ползунок
                 WidgetViewType.SliderHorizontal => () =>
-                    SetVisibility(Visibility.Visible, Row_ScaleRange, Row_AlarmRange, Row_Orientation, Row_VisualAlarm),
+                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_ScaleRange, Row_AlarmRange, Row_Orientation, Row_VisualAlarm),
 
                 // Вертикальный линейный ползунок
                 WidgetViewType.SliderVertical => () =>
-                    SetVisibility(Visibility.Visible, Row_ScaleRange, Row_AlarmRange, Row_Orientation, Row_VisualAlarm),
+                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_ScaleRange, Row_AlarmRange, Row_Orientation, Row_VisualAlarm),
 
                 // Круглый стрелочный будильник 270 градусов
                 WidgetViewType.GaugeCircular270 => () =>
-                    SetVisibility(Visibility.Visible, Row_ScaleRange, Row_AlarmRange),
+                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_ScaleRange, Row_AlarmRange),
 
                 // Светодиодная шкала тахометра 120 градусов
                 WidgetViewType.GaugeLED => () =>
-                    SetVisibility(Visibility.Visible, Row_ScaleRange),
+                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_ScaleRange),
 
                 // 🎯 ВЫСОКОСКОРОСТНОЙ ОСЦИЛЛОГРАФ: Раскрываем Канал 1, Канал 2 и границы шкал времени!
                 WidgetViewType.TimePlot => () =>
                     SetVisibility(Visibility.Visible,
+                        Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType,
                         Row_ComboBox_GraphPlot_TelemetrySignalChannel1Source,
                         Row_ComboBox_GraphPlot_TelemetrySignalChannel2Source,
                         Row_ScaleRange),
@@ -331,7 +335,7 @@ namespace WpfCalibrator.Views
             }
 
             // 3. Записываем физические шаги, масштабы и алармы через наш хелпер-парсер
-            _targetWidget.IncrementStep = ParseInput(TextBox_CalibrationStep_KeyboardIncrementValue.Text, 1.0f);
+            
 
             if (_targetWidget.DataSource is ScalarVariableViewModel scalarVar)
             {
@@ -341,6 +345,11 @@ namespace WpfCalibrator.Views
                 // Если поля лимитов пустые — выставляем бесконечность
                 scalarVar.AlarmMin = ParseInput(TextBox_HardwareAlarm_CriticalMinimumThreshold.Text, float.NegativeInfinity);
                 scalarVar.AlarmMax = ParseInput(TextBox_HardwareAlarm_CriticalMaximumThreshold.Text, float.PositiveInfinity);
+            }
+
+            if (_targetWidget is EditableWidgetViewModel editableWidget)
+            {
+                editableWidget.IncrementStep = ParseInput(TextBox_CalibrationStep_KeyboardIncrementValue.Text, 1.0f);
             }
 
             // 4. 🎯 ЕСЛИ ЭТО ОСЦИЛЛОГРАФ TIMEPLOT — ФИКСИРУЕМ КАНАЛ 1 И КАНАЛ 2!
