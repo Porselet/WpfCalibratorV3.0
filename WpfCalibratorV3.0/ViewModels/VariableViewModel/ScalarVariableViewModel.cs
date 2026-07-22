@@ -27,8 +27,26 @@ namespace WpfCalibrator.ViewModels
                 OnPropertyChanged(nameof(ValueText));
             }
         }
+        // Текущее значение ячейки (строка для отображения)
+        private string _valueText = string.Empty;
+        /// <summary>
+        /// Строковое представление значения ячейки для отображения в TextBox.
+        /// Выполняет роль чистого контейнера данных, исключая ложные триггеры UART.
+        /// </summary>
+        public string ValueText
+        {
+            get => _valueText;
+            set
+            {
+                if (_valueText != value)
+                {
+                    _valueText = value;
+                    OnPropertyChanged();
 
 
+                }
+            }
+        }
         /// <summary> 1. АБСОЛЮТНЫЕ ФИЗИЧЕСКИЕ ГРАНИЦЫ ДАТЧИКА (Края шкалы слайдера) </summary>
         private double _scaleMin = 0, _scaleMax = 100;
         public double ScaleMin { get => _scaleMin; set { if (Math.Abs(_scaleMin - value) > 0.001) { _scaleMin = value; OnPropertyChanged(); OnPropertyChanged("MinAlarmPercent"); } } }
@@ -46,7 +64,7 @@ namespace WpfCalibrator.ViewModels
         /// <summary>
         /// Форматированная строка для вывода в TextBox или цифровые индикаторы
         /// </summary>
-        public string ValueText => CurrentValue.ToString("F2");
+        //public string ValueText => CurrentValue.ToString("F2");
 
         /// <summary>
         /// Реализация нативного разбора бинарного пакета для скаляра
@@ -58,6 +76,7 @@ namespace WpfCalibrator.ViewModels
 
             // Забираем самое первое число из прилетевшего массива
             CurrentValue = rawData[0];
+            ValueText = CurrentValue.ToString();
         }
 
         public override void AdjustValue(double step)

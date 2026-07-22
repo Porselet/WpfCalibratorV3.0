@@ -137,6 +137,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             // Если это одиночная константа-параметр
             else if (DataSource is ScalarVariableViewModel scalarSource && scalarSource.IsParam)
             {
+                scalarSource.ValueText = InputBuffer ;
                 OnPropertyChanged(nameof(CurrentValueText));
             }
         }

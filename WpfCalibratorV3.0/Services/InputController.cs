@@ -144,7 +144,7 @@ namespace WpfCalibrator.Services
                 {
                     // Логика переключения между активными параметрами
                     var paramWidgets = vm.ActiveWidgets?
-                        .Where(w => w.DataSource?.IsParam == true)
+                        .Where(w => w.DataSource?.IsParam == true & w.ControlView != WidgetViewType.Matrix3DSurface & w.ControlView != WidgetViewType.RadarTracker)
                         .ToList();
 
                     if (paramWidgets?.Count > 1)
