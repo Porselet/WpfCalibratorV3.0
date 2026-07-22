@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Windows.Media.Media3D;
 using WpfCalibrator.Models;
@@ -40,7 +41,7 @@ namespace WpfCalibrator.Services
                 var info = new SavedWidgetInfo
                 {
                     VarName = widget.DataSource.Name,
-                    ControlView = widget.ControlView,
+                    ControlView = widget.ControlView.ToString(),
                     Left = widget.Left,
                     Top = widget.Top,
                     Width = widget.Width,
@@ -97,16 +98,27 @@ namespace WpfCalibrator.Services
                 // Ищем переменную в ОЗУ реестра через переданный делегат [1.14]
                 var realVar = findVariableSelector(info.VarName);
                 if (realVar == null) continue;
-                BaseWidgetViewModel newWidget = WidgetFactory.Create(info.ControlView, realVar);
+                BaseWidgetViewModel newWidget;
+                WidgetViewType viewType = WidgetViewType.SingleDigitalIndicator; // Дефолтное значение
+
+                if (Enum.TryParse<WidgetViewType>(info.ControlView, out var parsedType))
+                {
+                    viewType = parsedType;
+                }
+
+                newWidget = WidgetFactory.Create(viewType, realVar);
+                // ... заполнение свойств ...
+                newWidget.ControlView = viewType; // Теперь безопасно!
                 newWidget.Title = info.VarName;
                 newWidget.Left = info.Left;
                 newWidget.Top = info.Top;
                 newWidget.Width = info.Width;
                 newWidget.Height = info.Height;
-                newWidget.ControlView = info.ControlView;
+
                 newWidget.IncrementStep = info.IncrementStep;
                 newWidget.IsVertical = info.IsVertical;
-                
+
+
                 if (newWidget is BaseScalarWidgetViewModel sw)
                 {
                     sw.EnableVisualAlarm = info.EnableVisualAlarm;

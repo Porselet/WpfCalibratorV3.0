@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Text;
 using System.Windows.Media.Media3D;
 using WpfCalibrator.Services;
+using WpfCalibrator.Models;
 
 namespace WpfCalibrator.ViewModels.WidgetViewModel
 {
@@ -20,7 +21,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             }
 
 
-            if (ControlView == "Matrix3DSurface")
+            if (ControlView == WidgetViewType.Matrix3DSurface)
             {
                 Rebuild3DSurfaceMesh();
             }
@@ -41,7 +42,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
                 // и перед инженером сейчас открыта именно 3D-поверхность...
                 if (e.PropertyName == "SelectedRow" || e.PropertyName == "SelectedCol" || e.PropertyName == "AnchorRow" || e.PropertyName == "AnchorCol")
                 {
-                    if (ControlView == "Matrix3DSurface")
+                    if (ControlView == WidgetViewType.Matrix3DSurface)
                     {
                         // Мгновенно двигаем синие шары со скоростью 60 FPS, вообще не трогая саму гору!
                         this.Refresh3DSelectionOnly();
@@ -54,7 +55,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
                 }
                 if (e.PropertyName == "MatrixData" || e.PropertyName == "CurrentValue")
                 {
-                    if (ControlView == "Matrix3DSurface")
+                    if (ControlView == WidgetViewType.Matrix3DSurface)
                     {
                         //if (IsEditing || DataSource.IsUpdatingFromNetwork) return; // Защита Helix [1.14]
                         // Вызываем наш тяжелый метод пересчета мешей и триангуляции!

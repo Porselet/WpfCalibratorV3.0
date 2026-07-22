@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Windows;
+using WpfCalibrator.Models;
 using WpfCalibrator.Services;
 using WpfCalibrator.ViewModels;
 using WpfCalibrator.ViewModels.WidgetViewModel;
@@ -12,6 +13,36 @@ namespace WpfCalibrator.Views
     {
         private readonly BaseWidgetViewModel _targetWidget;
         private readonly VariableViewModelBase _targetVariableViewModel;
+
+
+
+        /// <summary>
+        /// Структура локализации типа виджета для комбобокса. [1.14]
+        /// </summary>
+        public struct WidgetTypeDisplayPair
+        {
+            public WidgetViewType Type { get; set; }
+            public string DisplayName { get; set; }
+
+            public WidgetTypeDisplayPair(WidgetViewType type, string displayName)
+            {
+                Type = type;
+                DisplayName = displayName;
+            }
+        }
+
+        // Наш пуленепробиваемый массив всех доступных приборов
+        private readonly WidgetTypeDisplayPair[] _availableWidgets = new[]
+        {
+            new WidgetTypeDisplayPair(WidgetViewType.SingleDigitalIndicator, "Цифровой индикатор (Digital)"),
+            new WidgetTypeDisplayPair(WidgetViewType.SliderHorizontal,       "Слайдер горизонтальный"),
+            new WidgetTypeDisplayPair(WidgetViewType.SliderVertical,         "Слайдер вертикальный"),
+            new WidgetTypeDisplayPair(WidgetViewType.GaugeCircular270,       "Стрелочный прибор 270°"),
+            new WidgetTypeDisplayPair(WidgetViewType.GaugeLED,               "Светодиодная шкала"),
+            new WidgetTypeDisplayPair(WidgetViewType.TimePlot,               "Осциллограф реального времени")
+        };
+
+
 
         // Конструктор теперь принимает сам виджет BaseWidgetViewModel
         // ======================================================================
@@ -30,33 +61,80 @@ namespace WpfCalibrator.Views
 
             TextIncrementStep.Text = _targetWidget.IncrementStep.ToString("F3", CultureInfo.InvariantCulture);
 
+
+            ComboStyle.ItemsSource = _availableWidgets;
+
+
             // Вызываем нашу новую чистую подфункцию разделения типов [1.14]
+            //ApplyWidgetTypeSettings(targetWidget);
+
             InitializeComboBoxSources(allVariables);
             RestoreExistingBindings();
-            SetupWindowLayout();
+            LoadWidgetSettings(_targetWidget);
+            //SetupWindowLayout();
         }
 
         /// <summary>
-        /// Подфункция строгой фильтрации: раскладывает переменные по комбобоксам согласно типам ОЗУ [1.14]
+        /// Распределяет переменные по комбобоксам согласно их типам данных и мерности.
         /// </summary>
+        /// <param name="allVariables">Список всех зарегистрированных переменных.</param>
         private void InitializeComboBoxSources(List<VariableViewModelBase> allVariables)
         {
             if (allVariables == null) return;
 
-            // Шкалами-осями могут быть СТРОГО одномерные векторы [1.14]
+            // Фильтрация переменных для оси и датчиков
             var axisVariables = allVariables.OfType<CurveVariableViewModel>().ToList();
-
-            // Живыми датчиками-входами могут быть СТРОГО скаляры-сигналы телеметрии [1.14]
             var telemetryVariables = allVariables.OfType<ScalarVariableViewModel>()
-                                                 .Where(v => !v.IsParam)
-                                                 .ToList();
+                .Where(v => !v.IsParam)
+                .ToList();
 
-            // Заливаем в UI без единого дубликата и мусора
+            // Привязка источников данных
             ComboAxisX.ItemsSource = axisVariables;
             ComboAxisY.ItemsSource = axisVariables;
-
             ComboInputX.ItemsSource = telemetryVariables;
             ComboInputY.ItemsSource = telemetryVariables;
+
+            // 🎯 Подключение нового комбобокса для Канала 2
+            ComboInputY2.ItemsSource = telemetryVariables;
+
+        }
+
+        /// <summary>
+        /// Загружает текущие настройки из переданного виджета в элементы управления окна.
+        /// </summary>
+        /// <param name="widget">Экземпляр вьюмодели виджета, чьи настройки редактируются.</param>
+        private void LoadWidgetSettings(BaseWidgetViewModel widget)
+        {
+            if (widget == null) return;
+
+            // 1. Выставляем тип прибора в главном комбобоксе стилей
+            ComboStyle.SelectedValue = widget.ControlView;
+
+            // 2. Восстанавливаем состояние общих переключателей ориентации
+            RadioVertical.IsChecked = widget.IsVertical;
+            RadioHorizontal.IsChecked = !widget.IsVertical;
+
+            // 3. Подтягиваем данные из базовой скалярной переменной (если она привязана)
+            if (widget.DataSource is ScalarVariableViewModel scalarVar)
+            {
+                ComboInputX.SelectedValue = scalarVar;
+                //TextIncrementStep.Text = scalarVar.IncrementStep.ToString("F3", CultureInfo.InvariantCulture);
+                TextScaleMin.Text = scalarVar.ScaleMin.ToString("F1", CultureInfo.InvariantCulture);
+                TextScaleMax.Text = scalarVar.ScaleMax.ToString("F1", CultureInfo.InvariantCulture);
+
+                TextMinLimit.Text = double.IsNegativeInfinity(scalarVar.AlarmMin) ? string.Empty : scalarVar.AlarmMin.ToString("F1", CultureInfo.InvariantCulture);
+                TextMaxLimit.Text = double.IsPositiveInfinity(scalarVar.AlarmMax) ? string.Empty : scalarVar.AlarmMax.ToString("F1", CultureInfo.InvariantCulture);
+            }
+
+            // 4. 🎯 ДЛЯ ГРАФИКА: Подтягиваем индивидуальные привязки Каналов 1 и 2
+            if (widget is TimePlotWidgetViewModel timePlotWidget)
+            {
+                ComboInputX.SelectedValue = timePlotWidget.Signal1;
+                ComboInputY2.SelectedValue = timePlotWidget.Signal2;
+            }
+
+            // 5. Разворачиваем нужные строки-контейнеры на экране на основе типа прибора
+            ApplyWidgetTypeSettings(widget);
         }
 
         /// <summary>
@@ -85,122 +163,75 @@ namespace WpfCalibrator.Views
                 if (map3D.BoundInputY != null && ComboInputY.ItemsSource is List<ScalarVariableViewModel> telemetryList)
                     ComboInputY.SelectedItem = telemetryList.FirstOrDefault(v => v.Name == map3D.BoundInputY.Name);
             }
+
+            else if (_targetWidget is TimePlotWidgetViewModel timePlot)
+            {
+                // Логика сопоставления сигналов из Signal1/Signal2 с ComboInputX/ComboInputY2
+                if (timePlot.Signal1 != null)
+                    ComboInputX.SelectedItem = (ComboInputX.ItemsSource as IEnumerable<ScalarVariableViewModel>)?.FirstOrDefault(v => v.Name == timePlot.Signal1.Name);
+                if (timePlot.Signal2 != null)
+                    ComboInputY2.SelectedItem = (ComboInputY2.ItemsSource as IEnumerable<ScalarVariableViewModel>)?.FirstOrDefault(v => v.Name == timePlot.Signal2.Name);
+            }
         }
 
         /// <summary>
         /// Подфункция-Хамелеон: включает нужные поля и подгоняет высоту окна под тип прибора [1.14]
         /// </summary>
-        private void SetupWindowLayout()
+        private void ApplyWidgetTypeSettings(BaseWidgetViewModel widget)
         {
-            if (_targetWidget == null || _targetVariableViewModel == null) return;
-
-            // 1. Считываем настройки графики строго из виджета (для сохранения рабочих столов) [1.14]
-            CheckShowRadar.IsChecked = (_targetWidget as MatrixTableWidgetViewModel)?.ShowRadarTracker;
-            CheckShow3D.IsChecked = (_targetWidget as MatrixTableWidgetViewModel)?.Show3DSurface;
-            RadioVertical.IsChecked = _targetWidget.IsVertical;
-            RadioHorizontal.IsChecked = !_targetWidget.IsVertical;
-
-            // 2. По умолчанию гасим абсолютно ВСЕ блоки перед переключением режимов [1.14]
+            // 1. Сначала тушим абсолютно все строки настроек, делая экран чистым
             SetVisibility(Visibility.Collapsed,
-                            LabelAxisX, ComboAxisX, 
-                            LabelInputX, ComboInputX,
-                            LabelAxisY, ComboAxisY, 
-                            LabelInputY, ComboInputY,
-                            LabelIncrementStep, TextIncrementStep,
-                            LabelEnableVisualAlarm, CheckEnableVisualAlarm,
-                            LabelLimits, PanelLimits,
-                            LabelScaleRange, PanelScaleRange,
-                            LabelOrientation, PanelOrientation,
-                            LabelStyle, ComboStyle,
-                            CheckShowRadar, LabelShowRadar,
-                            LabelShow3D, CheckShow3D
+                Row_WidgetStyle,
+                Row_InputX,
+                Row_InputY2,
+                Row_AxisX,
+                Row_AxisY,
+                Row_InputY,
+                Row_IncrementStep,
+                Row_ScaleRange,
+                Row_AlarmRange,
+                Row_Orientation,
+                Row_TableOptions,
+                Row_VisualAlarm);
 
-                        );
-
-            // Переходим к блоку распознавания (Часть 2)
-            // ======================================================================
-            // 3. КАСКАДНОЕ РАСПОЗНАВАНИЕ КАЛИБРОВОЧНЫХ ПАРАМЕТРОВ ЧЕРЕЗ КЛАССЫ ОЗУ
-            // ======================================================================
-            if (_targetWidget.ControlView == "RadarTracker")
+            
+            Action updateLayout = widget.ControlView switch
             {
-                TableNameText.Text = $"{_targetVariableViewModel.Name} (Прицел)";
-                this.Height = 120;
-            }
-            else if (_targetVariableViewModel.IsParam)
-            {
-                TableNameText.Text = _targetVariableViewModel.Name;
+                WidgetViewType.SingleParam => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_WidgetStyle, Row_InputX, Row_IncrementStep),
 
-                if (_targetVariableViewModel is Map3DVariableViewModel)
-                {
-                    // ТИП 1: Двумерная 3D-Карта (видимость элементов)
-                    SetVisibility(Visibility.Visible, 
-                        LabelAxisX, ComboAxisX, 
-                        LabelInputX, ComboInputX, 
-                        LabelAxisY, ComboAxisY, 
-                        LabelInputY, ComboInputY, 
-                        TextIncrementStep, LabelIncrementStep, 
-                        LabelShowRadar, CheckShowRadar, 
-                        CheckShow3D, LabelShow3D);
-                    this.Height = 400;
-                }
-                else if (_targetVariableViewModel is CurveVariableViewModel)
-                {
-                    // ТИП 2: Одномерный Вектор (видимость элементов)
-                    SetVisibility(Visibility.Visible, 
-                        LabelAxisX, ComboAxisX, 
-                        LabelInputX, ComboInputX, 
-                        LabelOrientation, PanelOrientation, 
-                        TextIncrementStep, LabelIncrementStep, 
-                        CheckShowRadar, LabelShowRadar);
-                    this.Height = 290;
-                }
-                else if (_targetVariableViewModel is ScalarVariableViewModel)
-                {
-                    // ТИП 3: Одиночная уставка-константа (видимость элементов)
-                    SetVisibility(Visibility.Visible, 
-                        TextIncrementStep, LabelIncrementStep);
-                    this.Height = 200;
-                }
-            }
-            else
-            {
-                var _targetTableScalar = _targetVariableViewModel as ScalarVariableViewModel;
-                // === ТИП 4: СИГНАЛ ТЕЛЕМЕТРИИ / ЖИВОЙ ДАТЧИК ===
-                TableNameText.Text = _targetVariableViewModel.Name;
+                WidgetViewType.SingleDigitalIndicator => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_IncrementStep),
 
-                // Включаем блоки стилей, критических алармов и масштаба шкал
-                SetVisibility(Visibility.Visible, 
-                    LabelStyle, ComboStyle, 
-                    LabelLimits, PanelLimits, 
-                    LabelScaleRange, PanelScaleRange, 
-                    LabelEnableVisualAlarm, CheckEnableVisualAlarm);
+                WidgetViewType.TimePlot => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_InputY2, Row_ScaleRange),
 
-                // Безопасно выводим лимиты алармов (если бесконечность — оставляем поле пустым) [1.14]
-                TextMinLimit.Text = double.IsNegativeInfinity(_targetTableScalar.AlarmMin) ? string.Empty : _targetTableScalar.AlarmMin.ToString("F1");
-                TextMaxLimit.Text = double.IsPositiveInfinity(_targetTableScalar.AlarmMax) ? string.Empty : _targetTableScalar.AlarmMax.ToString("F1");
+                WidgetViewType.MatrixTable => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_AxisX, Row_AxisY, Row_IncrementStep),
 
-                // Выводим границы шкал слайдеров/графиков
-                TextScaleMin.Text = (_targetVariableViewModel as ScalarVariableViewModel)?.ScaleMin.ToString("F1");
-                TextScaleMax.Text = (_targetVariableViewModel as ScalarVariableViewModel)?.ScaleMax.ToString("F1");
+                WidgetViewType.Matrix3DSurface => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_AxisX, Row_AxisY, Row_InputY, Row_TableOptions),
 
-                // Подтягиваем состояние аларм-светодиода из виджета
-                CheckEnableVisualAlarm.IsChecked = (_targetWidget as BaseScalarWidgetViewModel)?.EnableVisualAlarm ?? false;
+                WidgetViewType.RadarTracker => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_TableOptions),
 
-                // Настраиваем выбранный индекс графического стиля в комбобоксе
-                ComboStyle.SelectedIndex = _targetWidget.ControlView switch
-                {
-                    "TextBox" or "Digital" => 0,
-                    "SliderHorizontal" => 1,
-                    "SliderVertical" => 2,
-                    "GaugeCircular270" => 3,
-                    "GaugeArc120" => 4,
-                    "TimePlot" => 5,
-                    _ => 0
-                };
+                WidgetViewType.GaugeCircular270 => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_ScaleRange, Row_AlarmRange),
 
-                this.Height = 280;
-            }
-        } // 🔥 Конец метода SetupWindowLayout
+                WidgetViewType.GaugeLED => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_ScaleRange),
+                
+                WidgetViewType.SliderHorizontal => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_ScaleRange, Row_AlarmRange, Row_VisualAlarm),
+
+                
+                WidgetViewType.SliderVertical => () =>
+                    SetVisibility(Visibility.Visible, Row_WidgetStyle, Row_InputX, Row_ScaleRange, Row_AlarmRange, Row_VisualAlarm),
+            };
+
+            // 2. 🎯 ОДНИМ СИШНЫМ ПИНОМ ВЫПОЛНЯЕМ ВЫБРАННЫЙ БЛОК КОДА!
+            updateLayout();
+        }
 
         // Вспомогательный метод для сокращения кода:
         // void SetVisibility(Visibility visibility, params FrameworkElement[] elements) { ... }
@@ -211,133 +242,57 @@ namespace WpfCalibrator.Views
 
 
 
-        private void ApplyButton_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void ButtonApply_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            // ======================================================================
-            // 1. ВАЛИДАЦИЯ ШАГА ИЗМЕНЕНИЯ С КЛАВИАТУРЫ
-            // ======================================================================
-            string stepText = TextIncrementStep.Text.Replace(',', '.');
-            if (float.TryParse(stepText, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out float parsedStep) && parsedStep > 0)
-            {
-                _targetWidget.IncrementStep = parsedStep;
-            }
-            else if (TextIncrementStep.Visibility == System.Windows.Visibility.Visible)
-            {
-                System.Windows.MessageBox.Show("Введите корректное положительное число для шага!", "Ошибка", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
-                return;
-            }
+            // 1. Сохраняем шаг инкремента
+            _targetWidget.IncrementStep = ParseInput(TextIncrementStep.Text, 1.0f);
 
-            // ======================================================================
-            // 2. СОХРАНЕНИЕ ПРИВЯЗОК ОЦЕФРОВКИ ОСЕЙ (Универсальная табличная база)
-            // ======================================================================
+            // 2. Забиваем масштабы шкалы прибора
+            if (_targetVariableViewModel is ScalarVariableViewModel scalar)
+            {
+                scalar.ScaleMin = ParseInput(TextScaleMin.Text, 0f);
+                scalar.ScaleMax = ParseInput(TextScaleMax.Text, 100f);
+
+                // 3. Забиваем критические алармы (если пусто — ставим бесконечность)
+                scalar.AlarmMin = ParseInput(TextMinLimit.Text, float.NegativeInfinity);
+                scalar.AlarmMax = ParseInput(TextMaxLimit.Text, float.PositiveInfinity);
+            }
             if (_targetVariableViewModel is TableVariableViewModelBase tableVar)
             {
                 tableVar.BoundAxisX = ComboAxisX.SelectedItem as CurveVariableViewModel;
-                tableVar.BoundInputX = ComboInputX.SelectedItem as ScalarVariableViewModel;
-
-                // Если это тяжелая 3D-матрица — подтягиваем еще и вертикальную ось Y [1.14]
-                if (tableVar is Map3DVariableViewModel map3D)
-                {
-                    map3D.BoundAxisY = ComboAxisY.SelectedItem as CurveVariableViewModel;
-                    map3D.BoundInputY = ComboInputY.SelectedItem as ScalarVariableViewModel;
-                }
+                // ... привязки осей ...
             }
-            // ======================================================================
-            // 3. АВТОМАТИЗАЦИЯ ВЫВОДА ДОП-ПАНЕЛЕЙ (ПРИЦЕЛ И 3D-РЕЛЬЕФ)
-            // ======================================================================
-            var mainVm = System.Windows.Application.Current?.MainWindow?.DataContext as ViewModels.MainViewModel;
-            if (mainVm != null && mainVm.ActiveWidgets != null)
+            // Привязка нового комбобокса [1.22]
+            if (_targetWidget is TimePlotWidgetViewModel timePlot)
             {
-                // Управление радаром и 3D-поверхностью на основе чекбоксов [1.14]
-                (_targetWidget as MatrixTableWidgetViewModel)?.ShowRadarTracker = CheckShowRadar.IsChecked == true;
-                (_targetWidget as MatrixTableWidgetViewModel)?.Show3DSurface = CheckShow3D.IsChecked == true;
-
-                // --- УПРАВЛЕНИЕ ПЛАВАЮЩИМ ПРИЦЕЛОМ-РАДАРОМ ---
-                (_targetWidget as MatrixTableWidgetViewModel)?.ShowRadarTracker = CheckShowRadar.IsChecked == true;
-                var existingRadar = mainVm.ActiveWidgets.FirstOrDefault(w => w.DataSource == _targetVariableViewModel && w.ControlView == "RadarTracker");
-
-                if ((_targetWidget as MatrixTableWidgetViewModel)?.ShowRadarTracker ?? false)
-                {
-                    if (existingRadar == null)
-                    {
-                        var widget = WidgetFactory.Create("RadarTracker", _targetVariableViewModel);
-                        widget.Title = _targetVariableViewModel.Name;
-                        widget.ControlView = "RadarTracker";
-                        widget.Left = _targetWidget.Left + _targetWidget.Width + 20;
-                        widget.Top = _targetWidget.Top;
-                        widget.Width = 220;
-                        widget.Height = 220;
-                        mainVm.ActiveWidgets.Add(widget);
-                                                
-                    }
-                }
-                else if (existingRadar != null)
-                {
-                    mainVm.ActiveWidgets.Remove(existingRadar);
-                }
-                // --- УПРАВЛЕНИЕ 3D-РЕЛЬЕФОМ HELIX ---
-                (_targetWidget as MatrixTableWidgetViewModel)?.Show3DSurface = CheckShow3D.IsChecked == true;
-                var existing3D = mainVm.ActiveWidgets.FirstOrDefault(w => w.DataSource == _targetVariableViewModel && w.ControlView == "Matrix3DSurface");
-
-                if ((_targetWidget as MatrixTableWidgetViewModel)?.Show3DSurface ?? false)
-                {
-                    if (existing3D == null)
-                    {
-                        var widget = WidgetFactory.Create("Matrix3DSurface", _targetVariableViewModel);
-                        widget.Title = _targetVariableViewModel.Name;
-                        widget.Left = _targetWidget.Left;
-                        widget.Top = _targetWidget.Top + _targetWidget.Height + 20;
-                        widget.Width = 400;
-                        widget.Height = 300;
-                        mainVm.ActiveWidgets.Add(widget);
-                    }
-                }
-                else if (existing3D != null)
-                {
-                    mainVm.ActiveWidgets.Remove(existing3D);
-                }
-            } // Конец блока mainVm
-              // ======================================================================
-              // 4. ПАРСИНГ КРИТИЧЕСКИХ ЛИМИТОВ ДАТЧИКОВ ТЕЛЕМЕТРИИ
-              // ======================================================================
-            if (_targetVariableViewModel != null && !_targetVariableViewModel.IsParam)
-            {
-                var inv = System.Globalization.CultureInfo.InvariantCulture;
-                var _targetTableScalar = _targetVariableViewModel as ScalarVariableViewModel;
-
-                _targetTableScalar.AlarmMin = (float)(double.TryParse(TextMinLimit.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double min) ? min : double.NegativeInfinity);
-                _targetTableScalar.AlarmMax = (float)(double.TryParse(TextMaxLimit.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double max) ? max : double.PositiveInfinity);
-
-                if (double.TryParse(TextScaleMin.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMin)) (_targetVariableViewModel as ScalarVariableViewModel)?.ScaleMin = (float)sMin;
-                if (double.TryParse(TextScaleMax.Text.Replace(',', '.'), System.Globalization.NumberStyles.Float, inv, out double sMax)) (_targetVariableViewModel as ScalarVariableViewModel)?.ScaleMax = (float)sMax;
-
-                (_targetWidget as BaseScalarWidgetViewModel)?.EnableVisualAlarm = CheckEnableVisualAlarm.IsChecked == true;
-            }
-            // ======================================================================
-            // 5. ВЫБОР ГРАФИЧЕСКОГО СТИЛЯ И ЗАКРЫТИЕ ОКНА
-            // ======================================================================
-            if (ComboStyle.Visibility == System.Windows.Visibility.Visible && ComboStyle.SelectedIndex >= 0)
-            {
-                _targetWidget.ControlView = ComboStyle.SelectedIndex switch
-                {
-                    0 => _targetVariableViewModel.IsParam ? "TextBox" : "Digital",
-                    1 => "SliderHorizontal",
-                    2 => "SliderVertical",
-                    3 => "GaugeCircular270",
-                    4 => "GaugeArc120",
-                    5 => "TimePlot",
-                    _ => "TextBox"
-                };
+                timePlot.Signal1 = ComboInputX.SelectedItem as ScalarVariableViewModel;
+                timePlot.Signal2 = ComboInputY2.SelectedItem as ScalarVariableViewModel;
             }
 
-            //if (_targetVariableViewModel != null && !_targetVariableViewModel.IsParam) _targetWidget.RefreshAlarmTriangles();
-            //if (_targetVariableViewModel is Map3DVariableViewModel)                 _targetWidget.
-                _targetWidget.IsVertical = RadioVertical.IsChecked == true;
+            _targetWidget.IsVertical = RadioVertical.IsChecked == true;
+            if (ComboStyle.SelectedValue is WidgetViewType selectedType)
+                _targetWidget.ControlView = selectedType;
             DialogResult = true;
-        } // 🔥 Финал метода ApplyButton_Click!
+            Close();
 
 
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        }
+
+        /// <summary>
+        /// Сишный хелпер-парсер: заменяет макрос, инвариантно переводит текст инпута в число.
+        /// </summary>
+        private float ParseInput(string text, float fallback = 0f)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return fallback;
+
+            string cleanText = text.Replace(',', '.');
+            var style = System.Globalization.NumberStyles.Any;
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+
+            return float.TryParse(cleanText, style, culture, out float result) ? result : fallback;
+        }
+
+        private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
         }

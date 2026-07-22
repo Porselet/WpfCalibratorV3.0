@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
+using WpfCalibrator.Models;
 
 namespace WpfCalibrator.ViewModels.WidgetViewModel;
 
@@ -36,7 +37,7 @@ class LegacyWidgetViewModel: BaseWidgetViewModel
             //OnPropertyChanged(nameof(LedStates));
 
             // Если перед глазами инженера открыт осциллограф — плавно дописываем точку в лог
-            if (ControlView == "TimePlot")
+            if (ControlView == WidgetViewType.TimePlot)
             {
                 //this.AppendPlotPoint(scalar.CurrentValue);
             }

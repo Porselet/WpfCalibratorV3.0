@@ -171,13 +171,13 @@ public partial class WorkspaceCanvas : UserControl
             if (variable.IsParam)
             {
                 // Калибровочные параметры (Матрицы или Скаляры) создаются тихо
-                string viewType = variable.TotalElements > 1 ? "MatrixTable" : "TextBox";
+                WidgetViewType viewType = variable.TotalElements > 1 ? WidgetViewType.MatrixTable : WidgetViewType.SingleParam;
                 CreateWidgetOnWorkspace(vm, variable, snappedX, snappedY, viewType);
             }
             else
             {
                 // ТИХИЙ РЕЖИМ ДЛЯ ДАТЧИКОВ: Вместо ShowWidgetSelectorMenu сразу создаем Digital!
-                CreateWidgetOnWorkspace(vm, variable, snappedX, snappedY, "Digital");
+                CreateWidgetOnWorkspace(vm, variable, snappedX, snappedY, WidgetViewType.SingleDigitalIndicator);
             }
 
             e.Handled = true;
@@ -188,7 +188,7 @@ public partial class WorkspaceCanvas : UserControl
 
 
 
-    private async void CreateWidgetOnWorkspace(MainViewModel vm, VariableConfig variable, double x, double y, string viewType)
+    private async void CreateWidgetOnWorkspace(MainViewModel vm, VariableConfig variable, double x, double y, WidgetViewType viewType)
     {
         // ИСПРАВЛЕНИЕ: Ищем уже существующую Вью-Модель переменной в коллекциях ядра, 
         // вместо того чтобы создавать дубликат через new!
@@ -214,7 +214,7 @@ public partial class WorkspaceCanvas : UserControl
         // Создаем графический контейнер, который теперь смотрит на ЕДИНСТВЕННЫЙ правильный источник данных
         BaseWidgetViewModel widget;
 
-        if (viewType == "Matrix3DSurface")
+        if (viewType == WidgetViewType.Matrix3DSurface)
         {
             // Для 3D создаем строго специализированный класс!
             widget = WidgetFactory.Create(viewType, realVariableVm);//new Matrix3DWidgetViewModel(realVariableVm)
@@ -235,8 +235,10 @@ public partial class WorkspaceCanvas : UserControl
 
 
             // Тут оставляешь свои старые ветки if/else для размеров Gauge и Скаляров
-            if (viewType == "Gauge") { widget.Width = 180; widget.Height = 210; }
-            else { widget.Width = 260; widget.Height = 110; }
+            //if (viewType == WidgetViewType.Gauge) { widget.Width = 180; widget.Height = 210; }
+            //else { 
+                widget.Width = 260; widget.Height = 110; 
+            //}
         }
 
         vm.ActiveWidgets.Add(widget);

@@ -1,205 +1,437 @@
-﻿<Window x:Class="WpfCalibrator.Views.TableSettingsWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Настройка привязок Look-Up таблицы" 
-        Height="360" Width="450"
-        WindowStartupLocation="CenterOwner"
-        WindowStyle="None" 
-        ResizeMode="NoResize"
-        Background="#111111" 
-        BorderBrush="#FF9100" 
-        BorderThickness="2">
+﻿<Window
+    x:Class="WpfCalibrator.Views.TableSettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Настройка привязок Look-Up таблицы"
+    SizeToContent="Height"
+    Width="450"
+    WindowStartupLocation="CenterOwner"
+    WindowStyle="None"
+    ResizeMode="NoResize"
+    Background="#111111"
+    BorderBrush="#FF9100"
+    BorderThickness="2">
 
 
     <Window.Resources>
-        <!-- СТИЛЬ 1: ДЛЯ ОБЪЕКТОВ ПЕРЕМЕННЫХ (Оси X/Y, Датчики X/Y) -->
-        <!-- Он читает свойство .Name у объектов VariableViewModel -->
-        <Style x:Key="EngineeringComboBoxStyle" TargetType="ComboBox">
-            <Setter Property="Background" Value="#222222"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderBrush" Value="#555555"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="FontFamily" Value="Consolas"/>
-            <Setter Property="FontSize" Value="13"/>
 
-            <Setter Property="ItemTemplate">
+        <Style
+            x:Key="DarkButtonStyle"
+            TargetType="Button">
+            <Setter
+                Property="Background"
+                Value="#3E3E42" />
+            <Setter
+                Property="Foreground"
+                Value="White" />
+            <Setter
+                Property="BorderBrush"
+                Value="#555555" />
+            <Setter
+                Property="BorderThickness"
+                Value="1" />
+            <Setter
+                Property="Padding"
+                Value="10,2" />
+            <Setter
+                Property="FontFamily"
+                Value="Consolas" />
+            <Setter
+                Property="Template">
                 <Setter.Value>
-                    <DataTemplate>
-                        <Border Background="#E0E0E0" Margin="-6,-4" Padding="8,5">
-                            <!-- ЗДЕСЬ СТРОГО ОСТАВЛЯЕМ .Name ДЛЯ ОБЪЕКТОВ -->
-                            <TextBlock Text="{Binding Name}" 
-                                       Foreground="Black" 
-                                       FontFamily="Consolas" 
-                                       FontSize="13"/>
+                    <ControlTemplate
+                        TargetType="Button">
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="3">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center" />
                         </Border>
-                    </DataTemplate>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
-
-            <Setter Property="ItemContainerStyle">
-                <Setter.Value>
-                    <Style TargetType="ComboBoxItem">
-                        <Setter Property="Background" Value="#E0E0E0"/>
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="Padding" Value="0"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#007ACC"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Setter.Value>
-            </Setter>
+            <Style.Triggers>
+                <!-- Эффект наведения мыши (MouseOver) -->
+                <Trigger
+                    Property="IsMouseOver"
+                    Value="True">
+                    <Setter
+                        Property="Background"
+                        Value="#2D2D30" />
+                    <Setter
+                        Property="BorderBrush"
+                        Value="#007ACC" />
+                    <!-- Неоновый синий фокус -->
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
-        <!-- СТИЛЬ 2: ДЛЯ ЧИСТЫХ СТРОК ТЕКСТА (Выбор вида виджета) -->
-        <!-- Он наследует все настройки верхнего стиля, но переопределяет чтение сырого текста {Binding} -->
-        <Style x:Key="TextOnlyComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource EngineeringComboBoxStyle}">
-            <Setter Property="ItemTemplate">
-                <Setter.Value>
-                    <DataTemplate>
-                        <Border Background="#E0E0E0" Margin="-6,-4" Padding="8,5">
-                            <!-- ЗДЕСЬ ДЛЯ СТРОК ПИШЕМ ЧИСТЫЙ БИНДИНГ -->
-                            <TextBlock Text="{Binding}" 
-                                       Foreground="Black" 
-                                       FontFamily="Consolas" 
-                                       FontSize="13"/>
-                        </Border>
-                    </DataTemplate>
-                </Setter.Value>
-            </Setter>
+        <!-- 2. ТЕМНЫЙ СТИЛЬ ДЛЯ ТЕКСТОВЫХ ПОЛЕЙ (Шаги / Лимиты шкал) -->
+        <Style
+            x:Key="DarkTextBoxStyle"
+            TargetType="TextBox">
+            <Setter
+                Property="Background"
+                Value="#252526" />
+            <Setter
+                Property="Foreground"
+                Value="#00FF00" />
+            <!-- Зеленый мотековский шрифт! -->
+            <Setter
+                Property="BorderBrush"
+                Value="#434346" />
+            <Setter
+                Property="CaretBrush"
+                Value="White" />
+            <Setter
+                Property="BorderThickness"
+                Value="1" />
+            <Setter
+                Property="Padding"
+                Value="4,2" />
+            <Setter
+                Property="FontFamily"
+                Value="Consolas" />
+            <Setter
+                Property="FontWeight"
+                Value="Bold" />
         </Style>
+
+
+
+        <!-- ЕДИНСТВЕННЫЙ УНИВЕРСАЛЬНЫЙ ТЕМНЫЙ СТИЛЬ ДЛЯ ВСЕХ КОМБОБОКСОВ В ОКНЕ -->
+        <!-- ПОЛНЫЙ ТЕМНЫЙ СТИЛЬ КОМБОБОКСА С ЗАЩИТОЙ ОТ БЕЛОГО ФОНА WINDOWS -->
     </Window.Resources>
 
 
-    <Grid Margin="20">
+    <Grid
+        Margin="20">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition
+                Height="Auto" />
             <!-- Заголовок -->
-            <RowDefinition Height="*"/>
+            <RowDefinition
+                Height="Auto" />
             <!-- Поля настроек -->
-            <RowDefinition Height="Auto"/>
+            <RowDefinition
+                Height="Auto" />
             <!-- Кнопки -->
         </Grid.RowDefinitions>
 
         <!-- ЗАГОЛОВОК С ИМЕНЕМ ТАБЛИЦЫ -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
-            <TextBlock Text="📋 НАСТРОЙКА КАРТЫ: " Foreground="White" FontSize="14" FontFamily="Consolas"/>
-            <TextBlock x:Name="TableNameText" Text="TEST_Data" Foreground="#FF9100" FontSize="14" FontWeight="Bold" FontFamily="Consolas"/>
+        <StackPanel
+            Grid.Row="0"
+            Orientation="Horizontal"
+            Margin="0,0,0,15">
+            <TextBlock
+                Text="📋 НАСТРОЙКА КАРТЫ: "
+                Foreground="White"
+                FontSize="14"
+                FontFamily="Consolas" />
+            <TextBlock
+                x:Name="TableNameText"
+                Text="TEST_Data"
+                Foreground="#FF9100"
+                FontSize="14"
+                FontWeight="Bold"
+                FontFamily="Consolas" />
         </StackPanel>
 
         <!-- СЕТКА С ВЫБОРОМ ПЕРЕМЕННЫХ -->
-        <Grid Grid.Row="1" VerticalAlignment="Top">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="150"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="10"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <!-- ЦЕНТРАЛЬНЫЙ ВЕРТИКАЛЬНЫЙ КОНТЕЙНЕР НАСТРОЕК (ЗАМЕНЯЕТ СТАРУЮ GRID) -->
+        <StackPanel
+            x:Name="MainSettingsPanel"
+            Orientation="Vertical"
+            Grid.Row="1"
+            Margin="20,10,20,10">
 
-            <!-- ОСЬ X -->
-            <TextBlock x:Name="LabelAxisX" Grid.Row="0" Grid.Column="0" Text="Ось X (Вектор):" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,0,10"/>
-            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="ComboAxisX" Style="{StaticResource EngineeringComboBoxStyle}" DisplayMemberPath="Name" Margin="0,0,0,10"/>
-
-            <!-- ДАТЧИК X -->
-            <TextBlock x:Name="LabelInputX" Grid.Row="1" Grid.Column="0" Text="Сигнал оси X:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,0,10"/>
-            <ComboBox Grid.Row="1" Grid.Column="1" x:Name="ComboInputX" Style="{StaticResource EngineeringComboBoxStyle}" DisplayMemberPath="Name" Margin="0,0,0,10"/>
-
-            <!-- ОСЬ Y -->
-            <TextBlock x:Name="LabelAxisY" Grid.Row="2" Grid.Column="0" Text="Ось Y (Вектор):" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center" Margin="0,0,0,10"/>
-            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="ComboAxisY" Style="{StaticResource EngineeringComboBoxStyle}" DisplayMemberPath="Name" Margin="0,0,0,10"/>
-
-            <!-- ДАТЧИК Y -->
-            <TextBlock x:Name="LabelInputY" Grid.Row="3" Grid.Column="0" Text="Сигнал оси Y:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <ComboBox Grid.Row="3" Grid.Column="1" x:Name="ComboInputY" Style="{StaticResource EngineeringComboBoxStyle}" DisplayMemberPath="Name"/>
-
-            <!-- ШАГ ПРИРАЩЕНИЯ -->
-            <!-- НОВОЕ: Добавили x:Name="LabelIncrementStep" -->
-            <TextBlock x:Name="LabelIncrementStep" Grid.Row="5" Grid.Column="0" Text="Шаг PageUp/Dn:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="5" Grid.Column="1" x:Name="TextIncrementStep" Background="#222222" Foreground="White" FontFamily="Consolas" FontSize="13" Padding="4,2" Width="80" HorizontalAlignment="Left"/>
-
-            <!-- ПРИЦЕЛ-РАДАР -->
-            <!-- НОВОЕ: Добавили x:Name="LabelShowRadar" -->
-            <TextBlock x:Name="LabelShowRadar" Grid.Row="7" Grid.Column="0" Text="Прицел-Радар:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <CheckBox Grid.Row="7" Grid.Column="1" x:Name="CheckShowRadar" Content="Вывести плавающий прицел" Foreground="White" FontFamily="Consolas" FontSize="12" VerticalAlignment="Center"/>
-            <!-- КОМПОНЕНТ ДЛЯ ВЫВОДА ТРЕХМЕРНОЙ ПОВЕРХНОСТИ -->
-            <TextBlock x:Name="LabelShow3D" Grid.Row="9" Grid.Column="0" Text="3D Поверхность:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <CheckBox Grid.Row="9" Grid.Column="1" x:Name="CheckShow3D" Content="Вывести 3D-поверхность Helix" Foreground="White" FontFamily="Consolas" FontSize="12" VerticalAlignment="Center"/>
-
-
-            <!-- ВЫБОР ОРИЕНТАЦИИ -->
-            <TextBlock x:Name="LabelOrientation" Grid.Row="9" Grid.Column="0" Text="Ориентация 1D:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <StackPanel x:Name="PanelOrientation" Grid.Row="9" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <RadioButton x:Name="RadioHorizontal" Content="Горизонтально" IsChecked="True" Foreground="White" FontFamily="Consolas" FontSize="12" Margin="0,0,20,0"/>
-                <RadioButton x:Name="RadioVertical" Content="Вертикально" Foreground="White" FontFamily="Consolas" FontSize="12"/>
+            <!-- Строка 1: Выбор стиля/типа виджета (ВИДИМА ВСЕГДА) -->
+            <StackPanel
+                x:Name="Row_WidgetStyle"
+                Orientation="Horizontal"
+                Margin="0,0,0,10">
+                <TextBlock
+                    Text="Вид виджета:"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <ComboBox
+                    x:Name="ComboStyle"
+                    Width="250"
+                    Style="{StaticResource DarkComboBoxStyle}"
+                    DisplayMemberPath="DisplayName"
+                    SelectedValuePath="Type" />
             </StackPanel>
 
-            <!-- ВЫБОР СТИЛЯ ВИЗУАЛИЗАЦИИ (ДЛЯ СКАЛЯРОВ И ДАТЧИКОВ) -->
-            <!-- ВЫБОР СТИЛЯ ВИЗУАЛИЗАЦИИ (ИСПРАВЛЕНО ПО ПАТТЕРНУ COM-ПОРТА) -->
-            <TextBlock x:Name="LabelStyle" Grid.Row="11" Grid.Column="0" Text="Вид виджета:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <ComboBox x:Name="ComboStyle" Grid.Row="11" Grid.Column="1" 
-                      Style="{StaticResource TextOnlyComboBoxStyle}" 
-                      Margin="0,0,0,0">
-                <!-- Заполняем коллекцию строк напрямую через теги системы, 
-                     чтобы твой ItemTemplate из ресурсов автоматически покрасил их в черный цвет! -->
-                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Текстовый индикатор (Digital)</System:String>
-                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Слайдер горизонтальный</System:String>
-                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Слайдер вертикальный</System:String>
-                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Стрелочный прибор 270°</System:String>
-                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">Дуговой индикатор 120°</System:String>
-                <System:String xmlns:System="clr-namespace:System;assembly=mscorlib">График времени (Time Plot)</System:String>
-            </ComboBox>
-
-            <!-- ГЕОМЕТРИЧЕСКИЙ МАСШТАБ ШКАЛЫ (ДЛЯ СЛАЙДЕРОВ, СТРЕЛОК И ГРАФИКОВ) -->
-            <TextBlock x:Name="LabelScaleRange" Grid.Row="13" Grid.Column="0" Text="Шкала (Мин/Макс):" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <StackPanel x:Name="PanelScaleRange" Grid.Row="13" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBox x:Name="TextScaleMin" Background="#222222" Foreground="White" FontFamily="Consolas" FontSize="13" Padding="4,2" Width="60" Margin="0,0,10,0"/>
-                <TextBlock Text="/" Foreground="Gray" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBox x:Name="TextScaleMax" Background="#222222" Foreground="White" FontFamily="Consolas" FontSize="13" Padding="4,2" Width="60"/>
+            <!-- Строка 2: Первый (основной) сигнал Канала 1. По умолчанию скрыта! -->
+            <StackPanel
+                x:Name="Row_InputX"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Сигнал / Канал 1:"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <ComboBox
+                    x:Name="ComboInputX"
+                    Width="250"
+                    Height="24"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource DarkComboBoxStyle}"
+                    DisplayMemberPath="Name" />
             </StackPanel>
 
-            <!-- КРИТИЧЕСКИЕ МАРКЕРЫ БЕЗОПАСНОСТИ (ТОЛЬКО ДЛЯ ДАТЧИКОВ) -->
-            <TextBlock x:Name="LabelLimits" Grid.Row="15" Grid.Column="0" Text="Алармы (Мин/Макс):" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <StackPanel x:Name="PanelLimits" Grid.Row="15" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBox x:Name="TextMinLimit" Background="#222222" Foreground="White" FontFamily="Consolas" FontSize="13" Padding="4,2" Width="60" Margin="0,0,10,0"/>
-                <TextBlock Text="/" Foreground="Gray" FontSize="14" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBox x:Name="TextMaxLimit" Background="#222222" Foreground="White" FontFamily="Consolas" FontSize="13" Padding="4,2" Width="60"/>
+            <!-- Строка 3: ВТОРОЙ СИГНАЛ (Для нашего TimePlot графика!). По умолчанию скрыта! -->
+            <StackPanel
+                x:Name="Row_InputY2"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Сигнал Канала 2:"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <ComboBox
+                    x:Name="ComboInputY2"
+                    Width="250"
+                    Style="{StaticResource DarkComboBoxStyle}"
+                    DisplayMemberPath="Name" />
             </StackPanel>
-            <!-- ГАЛОЧКА ИНДИВИДУАЛЬНОГО ПОДАВЛЕНИЯ КРАСНОГО ЭКРАНА (НОВОЕ) -->
-            <TextBlock x:Name="LabelEnableVisualAlarm" Grid.Row="17" Grid.Column="0" Text="Режим тревоги:" Foreground="Gray" FontSize="13" FontFamily="Consolas" VerticalAlignment="Center"/>
-            <CheckBox x:Name="CheckEnableVisualAlarm" Grid.Row="17" Grid.Column="1" 
-                      Content="Окрашивать фон при аларме" 
-                      Foreground="White" FontFamily="Consolas" FontSize="12" 
-                      VerticalAlignment="Center" IsChecked="True"/>
 
-        </Grid>
+            <!-- Строка 4: Привязка оси X (Для оцифровки шкал матриц) -->
+            <StackPanel
+                x:Name="Row_AxisX"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Ось X (Обороты):"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <ComboBox
+                    x:Name="ComboAxisX"
+                    Width="250"
+                    Style="{StaticResource DarkComboBoxStyle}"
+                    DisplayMemberPath="Name" />
+            </StackPanel>
 
-        <!-- КНОПКИ УПРАВЛЕНИЯ -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="ПРИМЕНИТЬ" Width="100" Height="32" Background="#2E7D32" Foreground="White" FontWeight="Bold" FontFamily="Consolas" Margin="0,0,10,0" IsDefault="True" Click="ApplyButton_Click"/>
-            <Button Content="ОТМЕНА" Width="100" Height="32" Background="#C62828" Foreground="White" FontWeight="Bold" FontFamily="Consolas" IsCancel="True" Click="CancelButton_Click"/>
+            <!-- Строка 5: Привязка оси Y (Для оцифровки шкал матриц) -->
+            <StackPanel
+                x:Name="Row_AxisY"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Ось Y (Нагрузка):"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <ComboBox
+                    x:Name="ComboAxisY"
+                    Width="250"
+                    Style="{StaticResource DarkComboBoxStyle}"
+                    DisplayMemberPath="Name" />
+            </StackPanel>
+
+            <!-- Строка 6: Входной сигнал Y (Для тяжелых 3D матриц) -->
+            <StackPanel
+                x:Name="Row_InputY"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Сигнал оси Y:"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <ComboBox
+                    x:Name="ComboInputY"
+                    Width="250"
+                    Style="{StaticResource DarkComboBoxStyle}"
+                    DisplayMemberPath="Name" />
+            </StackPanel>
+            <!-- Строка 7: Шаг изменения по PageUp/PageDown -->
+            <StackPanel
+                x:Name="Row_IncrementStep"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Шаг изменения:"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <TextBox
+                    x:Name="TextIncrementStep"
+                    Width="100"
+                    Style="{StaticResource DarkTextBoxStyle}" />
+            </StackPanel>
+
+            <!-- Строка 8: Границы физической шкалы прибора (ScaleMin и ScaleMax) -->
+            <StackPanel
+                x:Name="Row_ScaleRange"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Шкала (Мин / Макс):"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <TextBox
+                    x:Name="TextScaleMin"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}"
+                    Margin="0,0,10,0" />
+                <TextBox
+                    x:Name="TextScaleMax"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}" />
+            </StackPanel>
+
+            <!-- Строка 9: Аварийные границы (AlarmMin и AlarmMax) -->
+            <StackPanel
+                x:Name="Row_AlarmRange"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Алармы (Мин / Макс):"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <TextBox
+                    x:Name="TextMinLimit"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}"
+                    Margin="0,0,10,0" />
+                <TextBox
+                    x:Name="TextMaxLimit"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}" />
+            </StackPanel>
+
+            <!-- Строка 10: Ориентация прибора (Для 1D слайдеров) -->
+            <StackPanel
+                x:Name="Row_Orientation"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Ориентация:"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <RadioButton
+                    x:Name="RadioHorizontal"
+                    Content="Горизонтально"
+                    Foreground="White"
+                    Margin="0,0,15,0"
+                    VerticalAlignment="Center" />
+                <RadioButton
+                    x:Name="RadioVertical"
+                    Content="Вертикально"
+                    Foreground="White"
+                    VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Строка 11: Чекбоксы опций Радара и 3D-поверхности Helix -->
+            <StackPanel
+                x:Name="Row_TableOptions"
+                Orientation="Horizontal"
+                Margin="0,0,0,10"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Опции отображения:"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <CheckBox
+                    x:Name="CheckShowRadar"
+                    Content="Сетка радара"
+                    Foreground="White"
+                    Margin="0,0,15,0"
+                    VerticalAlignment="Center" />
+                <CheckBox
+                    x:Name="CheckShow3D"
+                    Content="3D Сцена"
+                    Foreground="White"
+                    VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Строка 12: Режим визуальной тревоги (Окрашивание фона датчика) -->
+            <StackPanel
+                x:Name="Row_VisualAlarm"
+                Orientation="Horizontal"
+                Margin="0,0,0,15"
+                Visibility="Collapsed">
+                <TextBlock
+                    Text="Визуальный аларм:"
+                    Width="150"
+                    Foreground="Gray"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+                <CheckBox
+                    x:Name="CheckEnableVisualAlarm"
+                    Content="Включить вспышку при аварии"
+                    Foreground="White"
+                    VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- КНОПКИ УПРАВЛЕНИЯ ОКНОМ НАСТРОЕК (СОХРАНИТЬ / ОТМЕНА) -->
+
         </StackPanel>
+        <StackPanel
+            Orientation="Horizontal"
+            HorizontalAlignment="Right"
+            Margin="0,10,0,0"
+            Grid.Row="2">
+            <Button
+                x:Name="ButtonApply"
+                Content="Применить"
+                Width="100"
+                Height="28"
+                Margin="0,0,10,0"
+                Style="{StaticResource DarkButtonStyle}"
+                Click="ButtonApply_Click" />
+            <Button
+                x:Name="ButtonCancel"
+                Content="Отмена"
+                Width="100"
+                Height="28"
+                Style="{StaticResource DarkButtonStyle}"
+                Click="ButtonCancel_Click" />
+        </StackPanel>
+
     </Grid>
 </Window>

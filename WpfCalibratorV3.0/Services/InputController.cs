@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Windows.Input;
+using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels;
 using WpfCalibrator.ViewModels.WidgetViewModel;
 
@@ -87,7 +88,7 @@ namespace WpfCalibrator.Services
             // ======================================================================
             // 3. НАВИГАЦИЯ СТРЕЛОЧКАМИ ДЛЯ ТАБЛИЦ (Приведение к TableVariable)
             // ======================================================================
-            if (activeWidget.ControlView == "MatrixTable" && variable is TableVariableViewModelBase activeTable)
+            if (activeWidget.ControlView == WidgetViewType.MatrixTable && variable is TableVariableViewModelBase activeTable)
             {
                 bool isNavKey = e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right;
                 if (isNavKey)
@@ -156,7 +157,7 @@ namespace WpfCalibrator.Services
                 return true;
             }
             // БЛОК 4.7: Горячие клавиши H/V [1.14]
-            if (string.IsNullOrEmpty(activeWidget.InputBuffer) && activeWidget.ControlView == "MatrixTable")
+            if (string.IsNullOrEmpty(activeWidget.InputBuffer) && activeWidget.ControlView == WidgetViewType.MatrixTable)
             {
                 // H - Горизонтальная интерполяция [1.14]
                 if (e.Key == Key.H && variable is TableVariableViewModelBase tableVar)

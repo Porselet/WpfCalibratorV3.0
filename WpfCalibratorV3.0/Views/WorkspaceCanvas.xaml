@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:viewmodels="clr-namespace:WpfCalibrator.ViewModels.WidgetViewModel"
     xmlns:views="clr-namespace:WpfCalibrator.Views"
+    xmlns:models="clr-namespace:WpfCalibrator.Models"
     mc:Ignorable="d"
     d:DesignWidth="800"
     d:DesignHeight="600">
@@ -45,27 +46,11 @@
                 </Style>
             </ItemsControl.ItemContainerStyle>
             <ItemsControl.Resources>
-                <DataTemplate
-                    DataType="{x:Type viewmodels:Matrix3DWidgetViewModel}">
-                    <!-- Передаем сам объект вьюмодели внутрь шаблона 3D-сцены! -->
-                    <ContentControl
-                        Content="{Binding}"
-                        ContentTemplate="{StaticResource Matrix3DSurfaceTemplate}" />
-                </DataTemplate>
-                <DataTemplate
-                    DataType="{x:Type viewmodels:RadarTrackerWidgetViewModel}">
-                    <ContentControl
-                        Content="{Binding}"
-                        ContentTemplate="{StaticResource RadarTrackerTrackerTemplate}" />
-                </DataTemplate>
-
 
                 <Style
                     TargetType="ContentControl"
                     BasedOn="{StaticResource {x:Type ContentControl}}">
-
                     <Style.Triggers>
-                        <!-- Добавь DataTrigger для 3D, digital, матриц и т.д. -->
                         <DataTrigger
                             Binding="{Binding ControlView}"
                             Value="TimePlot">
@@ -76,10 +61,18 @@
 
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="TextBox">
+                            Value="{x:Static models:WidgetViewType.SingleParam}">
                             <Setter
                                 Property="ContentTemplate"
                                 Value="{StaticResource ScalarTextBoxTemplate}" />
+                        </DataTrigger>
+                        <!-- Сравниваем со значением enum SingleDigitalIndicator -->
+                        <DataTrigger
+                            Binding="{Binding ControlView}"
+                            Value="{x:Static models:WidgetViewType.SingleDigitalIndicator}">
+                            <Setter
+                                Property="ContentTemplate"
+                                Value="{StaticResource WidgetDigitalTemplate}" />
                         </DataTrigger>
                         <DataTrigger
                             Binding="{Binding ControlView}"
@@ -89,18 +82,24 @@
                                 Value="{StaticResource MatrixTableTemplate}" />
                         </DataTrigger>
 
-                        <!-- ЦИФРОВОЙ ИНДИКАТОР ТЕЛЕМЕТРИИ -->
+                        <!-- Триггер для 3D Матрицы Helix -->
                         <DataTrigger
                             Binding="{Binding ControlView}"
-                            Value="Digital">
+                            Value="{x:Static models:WidgetViewType.Matrix3DSurface}">
                             <Setter
                                 Property="ContentTemplate"
-                                Value="{StaticResource WidgetDigitalTemplate}" />
+                                Value="{StaticResource Matrix3DSurfaceTemplate}" />
                         </DataTrigger>
 
-                        <!-- СЛАЙДЕРЫ (ГОРИЗОНТАЛЬНЫЙ И ВЕРТИКАЛЬНЫЙ) -->
-                        <!-- Мы завяжем их оба на наш обновленный шаблон слайдера, 
-                                                             а направление (Orientation) внутри шаблона настроим на следующем шаге -->
+                        <!-- Триггер для Радара целей -->
+                        <DataTrigger
+                            Binding="{Binding ControlView}"
+                            Value="{x:Static models:WidgetViewType.RadarTracker}">
+                            <Setter
+                                Property="ContentTemplate"
+                                Value="{StaticResource RadarTrackerTrackerTemplate}" />
+                        </DataTrigger>
+
                         <DataTrigger
                             Binding="{Binding ControlView}"
                             Value="SliderHorizontal">

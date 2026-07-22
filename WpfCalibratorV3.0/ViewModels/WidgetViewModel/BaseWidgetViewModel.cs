@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media.Media3D;
+using WpfCalibrator.Models;
 
 namespace WpfCalibrator.ViewModels.WidgetViewModel;
 /// <summary>
@@ -65,14 +66,13 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
 
 
 
-    // Тип виджета (TextBox, Graph, Gauge...)
-    private string _controlView = "TextBox";
-    /// <summary>
-    /// Строковый идентификатор визуального типа прибора (например, TextBox, Graph, Gauge, TimePlot).
-    /// Используется движком WPF в качестве ключа переключения динамических шаблонов DataTemplate.
-    /// </summary>
+    private WidgetViewType _controlView;
 
-    public string ControlView
+    /// <summary>
+    /// Получает или задает строго типизированный идентификатор визуального типа прибора. [1.14]
+    /// Используется C#-фабрикой и механизмами развилок окон настроек.
+    /// </summary>
+    public WidgetViewType ControlView
     {
         get => _controlView;
         set
@@ -80,13 +80,11 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
             if (_controlView != value)
             {
                 _controlView = value;
-                // Генерируем уведомление для UI. 
-                // Как только оператор кликнет в меню, XAML мгновенно пересчитает триггеры!
                 OnPropertyChanged(nameof(ControlView));
             }
         }
     }
-    
+
 
 
 
