@@ -1,0 +1,2544 @@
+Ñòðóêòóðà ïàïîê
+Ñåðèéíûé íîìåð òîìà: 000000AA 98BC:BFF8
+C:.
+¦   .gitattributes
+¦   .gitignore
+¦   structure.txt
+¦   WpfCalibratorV3.0.slnx
+¦   
+L---WpfCalibratorV3.0
+    ¦   App.xaml
+    ¦   App.xaml.cs
+    ¦   AssemblyInfo.cs
+    ¦   github_files_list.txt
+    ¦   MainWindow.xaml
+    ¦   MainWindow.xaml.cs
+    ¦   README.md
+    ¦   script.py
+    ¦   WpfCalibratorV3.0.csproj
+    ¦   WpfCalibratorV3.0.csproj.user
+    ¦   
+    +---bin
+    ¦   +---Debug
+    ¦   ¦   L---net10.0-windows
+    ¦   ¦       ¦   CommunityToolkit.Common.dll
+    ¦   ¦       ¦   CommunityToolkit.Diagnostics.dll
+    ¦   ¦       ¦   CommunityToolkit.Mvvm.dll
+    ¦   ¦       ¦   demo.bat
+    ¦   ¦       ¦   Demo.bin
+    ¦   ¦       ¦   HelixToolkit.dll
+    ¦   ¦       ¦   HelixToolkit.Geometry.dll
+    ¦   ¦       ¦   HelixToolkit.Maths.dll
+    ¦   ¦       ¦   HelixToolkit.Wpf.dll
+    ¦   ¦       ¦   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+    ¦   ¦       ¦   Microsoft.Extensions.Logging.Abstractions.dll
+    ¦   ¦       ¦   System.IO.Ports.dll
+    ¦   ¦       ¦   WpfCalibratorV3.0.deps.json
+    ¦   ¦       ¦   WpfCalibratorV3.0.dll
+    ¦   ¦       ¦   WpfCalibratorV3.0.exe
+    ¦   ¦       ¦   WpfCalibratorV3.0.pdb
+    ¦   ¦       ¦   WpfCalibratorV3.0.runtimeconfig.json
+    ¦   ¦       ¦   WpfCalibratorV3.0.xml
+    ¦   ¦       ¦   
+    ¦   ¦       +---Devices
+    ¦   ¦       ¦   L---BlackPill
+    ¦   ¦       ¦           app_mapping_Test.json
+    ¦   ¦       ¦           app_mapping_Test2.json
+    ¦   ¦       ¦           user_view_config.json
+    ¦   ¦       ¦           
+    ¦   ¦       L---runtimes
+    ¦   ¦           +---android-arm
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---android-arm64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---android-x64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---android-x86
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---linux-arm
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---linux-arm64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---linux-bionic-arm64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---linux-bionic-x64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---linux-musl-arm
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---linux-musl-arm64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---linux-musl-x64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---linux-x64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.so
+    ¦   ¦           ¦           
+    ¦   ¦           +---maccatalyst-arm64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.dylib
+    ¦   ¦           ¦           
+    ¦   ¦           +---maccatalyst-x64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.dylib
+    ¦   ¦           ¦           
+    ¦   ¦           +---osx-arm64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.dylib
+    ¦   ¦           ¦           
+    ¦   ¦           +---osx-x64
+    ¦   ¦           ¦   L---native
+    ¦   ¦           ¦           libSystem.IO.Ports.Native.dylib
+    ¦   ¦           ¦           
+    ¦   ¦           +---unix
+    ¦   ¦           ¦   L---lib
+    ¦   ¦           ¦       L---net10.0
+    ¦   ¦           ¦               System.IO.Ports.dll
+    ¦   ¦           ¦               
+    ¦   ¦           L---win
+    ¦   ¦               L---lib
+    ¦   ¦                   L---net10.0
+    ¦   ¦                           System.IO.Ports.dll
+    ¦   ¦                           
+    ¦   L---Release
+    ¦       L---net10.0-windows
+    ¦           ¦   CommunityToolkit.Common.dll
+    ¦           ¦   CommunityToolkit.Diagnostics.dll
+    ¦           ¦   CommunityToolkit.Mvvm.dll
+    ¦           ¦   HelixToolkit.dll
+    ¦           ¦   HelixToolkit.Geometry.dll
+    ¦           ¦   HelixToolkit.Maths.dll
+    ¦           ¦   HelixToolkit.Wpf.dll
+    ¦           ¦   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+    ¦           ¦   Microsoft.Extensions.Logging.Abstractions.dll
+    ¦           ¦   System.IO.Ports.dll
+    ¦           ¦   WpfCalibratorV3.0.deps.json
+    ¦           ¦   WpfCalibratorV3.0.dll
+    ¦           ¦   WpfCalibratorV3.0.exe
+    ¦           ¦   WpfCalibratorV3.0.pdb
+    ¦           ¦   WpfCalibratorV3.0.runtimeconfig.json
+    ¦           ¦   WpfCalibratorV3.0.xml
+    ¦           ¦   
+    ¦           +---Devices
+    ¦           ¦   L---BlackPill
+    ¦           ¦           app_mapping_Test.json
+    ¦           ¦           app_mapping_Test2.json
+    ¦           ¦           user_view_config.json
+    ¦           ¦           
+    ¦           +---publish
+    ¦           ¦   L---win-x64
+    ¦           ¦           D3DCompiler_47_cor3.dll
+    ¦           ¦           PenImc_cor3.dll
+    ¦           ¦           PresentationNative_cor3.dll
+    ¦           ¦           vcruntime140_cor3.dll
+    ¦           ¦           WpfCalibratorV3.0.exe
+    ¦           ¦           WpfCalibratorV3.0.pdb
+    ¦           ¦           WpfCalibratorV3.0.xml
+    ¦           ¦           wpfgfx_cor3.dll
+    ¦           ¦           
+    ¦           +---runtimes
+    ¦           ¦   +---android-arm
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---android-arm64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---android-x64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---android-x86
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---linux-arm
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---linux-arm64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---linux-bionic-arm64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---linux-bionic-x64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---linux-musl-arm
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---linux-musl-arm64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---linux-musl-x64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---linux-x64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.so
+    ¦           ¦   ¦           
+    ¦           ¦   +---maccatalyst-arm64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.dylib
+    ¦           ¦   ¦           
+    ¦           ¦   +---maccatalyst-x64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.dylib
+    ¦           ¦   ¦           
+    ¦           ¦   +---osx-arm64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.dylib
+    ¦           ¦   ¦           
+    ¦           ¦   +---osx-x64
+    ¦           ¦   ¦   L---native
+    ¦           ¦   ¦           libSystem.IO.Ports.Native.dylib
+    ¦           ¦   ¦           
+    ¦           ¦   +---unix
+    ¦           ¦   ¦   L---lib
+    ¦           ¦   ¦       L---net10.0
+    ¦           ¦   ¦               System.IO.Ports.dll
+    ¦           ¦   ¦               
+    ¦           ¦   L---win
+    ¦           ¦       L---lib
+    ¦           ¦           L---net10.0
+    ¦           ¦                   System.IO.Ports.dll
+    ¦           ¦                   
+    ¦           L---win-x64
+    ¦               ¦   Accessibility.dll
+    ¦               ¦   clretwrc.dll
+    ¦               ¦   clrgc.dll
+    ¦               ¦   clrgcexp.dll
+    ¦               ¦   clrjit.dll
+    ¦               ¦   CommunityToolkit.Common.dll
+    ¦               ¦   CommunityToolkit.Diagnostics.dll
+    ¦               ¦   CommunityToolkit.Mvvm.dll
+    ¦               ¦   coreclr.dll
+    ¦               ¦   createdump.exe
+    ¦               ¦   D3DCompiler_47_cor3.dll
+    ¦               ¦   DirectWriteForwarder.dll
+    ¦               ¦   HelixToolkit.dll
+    ¦               ¦   HelixToolkit.Geometry.dll
+    ¦               ¦   HelixToolkit.Maths.dll
+    ¦               ¦   HelixToolkit.Wpf.dll
+    ¦               ¦   hostfxr.dll
+    ¦               ¦   hostpolicy.dll
+    ¦               ¦   Microsoft.CSharp.dll
+    ¦               ¦   Microsoft.DiaSymReader.Native.amd64.dll
+    ¦               ¦   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+    ¦               ¦   Microsoft.Extensions.Logging.Abstractions.dll
+    ¦               ¦   Microsoft.VisualBasic.Core.dll
+    ¦               ¦   Microsoft.VisualBasic.dll
+    ¦               ¦   Microsoft.Win32.Primitives.dll
+    ¦               ¦   Microsoft.Win32.Registry.AccessControl.dll
+    ¦               ¦   Microsoft.Win32.Registry.dll
+    ¦               ¦   Microsoft.Win32.SystemEvents.dll
+    ¦               ¦   mscordaccore.dll
+    ¦               ¦   mscordaccore_amd64_amd64_10.0.926.27113.dll
+    ¦               ¦   mscordbi.dll
+    ¦               ¦   mscorlib.dll
+    ¦               ¦   mscorrc.dll
+    ¦               ¦   msquic.dll
+    ¦               ¦   netstandard.dll
+    ¦               ¦   PenImc_cor3.dll
+    ¦               ¦   PresentationCore.dll
+    ¦               ¦   PresentationFramework-SystemCore.dll
+    ¦               ¦   PresentationFramework-SystemData.dll
+    ¦               ¦   PresentationFramework-SystemDrawing.dll
+    ¦               ¦   PresentationFramework-SystemXml.dll
+    ¦               ¦   PresentationFramework-SystemXmlLinq.dll
+    ¦               ¦   PresentationFramework.Aero.dll
+    ¦               ¦   PresentationFramework.Aero2.dll
+    ¦               ¦   PresentationFramework.AeroLite.dll
+    ¦               ¦   PresentationFramework.Classic.dll
+    ¦               ¦   PresentationFramework.dll
+    ¦               ¦   PresentationFramework.Fluent.dll
+    ¦               ¦   PresentationFramework.Luna.dll
+    ¦               ¦   PresentationFramework.Royale.dll
+    ¦               ¦   PresentationNative_cor3.dll
+    ¦               ¦   PresentationUI.dll
+    ¦               ¦   ReachFramework.dll
+    ¦               ¦   System.AppContext.dll
+    ¦               ¦   System.Buffers.dll
+    ¦               ¦   System.CodeDom.dll
+    ¦               ¦   System.Collections.Concurrent.dll
+    ¦               ¦   System.Collections.dll
+    ¦               ¦   System.Collections.Immutable.dll
+    ¦               ¦   System.Collections.NonGeneric.dll
+    ¦               ¦   System.Collections.Specialized.dll
+    ¦               ¦   System.ComponentModel.Annotations.dll
+    ¦               ¦   System.ComponentModel.DataAnnotations.dll
+    ¦               ¦   System.ComponentModel.dll
+    ¦               ¦   System.ComponentModel.EventBasedAsync.dll
+    ¦               ¦   System.ComponentModel.Primitives.dll
+    ¦               ¦   System.ComponentModel.TypeConverter.dll
+    ¦               ¦   System.Configuration.ConfigurationManager.dll
+    ¦               ¦   System.Configuration.dll
+    ¦               ¦   System.Console.dll
+    ¦               ¦   System.Core.dll
+    ¦               ¦   System.Data.Common.dll
+    ¦               ¦   System.Data.DataSetExtensions.dll
+    ¦               ¦   System.Data.dll
+    ¦               ¦   System.Diagnostics.Contracts.dll
+    ¦               ¦   System.Diagnostics.Debug.dll
+    ¦               ¦   System.Diagnostics.DiagnosticSource.dll
+    ¦               ¦   System.Diagnostics.EventLog.dll
+    ¦               ¦   System.Diagnostics.EventLog.Messages.dll
+    ¦               ¦   System.Diagnostics.FileVersionInfo.dll
+    ¦               ¦   System.Diagnostics.PerformanceCounter.dll
+    ¦               ¦   System.Diagnostics.Process.dll
+    ¦               ¦   System.Diagnostics.StackTrace.dll
+    ¦               ¦   System.Diagnostics.TextWriterTraceListener.dll
+    ¦               ¦   System.Diagnostics.Tools.dll
+    ¦               ¦   System.Diagnostics.TraceSource.dll
+    ¦               ¦   System.Diagnostics.Tracing.dll
+    ¦               ¦   System.DirectoryServices.dll
+    ¦               ¦   System.dll
+    ¦               ¦   System.Drawing.Common.dll
+    ¦               ¦   System.Drawing.dll
+    ¦               ¦   System.Drawing.Primitives.dll
+    ¦               ¦   System.Dynamic.Runtime.dll
+    ¦               ¦   System.Formats.Asn1.dll
+    ¦               ¦   System.Formats.Nrbf.dll
+    ¦               ¦   System.Formats.Tar.dll
+    ¦               ¦   System.Globalization.Calendars.dll
+    ¦               ¦   System.Globalization.dll
+    ¦               ¦   System.Globalization.Extensions.dll
+    ¦               ¦   System.IO.Compression.Brotli.dll
+    ¦               ¦   System.IO.Compression.dll
+    ¦               ¦   System.IO.Compression.FileSystem.dll
+    ¦               ¦   System.IO.Compression.Native.dll
+    ¦               ¦   System.IO.Compression.ZipFile.dll
+    ¦               ¦   System.IO.dll
+    ¦               ¦   System.IO.FileSystem.AccessControl.dll
+    ¦               ¦   System.IO.FileSystem.dll
+    ¦               ¦   System.IO.FileSystem.DriveInfo.dll
+    ¦               ¦   System.IO.FileSystem.Primitives.dll
+    ¦               ¦   System.IO.FileSystem.Watcher.dll
+    ¦               ¦   System.IO.IsolatedStorage.dll
+    ¦               ¦   System.IO.MemoryMappedFiles.dll
+    ¦               ¦   System.IO.Packaging.dll
+    ¦               ¦   System.IO.Pipelines.dll
+    ¦               ¦   System.IO.Pipes.AccessControl.dll
+    ¦               ¦   System.IO.Pipes.dll
+    ¦               ¦   System.IO.Ports.dll
+    ¦               ¦   System.IO.UnmanagedMemoryStream.dll
+    ¦               ¦   System.Linq.AsyncEnumerable.dll
+    ¦               ¦   System.Linq.dll
+    ¦               ¦   System.Linq.Expressions.dll
+    ¦               ¦   System.Linq.Parallel.dll
+    ¦               ¦   System.Linq.Queryable.dll
+    ¦               ¦   System.Memory.dll
+    ¦               ¦   System.Net.dll
+    ¦               ¦   System.Net.Http.dll
+    ¦               ¦   System.Net.Http.Json.dll
+    ¦               ¦   System.Net.HttpListener.dll
+    ¦               ¦   System.Net.Mail.dll
+    ¦               ¦   System.Net.NameResolution.dll
+    ¦               ¦   System.Net.NetworkInformation.dll
+    ¦               ¦   System.Net.Ping.dll
+    ¦               ¦   System.Net.Primitives.dll
+    ¦               ¦   System.Net.Quic.dll
+    ¦               ¦   System.Net.Requests.dll
+    ¦               ¦   System.Net.Security.dll
+    ¦               ¦   System.Net.ServerSentEvents.dll
+    ¦               ¦   System.Net.ServicePoint.dll
+    ¦               ¦   System.Net.Sockets.dll
+    ¦               ¦   System.Net.WebClient.dll
+    ¦               ¦   System.Net.WebHeaderCollection.dll
+    ¦               ¦   System.Net.WebProxy.dll
+    ¦               ¦   System.Net.WebSockets.Client.dll
+    ¦               ¦   System.Net.WebSockets.dll
+    ¦               ¦   System.Numerics.dll
+    ¦               ¦   System.Numerics.Vectors.dll
+    ¦               ¦   System.ObjectModel.dll
+    ¦               ¦   System.Printing.dll
+    ¦               ¦   System.Private.CoreLib.dll
+    ¦               ¦   System.Private.DataContractSerialization.dll
+    ¦               ¦   System.Private.Uri.dll
+    ¦               ¦   System.Private.Windows.Core.dll
+    ¦               ¦   System.Private.Windows.GdiPlus.dll
+    ¦               ¦   System.Private.Xml.dll
+    ¦               ¦   System.Private.Xml.Linq.dll
+    ¦               ¦   System.Reflection.DispatchProxy.dll
+    ¦               ¦   System.Reflection.dll
+    ¦               ¦   System.Reflection.Emit.dll
+    ¦               ¦   System.Reflection.Emit.ILGeneration.dll
+    ¦               ¦   System.Reflection.Emit.Lightweight.dll
+    ¦               ¦   System.Reflection.Extensions.dll
+    ¦               ¦   System.Reflection.Metadata.dll
+    ¦               ¦   System.Reflection.Primitives.dll
+    ¦               ¦   System.Reflection.TypeExtensions.dll
+    ¦               ¦   System.Resources.Extensions.dll
+    ¦               ¦   System.Resources.Reader.dll
+    ¦               ¦   System.Resources.ResourceManager.dll
+    ¦               ¦   System.Resources.Writer.dll
+    ¦               ¦   System.Runtime.CompilerServices.Unsafe.dll
+    ¦               ¦   System.Runtime.CompilerServices.VisualC.dll
+    ¦               ¦   System.Runtime.dll
+    ¦               ¦   System.Runtime.Extensions.dll
+    ¦               ¦   System.Runtime.Handles.dll
+    ¦               ¦   System.Runtime.InteropServices.dll
+    ¦               ¦   System.Runtime.InteropServices.JavaScript.dll
+    ¦               ¦   System.Runtime.InteropServices.RuntimeInformation.dll
+    ¦               ¦   System.Runtime.Intrinsics.dll
+    ¦               ¦   System.Runtime.Loader.dll
+    ¦               ¦   System.Runtime.Numerics.dll
+    ¦               ¦   System.Runtime.Serialization.dll
+    ¦               ¦   System.Runtime.Serialization.Formatters.dll
+    ¦               ¦   System.Runtime.Serialization.Json.dll
+    ¦               ¦   System.Runtime.Serialization.Primitives.dll
+    ¦               ¦   System.Runtime.Serialization.Xml.dll
+    ¦               ¦   System.Security.AccessControl.dll
+    ¦               ¦   System.Security.Claims.dll
+    ¦               ¦   System.Security.Cryptography.Algorithms.dll
+    ¦               ¦   System.Security.Cryptography.Cng.dll
+    ¦               ¦   System.Security.Cryptography.Csp.dll
+    ¦               ¦   System.Security.Cryptography.dll
+    ¦               ¦   System.Security.Cryptography.Encoding.dll
+    ¦               ¦   System.Security.Cryptography.OpenSsl.dll
+    ¦               ¦   System.Security.Cryptography.Pkcs.dll
+    ¦               ¦   System.Security.Cryptography.Primitives.dll
+    ¦               ¦   System.Security.Cryptography.ProtectedData.dll
+    ¦               ¦   System.Security.Cryptography.X509Certificates.dll
+    ¦               ¦   System.Security.Cryptography.Xml.dll
+    ¦               ¦   System.Security.dll
+    ¦               ¦   System.Security.Permissions.dll
+    ¦               ¦   System.Security.Principal.dll
+    ¦               ¦   System.Security.Principal.Windows.dll
+    ¦               ¦   System.Security.SecureString.dll
+    ¦               ¦   System.ServiceModel.Web.dll
+    ¦               ¦   System.ServiceProcess.dll
+    ¦               ¦   System.Text.Encoding.CodePages.dll
+    ¦               ¦   System.Text.Encoding.dll
+    ¦               ¦   System.Text.Encoding.Extensions.dll
+    ¦               ¦   System.Text.Encodings.Web.dll
+    ¦               ¦   System.Text.Json.dll
+    ¦               ¦   System.Text.RegularExpressions.dll
+    ¦               ¦   System.Threading.AccessControl.dll
+    ¦               ¦   System.Threading.Channels.dll
+    ¦               ¦   System.Threading.dll
+    ¦               ¦   System.Threading.Overlapped.dll
+    ¦               ¦   System.Threading.Tasks.Dataflow.dll
+    ¦               ¦   System.Threading.Tasks.dll
+    ¦               ¦   System.Threading.Tasks.Extensions.dll
+    ¦               ¦   System.Threading.Tasks.Parallel.dll
+    ¦               ¦   System.Threading.Thread.dll
+    ¦               ¦   System.Threading.ThreadPool.dll
+    ¦               ¦   System.Threading.Timer.dll
+    ¦               ¦   System.Transactions.dll
+    ¦               ¦   System.Transactions.Local.dll
+    ¦               ¦   System.ValueTuple.dll
+    ¦               ¦   System.Web.dll
+    ¦               ¦   System.Web.HttpUtility.dll
+    ¦               ¦   System.Windows.Controls.Ribbon.dll
+    ¦               ¦   System.Windows.dll
+    ¦               ¦   System.Windows.Extensions.dll
+    ¦               ¦   System.Windows.Input.Manipulations.dll
+    ¦               ¦   System.Windows.Presentation.dll
+    ¦               ¦   System.Windows.Primitives.dll
+    ¦               ¦   System.Xaml.dll
+    ¦               ¦   System.Xml.dll
+    ¦               ¦   System.Xml.Linq.dll
+    ¦               ¦   System.Xml.ReaderWriter.dll
+    ¦               ¦   System.Xml.Serialization.dll
+    ¦               ¦   System.Xml.XDocument.dll
+    ¦               ¦   System.Xml.XmlDocument.dll
+    ¦               ¦   System.Xml.XmlSerializer.dll
+    ¦               ¦   System.Xml.XPath.dll
+    ¦               ¦   System.Xml.XPath.XDocument.dll
+    ¦               ¦   UIAutomationClient.dll
+    ¦               ¦   UIAutomationClientSideProviders.dll
+    ¦               ¦   UIAutomationProvider.dll
+    ¦               ¦   UIAutomationTypes.dll
+    ¦               ¦   vcruntime140_cor3.dll
+    ¦               ¦   WindowsBase.dll
+    ¦               ¦   WpfCalibratorV3.0.deps.json
+    ¦               ¦   WpfCalibratorV3.0.dll
+    ¦               ¦   WpfCalibratorV3.0.exe
+    ¦               ¦   WpfCalibratorV3.0.pdb
+    ¦               ¦   WpfCalibratorV3.0.runtimeconfig.json
+    ¦               ¦   WpfCalibratorV3.0.xml
+    ¦               ¦   wpfgfx_cor3.dll
+    ¦               ¦   
+    ¦               +---cs
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---de
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---es
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---fr
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---it
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---ja
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---ko
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---pl
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---pt-BR
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---ru
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---tr
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               +---zh-Hans
+    ¦               ¦       PresentationCore.resources.dll
+    ¦               ¦       PresentationFramework.resources.dll
+    ¦               ¦       PresentationUI.resources.dll
+    ¦               ¦       ReachFramework.resources.dll
+    ¦               ¦       System.Windows.Controls.Ribbon.resources.dll
+    ¦               ¦       System.Windows.Input.Manipulations.resources.dll
+    ¦               ¦       System.Xaml.resources.dll
+    ¦               ¦       UIAutomationClient.resources.dll
+    ¦               ¦       UIAutomationClientSideProviders.resources.dll
+    ¦               ¦       UIAutomationProvider.resources.dll
+    ¦               ¦       UIAutomationTypes.resources.dll
+    ¦               ¦       WindowsBase.resources.dll
+    ¦               ¦       
+    ¦               L---zh-Hant
+    ¦                       PresentationCore.resources.dll
+    ¦                       PresentationFramework.resources.dll
+    ¦                       PresentationUI.resources.dll
+    ¦                       ReachFramework.resources.dll
+    ¦                       System.Windows.Controls.Ribbon.resources.dll
+    ¦                       System.Windows.Input.Manipulations.resources.dll
+    ¦                       System.Xaml.resources.dll
+    ¦                       UIAutomationClient.resources.dll
+    ¦                       UIAutomationClientSideProviders.resources.dll
+    ¦                       UIAutomationProvider.resources.dll
+    ¦                       UIAutomationTypes.resources.dll
+    ¦                       WindowsBase.resources.dll
+    ¦                       
+    +---Devices
+    ¦   L---BlackPill
+    ¦           app_mapping_Test.json
+    ¦           app_mapping_Test2.json
+    ¦           user_view_config.json
+    ¦           
+    +---Models
+    ¦       DeviceConfig.cs
+    ¦       LinkCommand.cs
+    ¦       ModelConfig.cs
+    ¦       NetworkCommand.cs
+    ¦       UartLogEntry.cs
+    ¦       UserViewConfig.cs
+    ¦       VariableConfig.cs
+    ¦       WidgetViewType.cs
+    ¦       
+    +---obj
+    ¦   ¦   project.assets.json
+    ¦   ¦   project.nuget.cache
+    ¦   ¦   WpfCalibratorV3.0.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_rsp344np_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_rsp344np_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_rsp344np_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_utndx350_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_utndx350_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_utndx350_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.csproj.nuget.dgspec.json
+    ¦   ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.csproj.nuget.g.props
+    ¦   ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.csproj.nuget.g.targets
+    ¦   ¦   
+    ¦   +---Debug
+    ¦   ¦   L---net10.0-windows
+    ¦   ¦       ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+    ¦   ¦       ¦   App.baml
+    ¦   ¦       ¦   App.g.cs
+    ¦   ¦       ¦   App.g.i.cs
+    ¦   ¦       ¦   apphost.exe
+    ¦   ¦       ¦   GeneratedInternalTypeHelper.g.cs
+    ¦   ¦       ¦   GeneratedInternalTypeHelper.g.i.cs
+    ¦   ¦       ¦   MainWindow.baml
+    ¦   ¦       ¦   MainWindow.g.cs
+    ¦   ¦       ¦   MainWindow.g.i.cs
+    ¦   ¦       ¦   WpfCalib.CB129919.Up2Date
+    ¦   ¦       ¦   WpfCalibratorV3.0.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0.csproj.AssemblyReference.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0.csproj.CoreCompileInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0.csproj.FileListAbsolute.txt
+    ¦   ¦       ¦   WpfCalibratorV3.0.designer.deps.json
+    ¦   ¦       ¦   WpfCalibratorV3.0.designer.runtimeconfig.json
+    ¦   ¦       ¦   WpfCalibratorV3.0.dll
+    ¦   ¦       ¦   WpfCalibratorV3.0.g.resources
+    ¦   ¦       ¦   WpfCalibratorV3.0.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0.genruntimeconfig.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0.pdb
+    ¦   ¦       ¦   WpfCalibratorV3.0.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0.xml
+    ¦   ¦       ¦   WpfCalibratorV3.0_0cshz1vk_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0cshz1vk_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0cshz1vk_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0cshz1vk_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_0cshz1vk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_0cshz1vk_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0cshz1vk_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_0krncplz_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0krncplz_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0krncplz_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0krncplz_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_0krncplz_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_0krncplz_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0krncplz_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocbuzkf_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocbuzkf_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocbuzkf_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocbuzkf_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocbuzkf_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocbuzkf_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocbuzkf_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0ocrauoa_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_0rkt1tov_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0rkt1tov_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0rkt1tov_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_0rkt1tov_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_0rkt1tov_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_0rkt1tov_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_0rkt1tov_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_10bmfut2_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_10bmfut2_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_10bmfut2_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_10bmfut2_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_10bmfut2_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_10bmfut2_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_10bmfut2_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_1yhu2ssf_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_1yhu2ssf_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_1yhu2ssf_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_1yhu2ssf_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_1yhu2ssf_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_1yhu2ssf_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_2bgbcdb4_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_2bgbcdb4_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_2bgbcdb4_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_2bgbcdb4_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_2bgbcdb4_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_2bgbcdb4_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_2bgbcdb4_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_2xmo2qdc_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_2xmo2qdc_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_2xmo2qdc_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_2xmo2qdc_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_2xmo2qdc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_2xmo2qdc_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_2xmo2qdc_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_35vjo32h_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_35vjo32h_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_35vjo32h_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_35vjo32h_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_35vjo32h_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_35vjo32h_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_35vjo32h_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3cikxbsl_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_3dmmwydy_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3dmmwydy_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3dmmwydy_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3dmmwydy_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_3dmmwydy_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_3dmmwydy_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3dmmwydy_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_3o512ija_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3o512ija_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3o512ija_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3o512ija_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_3o512ija_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_3o512ija_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3o512ija_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_3srqjs2u_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3srqjs2u_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3srqjs2u_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3srqjs2u_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_3srqjs2u_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_3srqjs2u_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3srqjs2u_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_3zappbny_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3zappbny_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3zappbny_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_3zappbny_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_3zappbny_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_3zappbny_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_3zappbny_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_40uea4qg_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_40uea4qg_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_40uea4qg_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_40uea4qg_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_40uea4qg_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_40uea4qg_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_40uea4qg_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sgnegxl_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sgnegxl_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sgnegxl_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sgnegxl_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sgnegxl_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sgnegxl_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sgnegxl_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sn4icsn_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sn4icsn_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sn4icsn_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sn4icsn_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sn4icsn_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_4sn4icsn_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_4tdpi2rw_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_4tdpi2rw_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_4tdpi2rw_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_4tdpi2rw_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_4tdpi2rw_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_4tdpi2rw_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_55wbo5gx_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_55wbo5gx_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_55wbo5gx_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_55wbo5gx_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_55wbo5gx_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_55wbo5gx_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_55wbo5gx_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_5nlkgvbk_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_5nlkgvbk_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_5nlkgvbk_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_5nlkgvbk_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_5nlkgvbk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_5nlkgvbk_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_5nlkgvbk_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_5y0xrfqa_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_5y0xrfqa_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_5y0xrfqa_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_5y0xrfqa_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_5y0xrfqa_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_5y0xrfqa_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_5y0xrfqa_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_adalpdq1_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_adalpdq1_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_adalpdq1_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_adalpdq1_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_adalpdq1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_adalpdq1_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_adalpdq1_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_adlxye0b_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_adlxye0b_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_adlxye0b_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_adlxye0b_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_adlxye0b_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_adlxye0b_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_adlxye0b_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ag0jl5cg_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ag0jl5cg_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ag0jl5cg_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ag0jl5cg_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ag0jl5cg_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ag0jl5cg_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ag0jl5cg_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_agaozx5w_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_agaozx5w_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_agaozx5w_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_agaozx5w_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_agaozx5w_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_agaozx5w_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_agaozx5w_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_akqo00wr_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_akqo00wr_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_akqo00wr_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_akqo00wr_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_akqo00wr_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_akqo00wr_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_akqo00wr_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_awesij4o_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_awesij4o_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_awesij4o_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_awesij4o_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_awesij4o_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_awesij4o_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_awesij4o_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_axkro0em_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_axkro0em_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_axkro0em_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_axkro0em_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_axkro0em_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_axkro0em_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_axkro0em_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_blwmw3nd_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_blwmw3nd_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_blwmw3nd_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_blwmw3nd_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_blwmw3nd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_blwmw3nd_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_blwmw3nd_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_cam3pq0e_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_cam3pq0e_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_cam3pq0e_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_cam3pq0e_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_cam3pq0e_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_cam3pq0e_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_cam3pq0e_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_consyglw_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_consyglw_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_consyglw_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_consyglw_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_consyglw_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_consyglw_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_consyglw_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_dhlwfjmo_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dhlwfjmo_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dhlwfjmo_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dhlwfjmo_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_dhlwfjmo_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_dhlwfjmo_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dhlwfjmo_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_dpi1shfd_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dpi1shfd_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dpi1shfd_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dpi1shfd_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_dpi1shfd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_dpi1shfd_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dpi1shfd_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_dshsyrqu_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dshsyrqu_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dshsyrqu_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dshsyrqu_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_dshsyrqu_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_dshsyrqu_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dshsyrqu_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_dttrr5os_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dttrr5os_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dttrr5os_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dttrr5os_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_dttrr5os_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_dttrr5os_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dttrr5os_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_dvpue5um_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dvpue5um_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dvpue5um_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dvpue5um_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_dvpue5um_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_dvpue5um_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dvpue5um_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_dwsdj0bv_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dwsdj0bv_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dwsdj0bv_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dwsdj0bv_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_dwsdj0bv_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dwsdj0bv_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_dy13hg54_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dy13hg54_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dy13hg54_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_dy13hg54_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_dy13hg54_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_dy13hg54_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_e1imjcpz_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_e1imjcpz_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_e1imjcpz_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_e1imjcpz_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_e1imjcpz_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_e1imjcpz_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_e1imjcpz_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3awttlr_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3awttlr_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3awttlr_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3awttlr_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3awttlr_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3awttlr_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3awttlr_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3eyvawq_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3eyvawq_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3eyvawq_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3eyvawq_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3eyvawq_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3eyvawq_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_e3eyvawq_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ea01wlap_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ea01wlap_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ea01wlap_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ea01wlap_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ea01wlap_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ea01wlap_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ea01wlap_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_egf0dscy_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_egf0dscy_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_egf0dscy_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_egf0dscy_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_egf0dscy_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_egf0dscy_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_egf0dscy_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ehbodykd_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ehbodykd_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ehbodykd_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ehbodykd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ehbodykd_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ehbodykd_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ei02v0ua_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ei02v0ua_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ei02v0ua_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ei02v0ua_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ei02v0ua_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ei02v0ua_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ei02v0ua_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ejzcffg1_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ejzcffg1_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ejzcffg1_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ejzcffg1_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ejzcffg1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ejzcffg1_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ejzcffg1_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ekmmgkmi_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ekmmgkmi_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ekmmgkmi_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ekmmgkmi_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ekmmgkmi_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ekmmgkmi_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ekmmgkmi_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_eszvppwx_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_eszvppwx_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_eszvppwx_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_eszvppwx_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_eszvppwx_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_eszvppwx_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_et3wyiv5_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_et3wyiv5_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_et3wyiv5_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_et3wyiv5_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_et3wyiv5_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_et3wyiv5_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_et3wyiv5_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_f4hpmy0j_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_f4hpmy0j_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_f4hpmy0j_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_f4hpmy0j_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_f4hpmy0j_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_f4hpmy0j_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_fcx1ayoa_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fcx1ayoa_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fcx1ayoa_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fcx1ayoa_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_fcx1ayoa_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_fcx1ayoa_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fcx1ayoa_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_fdfz2vhk_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fdfz2vhk_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fdfz2vhk_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fdfz2vhk_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_fdfz2vhk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_fdfz2vhk_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fdfz2vhk_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ffji4f0n_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ffji4f0n_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ffji4f0n_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ffji4f0n_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ffji4f0n_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ffji4f0n_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ffji4f0n_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgsgb3co_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgsgb3co_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgsgb3co_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgsgb3co_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgsgb3co_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgsgb3co_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgsgb3co_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgvwfqxc_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgvwfqxc_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgvwfqxc_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgvwfqxc_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgvwfqxc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgvwfqxc_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fgvwfqxc_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_fiyrujjg_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fiyrujjg_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fiyrujjg_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fiyrujjg_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_fiyrujjg_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_fiyrujjg_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fiyrujjg_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_fmx021c1_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_g4v0kfcc_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_g4v0kfcc_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_g4v0kfcc_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_g4v0kfcc_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_g4v0kfcc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_g4v0kfcc_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_g4v0kfcc_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_gicyt21l_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_gicyt21l_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_gicyt21l_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_gicyt21l_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_gicyt21l_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_gicyt21l_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_gicyt21l_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_gjhfkoqj_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_gjhfkoqj_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_gjhfkoqj_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_gjhfkoqj_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_gjhfkoqj_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_gjhfkoqj_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_gjhfkoqj_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_gmzv2n4x_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_gmzv2n4x_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_gmzv2n4x_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_gmzv2n4x_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_gmzv2n4x_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_gmzv2n4x_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_gmzv2n4x_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_gv31fqt3_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_gv31fqt3_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_gv31fqt3_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_gv31fqt3_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_gv31fqt3_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_gv31fqt3_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_h130mpdc_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_h130mpdc_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_h130mpdc_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_h130mpdc_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_h130mpdc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_h130mpdc_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_h130mpdc_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_h3s1cw5q_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_h3s1cw5q_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_h3s1cw5q_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_h3s1cw5q_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_h3s1cw5q_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_h3s1cw5q_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_h3s1cw5q_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_hcjgkohk_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_hcjgkohk_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_hcjgkohk_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_hcjgkohk_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_hcjgkohk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_hcjgkohk_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_hcjgkohk_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_hdlde4r1_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_hdlde4r1_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_hdlde4r1_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_hdlde4r1_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_hdlde4r1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_hdlde4r1_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_hdlde4r1_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_hedrkxlb_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_hedrkxlb_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_hedrkxlb_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_hedrkxlb_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_hedrkxlb_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_hedrkxlb_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_hedrkxlb_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_hfpetffi_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_hfpetffi_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_hfpetffi_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_hfpetffi_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_hfpetffi_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_hfpetffi_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_hfpetffi_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_humukrvv_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_humukrvv_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_humukrvv_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_humukrvv_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_humukrvv_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_humukrvv_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_humukrvv_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_i3wi3d12_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_i3wi3d12_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_i3wi3d12_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_i3wi3d12_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_i3wi3d12_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_i3wi3d12_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_iaqhgxtd_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_iaqhgxtd_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_iaqhgxtd_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_iaqhgxtd_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_iaqhgxtd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_iaqhgxtd_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_iaqhgxtd_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_id2qpz5p_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_id2qpz5p_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_id2qpz5p_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_id2qpz5p_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_id2qpz5p_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_id2qpz5p_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_id2qpz5p_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_if4tt5xq_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ijrptwwq_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ijrptwwq_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ijrptwwq_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ijrptwwq_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ijrptwwq_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ijrptwwq_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ijrptwwq_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_iliy1exu_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_iliy1exu_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_iliy1exu_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_iliy1exu_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_iliy1exu_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_iliy1exu_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_iliy1exu_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_iy1epba4_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_j1xjdrwm_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_j1xjdrwm_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_j1xjdrwm_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_j1xjdrwm_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_j1xjdrwm_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_j1xjdrwm_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_j1xjdrwm_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_j34avnow_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_j34avnow_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_j34avnow_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_j34avnow_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_j34avnow_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_j34avnow_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_j34avnow_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_jjrbme5m_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_jjrbme5m_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_jjrbme5m_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_jjrbme5m_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_jjrbme5m_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_jjrbme5m_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_jjrbme5m_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_jra3acnr_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_jrnzkqvc_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_jrnzkqvc_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_jrnzkqvc_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_jrnzkqvc_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_jrnzkqvc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_jrnzkqvc_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_jrnzkqvc_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_jxvjvsty_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_jxvjvsty_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_jxvjvsty_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_jxvjvsty_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_jxvjvsty_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_jxvjvsty_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_jxvjvsty_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_k0rurlut_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_k0rurlut_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_k0rurlut_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_k0rurlut_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_k0rurlut_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_k0rurlut_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_k4d1wva1_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_k4d1wva1_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_k4d1wva1_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_k4d1wva1_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_k4d1wva1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_k4d1wva1_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_k4d1wva1_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_kp0gn1ph_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_l03mvp1z_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_l03mvp1z_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_l03mvp1z_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_l03mvp1z_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_l03mvp1z_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_l03mvp1z_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_l03mvp1z_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_l5gebquy_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_l5gebquy_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_l5gebquy_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_l5gebquy_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_l5gebquy_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_l5gebquy_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_l5gebquy_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lbrbmizi_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lghfvjje_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lghfvjje_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lghfvjje_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lghfvjje_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_lghfvjje_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lghfvjje_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lghfvjje_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lkidvica_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lkidvica_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lkidvica_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lkidvica_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lkidvica_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lkidvica_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lllbmk5v_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lllbmk5v_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lllbmk5v_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lllbmk5v_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_lllbmk5v_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lllbmk5v_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lllbmk5v_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lmsovbyi_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lmsovbyi_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lmsovbyi_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lmsovbyi_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_lmsovbyi_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lmsovbyi_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lmsovbyi_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lnfuwn02_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lnfuwn02_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lnfuwn02_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lnfuwn02_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_lnfuwn02_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lnfuwn02_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lnfuwn02_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lpv20b10_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lpv20b10_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lpv20b10_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lpv20b10_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_lpv20b10_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lpv20b10_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lpv20b10_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lss554pb_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lss554pb_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lss554pb_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lss554pb_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_lss554pb_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lss554pb_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lss554pb_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_lyymcn2u_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lyymcn2u_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lyymcn2u_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_lyymcn2u_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_lyymcn2u_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_lyymcn2u_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_lyymcn2u_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_MarkupCompile.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_MarkupCompile.i.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_MarkupCompile.lref
+    ¦   ¦       ¦   WpfCalibratorV3.0_mccitcrx_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_mccitcrx_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_mccitcrx_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_mccitcrx_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_mccitcrx_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_mccitcrx_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_mccitcrx_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_moik3wzc_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_moik3wzc_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_moik3wzc_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_moik3wzc_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_moik3wzc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_moik3wzc_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_moik3wzc_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_n1jkq1ul_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_n1jkq1ul_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_n1jkq1ul_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_n1jkq1ul_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_n1jkq1ul_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_n1jkq1ul_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_n1jkq1ul_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_n3gjgztn_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_n3gjgztn_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_n3gjgztn_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_n3gjgztn_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_n3gjgztn_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_n3gjgztn_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_n3gjgztn_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_nb4fcgkp_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_nb4fcgkp_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_nb4fcgkp_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_nb4fcgkp_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_nb4fcgkp_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_nb4fcgkp_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_nb4fcgkp_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_njmgjia2_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_njmgjia2_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_njmgjia2_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_njmgjia2_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_njmgjia2_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_njmgjia2_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_njmgjia2_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_nlhrxvfn_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_nlhrxvfn_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_nlhrxvfn_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_nlhrxvfn_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_nlhrxvfn_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_nlhrxvfn_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_nlhrxvfn_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqfgxpqp_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqfgxpqp_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqfgxpqp_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqfgxpqp_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqfgxpqp_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqfgxpqp_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqfgxpqp_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqwhqiur_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqwhqiur_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqwhqiur_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqwhqiur_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqwhqiur_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqwhqiur_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_oqwhqiur_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_orcc2ecj_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_p0nrtxc1_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_p0nrtxc1_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_p0nrtxc1_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_p0nrtxc1_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_p0nrtxc1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_p0nrtxc1_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_p0nrtxc1_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_p1y12512_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_p1y12512_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_p1y12512_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_p1y12512_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_p1y12512_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_p1y12512_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_p1y12512_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_pbwavxtb_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_pbwavxtb_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_pbwavxtb_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_pbwavxtb_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_pbwavxtb_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_pbwavxtb_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_pbwavxtb_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_plhlg5s0_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_plhlg5s0_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_plhlg5s0_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_plhlg5s0_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_plhlg5s0_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_plhlg5s0_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_plhlg5s0_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_pyeaaqe5_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_pyeaaqe5_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_pyeaaqe5_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_pyeaaqe5_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_pyeaaqe5_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_pyeaaqe5_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_pyeaaqe5_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_q5lemvkl_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_q5lemvkl_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_q5lemvkl_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_q5lemvkl_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_q5lemvkl_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_q5lemvkl_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_q5lemvkl_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_qka5s0f4_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_qka5s0f4_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_qka5s0f4_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_qka5s0f4_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_qka5s0f4_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_qka5s0f4_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_qka5s0f4_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_qwiupbwd_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_qwiupbwd_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_qwiupbwd_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_qwiupbwd_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_qwiupbwd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_qwiupbwd_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_qwiupbwd_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_r3zgqs21_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_r3zgqs21_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_r3zgqs21_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_r3zgqs21_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_r3zgqs21_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_r3zgqs21_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_r3zgqs21_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_rbr143gk_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rbr143gk_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rbr143gk_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rbr143gk_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_rbr143gk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_rbr143gk_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rbr143gk_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_rnmp5ebt_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rnmp5ebt_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rnmp5ebt_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rnmp5ebt_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_rnmp5ebt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_rnmp5ebt_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rnmp5ebt_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_rsp344np_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rsp344np_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rsp344np_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rsp344np_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_rsp344np_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rsp344np_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_rtwoh5gg_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rtwoh5gg_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rtwoh5gg_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rtwoh5gg_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_rtwoh5gg_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rtwoh5gg_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_rwlexwgq_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rwlexwgq_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rwlexwgq_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_rwlexwgq_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_rwlexwgq_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_rwlexwgq_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_rwlexwgq_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_s1etw1f1_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_s1etw1f1_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_s1etw1f1_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_s1etw1f1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_s1etw1f1_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_s1etw1f1_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_s20dccal_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_s20dccal_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_s20dccal_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_s20dccal_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_s20dccal_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_s20dccal_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_sgkq54kg_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_sgkq54kg_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_sgkq54kg_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_sgkq54kg_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_sgkq54kg_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_sgkq54kg_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_sgkq54kg_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_skgjyrce_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_skgjyrce_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_skgjyrce_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_skgjyrce_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_skgjyrce_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_skgjyrce_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_skgjyrce_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_t4e2myo3_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_t4e2myo3_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_t4e2myo3_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_t4e2myo3_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_t4e2myo3_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_t4e2myo3_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_t4e2myo3_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_teqjtfiq_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_teqjtfiq_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_teqjtfiq_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_teqjtfiq_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_teqjtfiq_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_teqjtfiq_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_teqjtfiq_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_tqndq0am_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_tqndq0am_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_tqndq0am_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_tqndq0am_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_tqndq0am_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_tqndq0am_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_tqndq0am_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ttgijpfd_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ttgijpfd_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ttgijpfd_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ttgijpfd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ttgijpfd_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ttgijpfd_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3jq3ajs_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3jq3ajs_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3jq3ajs_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3jq3ajs_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3jq3ajs_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3jq3ajs_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3nsq1yv_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3nsq1yv_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3nsq1yv_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3nsq1yv_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3nsq1yv_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3nsq1yv_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_u3nsq1yv_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ualky3b0_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ualky3b0_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ualky3b0_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ualky3b0_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ualky3b0_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ualky3b0_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ualky3b0_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ugfrnyzy_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ugfrnyzy_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ugfrnyzy_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ugfrnyzy_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ugfrnyzy_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ugfrnyzy_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ugfrnyzy_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ul1wntm5_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ul1wntm5_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ul1wntm5_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ul1wntm5_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ul1wntm5_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ul1wntm5_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ul1wntm5_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_umichdza_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_umichdza_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_umichdza_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_umichdza_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_umichdza_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_umichdza_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_upnsrg00_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_upnsrg00_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_upnsrg00_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_upnsrg00_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_upnsrg00_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_upnsrg00_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_upnsrg00_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_utndx350_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_utndx350_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_utndx350_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_utndx350_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_utndx350_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_utndx350_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_uvyc3pys_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_uvyc3pys_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_uvyc3pys_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_uvyc3pys_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_uvyc3pys_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_uvyc3pys_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_uywf3k5o_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_vbaxzgez_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_vbaxzgez_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_vbaxzgez_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_vbaxzgez_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_vbaxzgez_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_vbaxzgez_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_vcnt4dpc_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_vcnt4dpc_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_vcnt4dpc_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_vcnt4dpc_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_vcnt4dpc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_vcnt4dpc_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_vcnt4dpc_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_vmzfhp3t_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_we1z3dtd_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_we1z3dtd_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_we1z3dtd_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_we1z3dtd_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_we1z3dtd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_we1z3dtd_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_we1z3dtd_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_weykun2i_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_weykun2i_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_weykun2i_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_weykun2i_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_weykun2i_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_weykun2i_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_wffeydlr_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wffeydlr_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wffeydlr_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wffeydlr_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_wffeydlr_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_wffeydlr_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wffeydlr_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_whtbvq2t_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_whtbvq2t_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_whtbvq2t_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_whtbvq2t_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_whtbvq2t_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_whtbvq2t_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_whtbvq2t_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_wjs0peso_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wjs0peso_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wjs0peso_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wjs0peso_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_wjs0peso_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wjs0peso_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_wr5yq1y2_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wr5yq1y2_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wr5yq1y2_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wr5yq1y2_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_wr5yq1y2_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_wr5yq1y2_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wr5yq1y2_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_wv2ekfxt_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wv2ekfxt_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wv2ekfxt_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wv2ekfxt_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_wv2ekfxt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_wv2ekfxt_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wv2ekfxt_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_wwqoxk1t_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wwqoxk1t_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wwqoxk1t_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wwqoxk1t_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_wwqoxk1t_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_wwqoxk1t_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wwqoxk1t_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_wy40okdy_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wy40okdy_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wy40okdy_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wy40okdy_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_wy40okdy_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_wy40okdy_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wy40okdy_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_wzc5vn5d_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wzc5vn5d_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wzc5vn5d_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_wzc5vn5d_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_wzc5vn5d_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_wzc5vn5d_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_wzc5vn5d_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_xauwqw2i_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_xhls34uv_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_xhls34uv_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_xhls34uv_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_xhls34uv_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_xhls34uv_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_xhls34uv_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_xhls34uv_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_xnufnz4p_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_xnufnz4p_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_xnufnz4p_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_xnufnz4p_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_xnufnz4p_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_xnufnz4p_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_xnufnz4p_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_xtmhxi3t_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_xtmhxi3t_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_xtmhxi3t_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_xtmhxi3t_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_xtmhxi3t_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_xtmhxi3t_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_xtmhxi3t_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_ycjc0pk1_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ycjc0pk1_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ycjc0pk1_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_ycjc0pk1_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_ycjc0pk1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_ycjc0pk1_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_ycjc0pk1_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_yhyqjubc_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yhyqjubc_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yhyqjubc_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yhyqjubc_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_yhyqjubc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_yhyqjubc_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yhyqjubc_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_yrcsi20z_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yrcsi20z_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yrcsi20z_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yrcsi20z_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_yrcsi20z_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_yrcsi20z_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yrcsi20z_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_yvzv4rtt_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yvzv4rtt_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yvzv4rtt_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yvzv4rtt_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_yvzv4rtt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_yvzv4rtt_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yvzv4rtt_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_yykwoyz3_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yykwoyz3_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yykwoyz3_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yykwoyz3_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_yykwoyz3_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yykwoyz3_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_yzqirykj_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yzqirykj_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yzqirykj_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_yzqirykj_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_yzqirykj_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_yzqirykj_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_yzqirykj_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_zeq2nvag_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zeq2nvag_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zeq2nvag_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zeq2nvag_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_zeq2nvag_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_zeq2nvag_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zeq2nvag_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_zj0u5spb_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zj0u5spb_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zj0u5spb_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zj0u5spb_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_zj0u5spb_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_zj0u5spb_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zj0u5spb_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_zknb4pmm_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zknb4pmm_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zknb4pmm_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zknb4pmm_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_zknb4pmm_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_zknb4pmm_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zknb4pmm_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_zuwk1m3y_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zuwk1m3y_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zuwk1m3y_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zuwk1m3y_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦   ¦       ¦   WpfCalibratorV3.0_zuwk1m3y_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_zuwk1m3y_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zuwk1m3y_wpftmp.sourcelink.json
+    ¦   ¦       ¦   WpfCalibratorV3.0_zvyjxtxz_wpftmp.AssemblyInfo.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zvyjxtxz_wpftmp.AssemblyInfoInputs.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zvyjxtxz_wpftmp.assets.cache
+    ¦   ¦       ¦   WpfCalibratorV3.0_zvyjxtxz_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦   ¦       ¦   WpfCalibratorV3.0_zvyjxtxz_wpftmp.GlobalUsings.g.cs
+    ¦   ¦       ¦   WpfCalibratorV3.0_zvyjxtxz_wpftmp.sourcelink.json
+    ¦   ¦       ¦   
+    ¦   ¦       +---ref
+    ¦   ¦       ¦       WpfCalibratorV3.0.dll
+    ¦   ¦       ¦       
+    ¦   ¦       +---refint
+    ¦   ¦       ¦       WpfCalibratorV3.0.dll
+    ¦   ¦       ¦       
+    ¦   ¦       +---Styles
+    ¦   ¦       ¦       ComboBoxStyles.baml
+    ¦   ¦       ¦       Styles.baml
+    ¦   ¦       ¦       
+    ¦   ¦       L---Views
+    ¦   ¦           ¦   NewLayoutWindow.baml
+    ¦   ¦           ¦   NewLayoutWindow.g.cs
+    ¦   ¦           ¦   NewLayoutWindow.g.i.cs
+    ¦   ¦           ¦   TableSettingsWindow.baml
+    ¦   ¦           ¦   TableSettingsWindow.g.cs
+    ¦   ¦           ¦   TableSettingsWindow.g.i.cs
+    ¦   ¦           ¦   TreeViewPanel.baml
+    ¦   ¦           ¦   TreeViewPanel.g.cs
+    ¦   ¦           ¦   TreeViewPanel.g.i.cs
+    ¦   ¦           ¦   UartMonitorWindow.baml
+    ¦   ¦           ¦   UartMonitorWindow.g.cs
+    ¦   ¦           ¦   UartMonitorWindow.g.i.cs
+    ¦   ¦           ¦   WidgetTemplates.baml
+    ¦   ¦           ¦   WorkspaceCanvas.baml
+    ¦   ¦           ¦   WorkspaceCanvas.g.cs
+    ¦   ¦           ¦   WorkspaceCanvas.g.i.cs
+    ¦   ¦           ¦   
+    ¦   ¦           L---WidgetTemplates
+    ¦   ¦                   CommonStyles.baml
+    ¦   ¦                   DigitalSensorWidget.baml
+    ¦   ¦                   GaugeArc120Widget.baml
+    ¦   ¦                   GaugeCircular270Widget.baml
+    ¦   ¦                   Matrix3DSurfaceWidget.baml
+    ¦   ¦                   MatrixTableWidget.baml
+    ¦   ¦                   RadarTrackerWidget.baml
+    ¦   ¦                   ScalarTextBoxWidget.baml
+    ¦   ¦                   SliderHorizontalWidget.baml
+    ¦   ¦                   SliderVerticalWidget.baml
+    ¦   ¦                   TimePlotWidget.baml
+    ¦   ¦                   
+    ¦   +---publish
+    ¦   ¦   +---win-x64
+    ¦   ¦   ¦       project.assets.json
+    ¦   ¦   ¦       project.nuget.cache
+    ¦   ¦   ¦       WpfCalibratorV3.0.csproj.nuget.dgspec.json
+    ¦   ¦   ¦       WpfCalibratorV3.0.csproj.nuget.g.props
+    ¦   ¦   ¦       WpfCalibratorV3.0.csproj.nuget.g.targets
+    ¦   ¦   ¦       
+    ¦   ¦   L---win-x86
+    ¦   ¦           project.assets.json
+    ¦   ¦           project.nuget.cache
+    ¦   ¦           WpfCalibratorV3.0.csproj.nuget.dgspec.json
+    ¦   ¦           WpfCalibratorV3.0.csproj.nuget.g.props
+    ¦   ¦           WpfCalibratorV3.0.csproj.nuget.g.targets
+    ¦   ¦           
+    ¦   L---Release
+    ¦       L---net10.0-windows
+    ¦           ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+    ¦           ¦   App.baml
+    ¦           ¦   App.g.cs
+    ¦           ¦   App.g.i.cs
+    ¦           ¦   apphost.exe
+    ¦           ¦   GeneratedInternalTypeHelper.g.cs
+    ¦           ¦   GeneratedInternalTypeHelper.g.i.cs
+    ¦           ¦   MainWindow.baml
+    ¦           ¦   MainWindow.g.cs
+    ¦           ¦   MainWindow.g.i.cs
+    ¦           ¦   WpfCalib.CB129919.Up2Date
+    ¦           ¦   WpfCalibratorV3.0.AssemblyInfo.cs
+    ¦           ¦   WpfCalibratorV3.0.AssemblyInfoInputs.cache
+    ¦           ¦   WpfCalibratorV3.0.assets.cache
+    ¦           ¦   WpfCalibratorV3.0.csproj.AssemblyReference.cache
+    ¦           ¦   WpfCalibratorV3.0.csproj.BuildWithSkipAnalyzers
+    ¦           ¦   WpfCalibratorV3.0.csproj.CoreCompileInputs.cache
+    ¦           ¦   WpfCalibratorV3.0.csproj.FileListAbsolute.txt
+    ¦           ¦   WpfCalibratorV3.0.designer.deps.json
+    ¦           ¦   WpfCalibratorV3.0.designer.runtimeconfig.json
+    ¦           ¦   WpfCalibratorV3.0.dll
+    ¦           ¦   WpfCalibratorV3.0.g.resources
+    ¦           ¦   WpfCalibratorV3.0.GeneratedMSBuildEditorConfig.editorconfig
+    ¦           ¦   WpfCalibratorV3.0.genruntimeconfig.cache
+    ¦           ¦   WpfCalibratorV3.0.GlobalUsings.g.cs
+    ¦           ¦   WpfCalibratorV3.0.pdb
+    ¦           ¦   WpfCalibratorV3.0.sourcelink.json
+    ¦           ¦   WpfCalibratorV3.0.xml
+    ¦           ¦   WpfCalibratorV3.0_av4vkaai_wpftmp.AssemblyInfo.cs
+    ¦           ¦   WpfCalibratorV3.0_av4vkaai_wpftmp.AssemblyInfoInputs.cache
+    ¦           ¦   WpfCalibratorV3.0_av4vkaai_wpftmp.assets.cache
+    ¦           ¦   WpfCalibratorV3.0_av4vkaai_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦           ¦   WpfCalibratorV3.0_av4vkaai_wpftmp.GlobalUsings.g.cs
+    ¦           ¦   WpfCalibratorV3.0_av4vkaai_wpftmp.sourcelink.json
+    ¦           ¦   WpfCalibratorV3.0_li3mf2w3_wpftmp.AssemblyInfo.cs
+    ¦           ¦   WpfCalibratorV3.0_li3mf2w3_wpftmp.AssemblyInfoInputs.cache
+    ¦           ¦   WpfCalibratorV3.0_li3mf2w3_wpftmp.assets.cache
+    ¦           ¦   WpfCalibratorV3.0_li3mf2w3_wpftmp.csproj.BuildWithSkipAnalyzers
+    ¦           ¦   WpfCalibratorV3.0_li3mf2w3_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦           ¦   WpfCalibratorV3.0_li3mf2w3_wpftmp.GlobalUsings.g.cs
+    ¦           ¦   WpfCalibratorV3.0_li3mf2w3_wpftmp.sourcelink.json
+    ¦           ¦   WpfCalibratorV3.0_MarkupCompile.cache
+    ¦           ¦   WpfCalibratorV3.0_MarkupCompile.i.cache
+    ¦           ¦   WpfCalibratorV3.0_MarkupCompile.lref
+    ¦           ¦   WpfCalibratorV3.0_xm3x3no0_wpftmp.AssemblyInfo.cs
+    ¦           ¦   WpfCalibratorV3.0_xm3x3no0_wpftmp.AssemblyInfoInputs.cache
+    ¦           ¦   WpfCalibratorV3.0_xm3x3no0_wpftmp.assets.cache
+    ¦           ¦   WpfCalibratorV3.0_xm3x3no0_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦           ¦   WpfCalibratorV3.0_xm3x3no0_wpftmp.GlobalUsings.g.cs
+    ¦           ¦   WpfCalibratorV3.0_xm3x3no0_wpftmp.sourcelink.json
+    ¦           ¦   
+    ¦           +---ref
+    ¦           ¦       WpfCalibratorV3.0.dll
+    ¦           ¦       
+    ¦           +---refint
+    ¦           ¦       WpfCalibratorV3.0.dll
+    ¦           ¦       
+    ¦           +---Styles
+    ¦           ¦       Styles.baml
+    ¦           ¦       
+    ¦           +---Views
+    ¦           ¦   ¦   NewLayoutWindow.baml
+    ¦           ¦   ¦   NewLayoutWindow.g.cs
+    ¦           ¦   ¦   NewLayoutWindow.g.i.cs
+    ¦           ¦   ¦   TableSettingsWindow.baml
+    ¦           ¦   ¦   TableSettingsWindow.g.cs
+    ¦           ¦   ¦   TableSettingsWindow.g.i.cs
+    ¦           ¦   ¦   TreeViewPanel.baml
+    ¦           ¦   ¦   TreeViewPanel.g.cs
+    ¦           ¦   ¦   TreeViewPanel.g.i.cs
+    ¦           ¦   ¦   UartMonitorWindow.baml
+    ¦           ¦   ¦   UartMonitorWindow.g.cs
+    ¦           ¦   ¦   UartMonitorWindow.g.i.cs
+    ¦           ¦   ¦   WidgetTemplates.baml
+    ¦           ¦   ¦   WorkspaceCanvas.baml
+    ¦           ¦   ¦   WorkspaceCanvas.g.cs
+    ¦           ¦   ¦   WorkspaceCanvas.g.i.cs
+    ¦           ¦   ¦   
+    ¦           ¦   L---WidgetTemplates
+    ¦           ¦           CommonStyles.baml
+    ¦           ¦           DigitalSensorWidget.baml
+    ¦           ¦           GaugeArc120Widget.baml
+    ¦           ¦           GaugeCircular270Widget.baml
+    ¦           ¦           Matrix3DSurfaceWidget.baml
+    ¦           ¦           MatrixTableWidget.baml
+    ¦           ¦           RadarTrackerWidget.baml
+    ¦           ¦           ScalarTextBoxWidget.baml
+    ¦           ¦           SliderHorizontalWidget.baml
+    ¦           ¦           SliderVerticalWidget.baml
+    ¦           ¦           TimePlotWidget.baml
+    ¦           ¦           
+    ¦           +---win-x64
+    ¦           ¦   ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+    ¦           ¦   ¦   App.baml
+    ¦           ¦   ¦   App.g.cs
+    ¦           ¦   ¦   App.g.i.cs
+    ¦           ¦   ¦   apphost.exe
+    ¦           ¦   ¦   GeneratedInternalTypeHelper.g.cs
+    ¦           ¦   ¦   GeneratedInternalTypeHelper.g.i.cs
+    ¦           ¦   ¦   MainWindow.baml
+    ¦           ¦   ¦   MainWindow.g.cs
+    ¦           ¦   ¦   MainWindow.g.i.cs
+    ¦           ¦   ¦   PublishOutputs.1889580b9e.txt
+    ¦           ¦   ¦   singlefilehost.exe
+    ¦           ¦   ¦   WpfCalib.CB129919.Up2Date
+    ¦           ¦   ¦   WpfCalibratorV3.0.AssemblyInfo.cs
+    ¦           ¦   ¦   WpfCalibratorV3.0.AssemblyInfoInputs.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0.assets.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0.csproj.AssemblyReference.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0.csproj.CoreCompileInputs.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0.csproj.FileListAbsolute.txt
+    ¦           ¦   ¦   WpfCalibratorV3.0.deps.json
+    ¦           ¦   ¦   WpfCalibratorV3.0.dll
+    ¦           ¦   ¦   WpfCalibratorV3.0.g.resources
+    ¦           ¦   ¦   WpfCalibratorV3.0.genbundle.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0.GeneratedMSBuildEditorConfig.editorconfig
+    ¦           ¦   ¦   WpfCalibratorV3.0.genpublishdeps.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0.genruntimeconfig.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0.GlobalUsings.g.cs
+    ¦           ¦   ¦   WpfCalibratorV3.0.pdb
+    ¦           ¦   ¦   WpfCalibratorV3.0.sourcelink.json
+    ¦           ¦   ¦   WpfCalibratorV3.0.xml
+    ¦           ¦   ¦   WpfCalibratorV3.0_4ms1r2cs_wpftmp.AssemblyInfo.cs
+    ¦           ¦   ¦   WpfCalibratorV3.0_4ms1r2cs_wpftmp.AssemblyInfoInputs.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0_4ms1r2cs_wpftmp.assets.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0_4ms1r2cs_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦           ¦   ¦   WpfCalibratorV3.0_4ms1r2cs_wpftmp.GlobalUsings.g.cs
+    ¦           ¦   ¦   WpfCalibratorV3.0_4ms1r2cs_wpftmp.sourcelink.json
+    ¦           ¦   ¦   WpfCalibratorV3.0_MarkupCompile.cache
+    ¦           ¦   ¦   WpfCalibratorV3.0_MarkupCompile.lref
+    ¦           ¦   ¦   
+    ¦           ¦   +---R2R
+    ¦           ¦   ¦       Accessibility.dll
+    ¦           ¦   ¦       CommunityToolkit.Common.dll
+    ¦           ¦   ¦       CommunityToolkit.Diagnostics.dll
+    ¦           ¦   ¦       CommunityToolkit.Mvvm.dll
+    ¦           ¦   ¦       DirectWriteForwarder.dll
+    ¦           ¦   ¦       HelixToolkit.dll
+    ¦           ¦   ¦       HelixToolkit.Geometry.dll
+    ¦           ¦   ¦       HelixToolkit.Maths.dll
+    ¦           ¦   ¦       HelixToolkit.Wpf.dll
+    ¦           ¦   ¦       Microsoft.CSharp.dll
+    ¦           ¦   ¦       Microsoft.Extensions.DependencyInjection.Abstractions.dll
+    ¦           ¦   ¦       Microsoft.Extensions.Logging.Abstractions.dll
+    ¦           ¦   ¦       Microsoft.VisualBasic.Core.dll
+    ¦           ¦   ¦       Microsoft.VisualBasic.dll
+    ¦           ¦   ¦       Microsoft.Win32.Primitives.dll
+    ¦           ¦   ¦       Microsoft.Win32.Registry.AccessControl.dll
+    ¦           ¦   ¦       Microsoft.Win32.Registry.dll
+    ¦           ¦   ¦       Microsoft.Win32.SystemEvents.dll
+    ¦           ¦   ¦       mscorlib.dll
+    ¦           ¦   ¦       netstandard.dll
+    ¦           ¦   ¦       PresentationCore.dll
+    ¦           ¦   ¦       PresentationFramework-SystemCore.dll
+    ¦           ¦   ¦       PresentationFramework-SystemData.dll
+    ¦           ¦   ¦       PresentationFramework-SystemDrawing.dll
+    ¦           ¦   ¦       PresentationFramework-SystemXml.dll
+    ¦           ¦   ¦       PresentationFramework-SystemXmlLinq.dll
+    ¦           ¦   ¦       PresentationFramework.Aero.dll
+    ¦           ¦   ¦       PresentationFramework.Aero2.dll
+    ¦           ¦   ¦       PresentationFramework.AeroLite.dll
+    ¦           ¦   ¦       PresentationFramework.Classic.dll
+    ¦           ¦   ¦       PresentationFramework.dll
+    ¦           ¦   ¦       PresentationFramework.Fluent.dll
+    ¦           ¦   ¦       PresentationFramework.Luna.dll
+    ¦           ¦   ¦       PresentationFramework.Royale.dll
+    ¦           ¦   ¦       PresentationUI.dll
+    ¦           ¦   ¦       ReachFramework.dll
+    ¦           ¦   ¦       System.AppContext.dll
+    ¦           ¦   ¦       System.Buffers.dll
+    ¦           ¦   ¦       System.CodeDom.dll
+    ¦           ¦   ¦       System.Collections.Concurrent.dll
+    ¦           ¦   ¦       System.Collections.dll
+    ¦           ¦   ¦       System.Collections.Immutable.dll
+    ¦           ¦   ¦       System.Collections.NonGeneric.dll
+    ¦           ¦   ¦       System.Collections.Specialized.dll
+    ¦           ¦   ¦       System.ComponentModel.Annotations.dll
+    ¦           ¦   ¦       System.ComponentModel.DataAnnotations.dll
+    ¦           ¦   ¦       System.ComponentModel.dll
+    ¦           ¦   ¦       System.ComponentModel.EventBasedAsync.dll
+    ¦           ¦   ¦       System.ComponentModel.Primitives.dll
+    ¦           ¦   ¦       System.ComponentModel.TypeConverter.dll
+    ¦           ¦   ¦       System.Configuration.ConfigurationManager.dll
+    ¦           ¦   ¦       System.Configuration.dll
+    ¦           ¦   ¦       System.Console.dll
+    ¦           ¦   ¦       System.Core.dll
+    ¦           ¦   ¦       System.Data.Common.dll
+    ¦           ¦   ¦       System.Data.DataSetExtensions.dll
+    ¦           ¦   ¦       System.Data.dll
+    ¦           ¦   ¦       System.Diagnostics.Contracts.dll
+    ¦           ¦   ¦       System.Diagnostics.Debug.dll
+    ¦           ¦   ¦       System.Diagnostics.DiagnosticSource.dll
+    ¦           ¦   ¦       System.Diagnostics.EventLog.dll
+    ¦           ¦   ¦       System.Diagnostics.EventLog.Messages.dll
+    ¦           ¦   ¦       System.Diagnostics.FileVersionInfo.dll
+    ¦           ¦   ¦       System.Diagnostics.PerformanceCounter.dll
+    ¦           ¦   ¦       System.Diagnostics.Process.dll
+    ¦           ¦   ¦       System.Diagnostics.StackTrace.dll
+    ¦           ¦   ¦       System.Diagnostics.TextWriterTraceListener.dll
+    ¦           ¦   ¦       System.Diagnostics.Tools.dll
+    ¦           ¦   ¦       System.Diagnostics.TraceSource.dll
+    ¦           ¦   ¦       System.Diagnostics.Tracing.dll
+    ¦           ¦   ¦       System.DirectoryServices.dll
+    ¦           ¦   ¦       System.dll
+    ¦           ¦   ¦       System.Drawing.Common.dll
+    ¦           ¦   ¦       System.Drawing.dll
+    ¦           ¦   ¦       System.Drawing.Primitives.dll
+    ¦           ¦   ¦       System.Dynamic.Runtime.dll
+    ¦           ¦   ¦       System.Formats.Asn1.dll
+    ¦           ¦   ¦       System.Formats.Nrbf.dll
+    ¦           ¦   ¦       System.Formats.Tar.dll
+    ¦           ¦   ¦       System.Globalization.Calendars.dll
+    ¦           ¦   ¦       System.Globalization.dll
+    ¦           ¦   ¦       System.Globalization.Extensions.dll
+    ¦           ¦   ¦       System.IO.Compression.Brotli.dll
+    ¦           ¦   ¦       System.IO.Compression.dll
+    ¦           ¦   ¦       System.IO.Compression.FileSystem.dll
+    ¦           ¦   ¦       System.IO.Compression.ZipFile.dll
+    ¦           ¦   ¦       System.IO.dll
+    ¦           ¦   ¦       System.IO.FileSystem.AccessControl.dll
+    ¦           ¦   ¦       System.IO.FileSystem.dll
+    ¦           ¦   ¦       System.IO.FileSystem.DriveInfo.dll
+    ¦           ¦   ¦       System.IO.FileSystem.Primitives.dll
+    ¦           ¦   ¦       System.IO.FileSystem.Watcher.dll
+    ¦           ¦   ¦       System.IO.IsolatedStorage.dll
+    ¦           ¦   ¦       System.IO.MemoryMappedFiles.dll
+    ¦           ¦   ¦       System.IO.Packaging.dll
+    ¦           ¦   ¦       System.IO.Pipelines.dll
+    ¦           ¦   ¦       System.IO.Pipes.AccessControl.dll
+    ¦           ¦   ¦       System.IO.Pipes.dll
+    ¦           ¦   ¦       System.IO.Ports.dll
+    ¦           ¦   ¦       System.IO.UnmanagedMemoryStream.dll
+    ¦           ¦   ¦       System.Linq.AsyncEnumerable.dll
+    ¦           ¦   ¦       System.Linq.dll
+    ¦           ¦   ¦       System.Linq.Expressions.dll
+    ¦           ¦   ¦       System.Linq.Parallel.dll
+    ¦           ¦   ¦       System.Linq.Queryable.dll
+    ¦           ¦   ¦       System.Memory.dll
+    ¦           ¦   ¦       System.Net.dll
+    ¦           ¦   ¦       System.Net.Http.dll
+    ¦           ¦   ¦       System.Net.Http.Json.dll
+    ¦           ¦   ¦       System.Net.HttpListener.dll
+    ¦           ¦   ¦       System.Net.Mail.dll
+    ¦           ¦   ¦       System.Net.NameResolution.dll
+    ¦           ¦   ¦       System.Net.NetworkInformation.dll
+    ¦           ¦   ¦       System.Net.Ping.dll
+    ¦           ¦   ¦       System.Net.Primitives.dll
+    ¦           ¦   ¦       System.Net.Quic.dll
+    ¦           ¦   ¦       System.Net.Requests.dll
+    ¦           ¦   ¦       System.Net.Security.dll
+    ¦           ¦   ¦       System.Net.ServerSentEvents.dll
+    ¦           ¦   ¦       System.Net.ServicePoint.dll
+    ¦           ¦   ¦       System.Net.Sockets.dll
+    ¦           ¦   ¦       System.Net.WebClient.dll
+    ¦           ¦   ¦       System.Net.WebHeaderCollection.dll
+    ¦           ¦   ¦       System.Net.WebProxy.dll
+    ¦           ¦   ¦       System.Net.WebSockets.Client.dll
+    ¦           ¦   ¦       System.Net.WebSockets.dll
+    ¦           ¦   ¦       System.Numerics.dll
+    ¦           ¦   ¦       System.Numerics.Vectors.dll
+    ¦           ¦   ¦       System.ObjectModel.dll
+    ¦           ¦   ¦       System.Printing.dll
+    ¦           ¦   ¦       System.Private.CoreLib.dll
+    ¦           ¦   ¦       System.Private.DataContractSerialization.dll
+    ¦           ¦   ¦       System.Private.Uri.dll
+    ¦           ¦   ¦       System.Private.Windows.Core.dll
+    ¦           ¦   ¦       System.Private.Windows.GdiPlus.dll
+    ¦           ¦   ¦       System.Private.Xml.dll
+    ¦           ¦   ¦       System.Private.Xml.Linq.dll
+    ¦           ¦   ¦       System.Reflection.DispatchProxy.dll
+    ¦           ¦   ¦       System.Reflection.dll
+    ¦           ¦   ¦       System.Reflection.Emit.dll
+    ¦           ¦   ¦       System.Reflection.Emit.ILGeneration.dll
+    ¦           ¦   ¦       System.Reflection.Emit.Lightweight.dll
+    ¦           ¦   ¦       System.Reflection.Extensions.dll
+    ¦           ¦   ¦       System.Reflection.Metadata.dll
+    ¦           ¦   ¦       System.Reflection.Primitives.dll
+    ¦           ¦   ¦       System.Reflection.TypeExtensions.dll
+    ¦           ¦   ¦       System.Resources.Extensions.dll
+    ¦           ¦   ¦       System.Resources.Reader.dll
+    ¦           ¦   ¦       System.Resources.ResourceManager.dll
+    ¦           ¦   ¦       System.Resources.Writer.dll
+    ¦           ¦   ¦       System.Runtime.CompilerServices.Unsafe.dll
+    ¦           ¦   ¦       System.Runtime.CompilerServices.VisualC.dll
+    ¦           ¦   ¦       System.Runtime.dll
+    ¦           ¦   ¦       System.Runtime.Extensions.dll
+    ¦           ¦   ¦       System.Runtime.Handles.dll
+    ¦           ¦   ¦       System.Runtime.InteropServices.dll
+    ¦           ¦   ¦       System.Runtime.InteropServices.JavaScript.dll
+    ¦           ¦   ¦       System.Runtime.InteropServices.RuntimeInformation.dll
+    ¦           ¦   ¦       System.Runtime.Intrinsics.dll
+    ¦           ¦   ¦       System.Runtime.Loader.dll
+    ¦           ¦   ¦       System.Runtime.Numerics.dll
+    ¦           ¦   ¦       System.Runtime.Serialization.dll
+    ¦           ¦   ¦       System.Runtime.Serialization.Formatters.dll
+    ¦           ¦   ¦       System.Runtime.Serialization.Json.dll
+    ¦           ¦   ¦       System.Runtime.Serialization.Primitives.dll
+    ¦           ¦   ¦       System.Runtime.Serialization.Xml.dll
+    ¦           ¦   ¦       System.Security.AccessControl.dll
+    ¦           ¦   ¦       System.Security.Claims.dll
+    ¦           ¦   ¦       System.Security.Cryptography.Algorithms.dll
+    ¦           ¦   ¦       System.Security.Cryptography.Cng.dll
+    ¦           ¦   ¦       System.Security.Cryptography.Csp.dll
+    ¦           ¦   ¦       System.Security.Cryptography.dll
+    ¦           ¦   ¦       System.Security.Cryptography.Encoding.dll
+    ¦           ¦   ¦       System.Security.Cryptography.OpenSsl.dll
+    ¦           ¦   ¦       System.Security.Cryptography.Pkcs.dll
+    ¦           ¦   ¦       System.Security.Cryptography.Primitives.dll
+    ¦           ¦   ¦       System.Security.Cryptography.ProtectedData.dll
+    ¦           ¦   ¦       System.Security.Cryptography.X509Certificates.dll
+    ¦           ¦   ¦       System.Security.Cryptography.Xml.dll
+    ¦           ¦   ¦       System.Security.dll
+    ¦           ¦   ¦       System.Security.Permissions.dll
+    ¦           ¦   ¦       System.Security.Principal.dll
+    ¦           ¦   ¦       System.Security.Principal.Windows.dll
+    ¦           ¦   ¦       System.Security.SecureString.dll
+    ¦           ¦   ¦       System.ServiceModel.Web.dll
+    ¦           ¦   ¦       System.ServiceProcess.dll
+    ¦           ¦   ¦       System.Text.Encoding.CodePages.dll
+    ¦           ¦   ¦       System.Text.Encoding.dll
+    ¦           ¦   ¦       System.Text.Encoding.Extensions.dll
+    ¦           ¦   ¦       System.Text.Encodings.Web.dll
+    ¦           ¦   ¦       System.Text.Json.dll
+    ¦           ¦   ¦       System.Text.RegularExpressions.dll
+    ¦           ¦   ¦       System.Threading.AccessControl.dll
+    ¦           ¦   ¦       System.Threading.Channels.dll
+    ¦           ¦   ¦       System.Threading.dll
+    ¦           ¦   ¦       System.Threading.Overlapped.dll
+    ¦           ¦   ¦       System.Threading.Tasks.Dataflow.dll
+    ¦           ¦   ¦       System.Threading.Tasks.dll
+    ¦           ¦   ¦       System.Threading.Tasks.Extensions.dll
+    ¦           ¦   ¦       System.Threading.Tasks.Parallel.dll
+    ¦           ¦   ¦       System.Threading.Thread.dll
+    ¦           ¦   ¦       System.Threading.ThreadPool.dll
+    ¦           ¦   ¦       System.Threading.Timer.dll
+    ¦           ¦   ¦       System.Transactions.dll
+    ¦           ¦   ¦       System.Transactions.Local.dll
+    ¦           ¦   ¦       System.ValueTuple.dll
+    ¦           ¦   ¦       System.Web.dll
+    ¦           ¦   ¦       System.Web.HttpUtility.dll
+    ¦           ¦   ¦       System.Windows.Controls.Ribbon.dll
+    ¦           ¦   ¦       System.Windows.dll
+    ¦           ¦   ¦       System.Windows.Extensions.dll
+    ¦           ¦   ¦       System.Windows.Input.Manipulations.dll
+    ¦           ¦   ¦       System.Windows.Presentation.dll
+    ¦           ¦   ¦       System.Windows.Primitives.dll
+    ¦           ¦   ¦       System.Xaml.dll
+    ¦           ¦   ¦       System.Xml.dll
+    ¦           ¦   ¦       System.Xml.Linq.dll
+    ¦           ¦   ¦       System.Xml.ReaderWriter.dll
+    ¦           ¦   ¦       System.Xml.Serialization.dll
+    ¦           ¦   ¦       System.Xml.XDocument.dll
+    ¦           ¦   ¦       System.Xml.XmlDocument.dll
+    ¦           ¦   ¦       System.Xml.XmlSerializer.dll
+    ¦           ¦   ¦       System.Xml.XPath.dll
+    ¦           ¦   ¦       System.Xml.XPath.XDocument.dll
+    ¦           ¦   ¦       UIAutomationClient.dll
+    ¦           ¦   ¦       UIAutomationClientSideProviders.dll
+    ¦           ¦   ¦       UIAutomationProvider.dll
+    ¦           ¦   ¦       UIAutomationTypes.dll
+    ¦           ¦   ¦       WindowsBase.dll
+    ¦           ¦   ¦       WpfCalibratorV3.0.dll
+    ¦           ¦   ¦       WpfCalibratorV3.0.r2r.dll
+    ¦           ¦   ¦       
+    ¦           ¦   +---ref
+    ¦           ¦   ¦       WpfCalibratorV3.0.dll
+    ¦           ¦   ¦       
+    ¦           ¦   +---refint
+    ¦           ¦   ¦       WpfCalibratorV3.0.dll
+    ¦           ¦   ¦       
+    ¦           ¦   +---Styles
+    ¦           ¦   ¦       Styles.baml
+    ¦           ¦   ¦       
+    ¦           ¦   L---Views
+    ¦           ¦       ¦   NewLayoutWindow.baml
+    ¦           ¦       ¦   NewLayoutWindow.g.cs
+    ¦           ¦       ¦   NewLayoutWindow.g.i.cs
+    ¦           ¦       ¦   TableSettingsWindow.baml
+    ¦           ¦       ¦   TableSettingsWindow.g.cs
+    ¦           ¦       ¦   TableSettingsWindow.g.i.cs
+    ¦           ¦       ¦   TreeViewPanel.baml
+    ¦           ¦       ¦   TreeViewPanel.g.cs
+    ¦           ¦       ¦   TreeViewPanel.g.i.cs
+    ¦           ¦       ¦   UartMonitorWindow.baml
+    ¦           ¦       ¦   UartMonitorWindow.g.cs
+    ¦           ¦       ¦   UartMonitorWindow.g.i.cs
+    ¦           ¦       ¦   WidgetTemplates.baml
+    ¦           ¦       ¦   WorkspaceCanvas.baml
+    ¦           ¦       ¦   WorkspaceCanvas.g.cs
+    ¦           ¦       ¦   WorkspaceCanvas.g.i.cs
+    ¦           ¦       ¦   
+    ¦           ¦       L---WidgetTemplates
+    ¦           ¦               CommonStyles.baml
+    ¦           ¦               DigitalSensorWidget.baml
+    ¦           ¦               GaugeArc120Widget.baml
+    ¦           ¦               GaugeCircular270Widget.baml
+    ¦           ¦               Matrix3DSurfaceWidget.baml
+    ¦           ¦               MatrixTableWidget.baml
+    ¦           ¦               RadarTrackerWidget.baml
+    ¦           ¦               ScalarTextBoxWidget.baml
+    ¦           ¦               SliderHorizontalWidget.baml
+    ¦           ¦               SliderVerticalWidget.baml
+    ¦           ¦               TimePlotWidget.baml
+    ¦           ¦               
+    ¦           L---win-x86
+    ¦               ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+    ¦               ¦   App.baml
+    ¦               ¦   App.g.cs
+    ¦               ¦   App.g.i.cs
+    ¦               ¦   apphost.exe
+    ¦               ¦   GeneratedInternalTypeHelper.g.cs
+    ¦               ¦   GeneratedInternalTypeHelper.g.i.cs
+    ¦               ¦   MainWindow.baml
+    ¦               ¦   MainWindow.g.cs
+    ¦               ¦   MainWindow.g.i.cs
+    ¦               ¦   PublishOutputs.1fdaad31b4.txt
+    ¦               ¦   WpfCalib.CB129919.Up2Date
+    ¦               ¦   WpfCalibratorV3.0.AssemblyInfo.cs
+    ¦               ¦   WpfCalibratorV3.0.AssemblyInfoInputs.cache
+    ¦               ¦   WpfCalibratorV3.0.assets.cache
+    ¦               ¦   WpfCalibratorV3.0.csproj.AssemblyReference.cache
+    ¦               ¦   WpfCalibratorV3.0.csproj.CoreCompileInputs.cache
+    ¦               ¦   WpfCalibratorV3.0.csproj.FileListAbsolute.txt
+    ¦               ¦   WpfCalibratorV3.0.dll
+    ¦               ¦   WpfCalibratorV3.0.g.resources
+    ¦               ¦   WpfCalibratorV3.0.GeneratedMSBuildEditorConfig.editorconfig
+    ¦               ¦   WpfCalibratorV3.0.genruntimeconfig.cache
+    ¦               ¦   WpfCalibratorV3.0.GlobalUsings.g.cs
+    ¦               ¦   WpfCalibratorV3.0.pdb
+    ¦               ¦   WpfCalibratorV3.0.sourcelink.json
+    ¦               ¦   WpfCalibratorV3.0.xml
+    ¦               ¦   WpfCalibratorV3.0_MarkupCompile.cache
+    ¦               ¦   WpfCalibratorV3.0_MarkupCompile.lref
+    ¦               ¦   WpfCalibratorV3.0_tcwwp0f5_wpftmp.AssemblyInfo.cs
+    ¦               ¦   WpfCalibratorV3.0_tcwwp0f5_wpftmp.AssemblyInfoInputs.cache
+    ¦               ¦   WpfCalibratorV3.0_tcwwp0f5_wpftmp.assets.cache
+    ¦               ¦   WpfCalibratorV3.0_tcwwp0f5_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+    ¦               ¦   WpfCalibratorV3.0_tcwwp0f5_wpftmp.GlobalUsings.g.cs
+    ¦               ¦   WpfCalibratorV3.0_tcwwp0f5_wpftmp.sourcelink.json
+    ¦               ¦   
+    ¦               +---R2R
+    ¦               ¦       CommunityToolkit.Common.dll
+    ¦               ¦       CommunityToolkit.Diagnostics.dll
+    ¦               ¦       CommunityToolkit.Mvvm.dll
+    ¦               ¦       HelixToolkit.dll
+    ¦               ¦       HelixToolkit.Geometry.dll
+    ¦               ¦       HelixToolkit.Maths.dll
+    ¦               ¦       HelixToolkit.Wpf.dll
+    ¦               ¦       Microsoft.Extensions.DependencyInjection.Abstractions.dll
+    ¦               ¦       Microsoft.Extensions.Logging.Abstractions.dll
+    ¦               ¦       System.IO.Ports.dll
+    ¦               ¦       WpfCalibratorV3.0.dll
+    ¦               ¦       
+    ¦               +---ref
+    ¦               ¦       WpfCalibratorV3.0.dll
+    ¦               ¦       
+    ¦               +---refint
+    ¦               ¦       WpfCalibratorV3.0.dll
+    ¦               ¦       
+    ¦               +---Styles
+    ¦               ¦       Styles.baml
+    ¦               ¦       
+    ¦               L---Views
+    ¦                   ¦   NewLayoutWindow.baml
+    ¦                   ¦   NewLayoutWindow.g.cs
+    ¦                   ¦   NewLayoutWindow.g.i.cs
+    ¦                   ¦   TableSettingsWindow.baml
+    ¦                   ¦   TableSettingsWindow.g.cs
+    ¦                   ¦   TableSettingsWindow.g.i.cs
+    ¦                   ¦   TreeViewPanel.baml
+    ¦                   ¦   TreeViewPanel.g.cs
+    ¦                   ¦   TreeViewPanel.g.i.cs
+    ¦                   ¦   UartMonitorWindow.baml
+    ¦                   ¦   UartMonitorWindow.g.cs
+    ¦                   ¦   UartMonitorWindow.g.i.cs
+    ¦                   ¦   WidgetTemplates.baml
+    ¦                   ¦   WorkspaceCanvas.baml
+    ¦                   ¦   WorkspaceCanvas.g.cs
+    ¦                   ¦   WorkspaceCanvas.g.i.cs
+    ¦                   ¦   
+    ¦                   L---WidgetTemplates
+    ¦                           CommonStyles.baml
+    ¦                           DigitalSensorWidget.baml
+    ¦                           GaugeArc120Widget.baml
+    ¦                           GaugeCircular270Widget.baml
+    ¦                           Matrix3DSurfaceWidget.baml
+    ¦                           MatrixTableWidget.baml
+    ¦                           RadarTrackerWidget.baml
+    ¦                           ScalarTextBoxWidget.baml
+    ¦                           SliderHorizontalWidget.baml
+    ¦                           SliderVerticalWidget.baml
+    ¦                           TimePlotWidget.baml
+    ¦                           
+    +---Properties
+    ¦   L---PublishProfiles
+    ¦           FolderProfile.pubxml
+    ¦           FolderProfile.pubxml.user
+    ¦           
+    +---Services
+    ¦   ¦   ConfigurationManager.cs
+    ¦   ¦   DashboardManager.cs
+    ¦   ¦   EnvironmentPreparer.cs
+    ¦   ¦   IDashboardManager.cs
+    ¦   ¦   IMatrix3DService.cs
+    ¦   ¦   InputController.cs
+    ¦   ¦   Matrix3DGeometryService.cs
+    ¦   ¦   NullDashboardManager.cs
+    ¦   ¦   WidgetFactory.cs
+    ¦   ¦   
+    ¦   +---BusArbiter
+    ¦   ¦       BusArbiter.Core.cs
+    ¦   ¦       BusArbiter.Worker.cs
+    ¦   ¦       IBusArbiter.cs
+    ¦   ¦       
+    ¦   L---CommunicationService
+    ¦           CommunicationService.Commands.cs
+    ¦           CommunicationService.Core.cs
+    ¦           CommunicationService.Demo.cs
+    ¦           CommunicationService.Parser.cs
+    ¦           ICommunicationService.cs
+    ¦           
+    +---Styles
+    ¦       ComboBoxStyles.xaml
+    ¦       Styles.xaml
+    ¦       
+    +---ViewModels
+    ¦   ¦   MatrixCellViewModel.cs
+    ¦   ¦   
+    ¦   +---MainViewModel
+    ¦   ¦       MainViewModel.Commands.cs
+    ¦   ¦       MainViewModel.Configuration.cs
+    ¦   ¦       MainViewModel.Connection.cs
+    ¦   ¦       MainViewModel.Core.cs
+    ¦   ¦       
+    ¦   +---VariableViewModel
+    ¦   ¦       CurveVariableViewModel.cs
+    ¦   ¦       Map3DVariableViewModel.cs
+    ¦   ¦       ScalarVariableViewModel.cs
+    ¦   ¦       TableVariableViewModelBase.cs
+    ¦   ¦       VariableViewModelBase.cs
+    ¦   ¦       
+    ¦   L---WidgetViewModel
+    ¦           BaseScalarWidgetViewModel.cs
+    ¦           BaseWidgetViewModel.cs
+    ¦           EditableWidgetViewModel.cs
+    ¦           LegacyWidgetViewModel.cs
+    ¦           Matrix3DWidgetViewModel.cs
+    ¦           MatrixTableWidgetViewModel.cs
+    ¦           RadarTrackerWidgetViewModel.cs
+    ¦           ScalarGaugeWidgetViewModel.cs
+    ¦           ScalarLedStripWidgetViewModel.cs
+    ¦           ScalarSliderWidgetViewModel.cs
+    ¦           TimePlotWidgetViewModel.cs
+    ¦           WidgetViewModel.Graphics.cs
+    ¦           WidgetViewModel.Input.cs
+    ¦           WidgetViewModel.Reactive.cs
+    ¦           
+    L---Views
+        ¦   NewLayoutWindow.xaml
+        ¦   NewLayoutWindow.xaml.cs
+        ¦   TableSettingsWindow.xaml
+        ¦   TableSettingsWindow.xaml.cs
+        ¦   TreeViewPanel.xaml
+        ¦   TreeViewPanel.xaml.cs
+        ¦   UartMonitorWindow.xaml
+        ¦   UartMonitorWindow.xaml.cs
+        ¦   WidgetTemplates.xaml
+        ¦   WorkspaceCanvas.xaml
+        ¦   WorkspaceCanvas.xaml.cs
+        ¦   
+        L---WidgetTemplates
+                CommonStyles.xaml
+                DigitalSensorWidget.xaml
+                GaugeArc120Widget.xaml
+                GaugeCircular270Widget.xaml
+                Matrix3DSurfaceWidget.xaml
+                MatrixTableWidget.xaml
+                RadarTrackerWidget.xaml
+                ScalarTextBoxWidget.xaml
+                SliderHorizontalWidget.xaml
+                SliderVerticalWidget.xaml
+                TimePlotWidget.xaml
+                

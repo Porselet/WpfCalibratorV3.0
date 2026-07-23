@@ -57,9 +57,7 @@ public abstract partial class BaseWidgetViewModel : INotifyPropertyChanged
         // Намертво подписываем обработчик OnDataSourcePropertyChanged на изменения в UART
         DataSource = dataSource;
 
-        // Синхронизируем стартовый шаг PageUp/PageDown (например, 1.0 для таблиц)
-        //IncrementStep = 1.0f;
-        return;
+
 
     }
 

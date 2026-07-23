@@ -12,34 +12,52 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
     /// </summary>
     public class TimePlotWidgetViewModel : BaseWidgetViewModel
     {
-        // 1. Два независимых канала для асинхронных сигналов
-        private ScalarVariableViewModel _signal1;
-        public ScalarVariableViewModel Signal1
+        private ScalarVariableViewModel? _signal1;
+        public ScalarVariableViewModel? Signal1
         {
             get => _signal1;
             set
             {
+                // 1. Чистоплотно снимаем старый наушник, защищая ОЗУ от мусора
                 if (_signal1 != null) _signal1.PropertyChanged -= OnSignal1PropertyChanged;
+
                 _signal1 = value;
-                if (_signal1 != null) _signal1.PropertyChanged += OnSignal1PropertyChanged;
+
+                // 2. Уведомляем XAML-картинку на экране
                 OnPropertyChanged(nameof(Signal1));
-                RebuildGraphAxisLabels();
+
+                // 3. 🎯 КРИТИЧЕСКИЙ ПАЯЛЬНИК: Намертво припаиваем провод к живому потоку UART!
+                if (_signal1 != null) _signal1.PropertyChanged += OnSignal1PropertyChanged;
             }
         }
 
-        private ScalarVariableViewModel _signal2;
-        public ScalarVariableViewModel Signal2
+        private ScalarVariableViewModel? _signal2;
+        public ScalarVariableViewModel? Signal2
         {
             get => _signal2;
             set
             {
-                if (_signal2 != null) _signal2.PropertyChanged -= OnSignal2PropertyChanged;
+                if (_signal2 == value) return;
+
+                // 1. Отписываемся от старого объекта, чтобы избежать утечек памяти
+                if (_signal2 != null)
+                {
+                    _signal2.PropertyChanged -= OnSignal2PropertyChanged;
+                }
+
                 _signal2 = value;
-                if (_signal2 != null) _signal2.PropertyChanged += OnSignal2PropertyChanged;
+
+                // 2. Подписываемся на новый объект, если он не null
+                if (_signal2 != null)
+                {
+                    _signal2.PropertyChanged += OnSignal2PropertyChanged;
+                }
+
+                // 3. Уведомляем UI об изменении самого свойства Signal2
                 OnPropertyChanged(nameof(Signal2));
-                RebuildGraphAxisLabels();
             }
         }
+
 
         // 2. Буферы точек для Helix Toolkit (Z всегда 0, график плоский)
         public Point3DCollection StreamPoints1 { get; } = new Point3DCollection();
@@ -60,53 +78,67 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
 
         public TimePlotWidgetViewModel(VariableViewModelBase dataSource) : base(dataSource)
         {
-            // Если дефолтный DataSource является скаляром, автоматом вешаем его на Канал 1
-            if (dataSource is ScalarVariableViewModel scalar)
+            // 1. Твоя базовая инициализация (буферы, таймеры и т.д.)
+            _screenStartTime = DateTime.Now;
+
+            if (DataSource != null)
             {
-                Signal1 = scalar;
+                DataSource.PropertyChanged += OnSignal1PropertyChanged;
+            }
+            if (Signal2 != null)
+            {
+                Signal2.PropertyChanged += OnSignal2PropertyChanged;
             }
 
-            RebuildGraphAxisLabels();
+
         }
 
-        // Обработчик пулеметного потока пакетов Канала 1
+
+
+
+
+        /// <summary>
+        /// Ловит пулеметные тики UART первого канала
+        /// </summary>
         private void OnSignal1PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            // 🎯 ПРАВИЛЬНЫЙ ФИЛЬТР: Реагируем на изменение живого физического значения датчика!
             if (e.PropertyName == nameof(ScalarVariableViewModel.CurrentValue))
             {
-                ProcessIncomingPoint(Signal1, StreamPoints1);
+                ProcessIncomingPoint((DataSource as ScalarVariableViewModel), StreamPoints1);
             }
         }
 
-        // Обработчик пулеметного потока пакетов Канала 2
+        /// <summary>
+        /// Ловит пулеметные тики UART второго канала
+        /// </summary>
         private void OnSignal2PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            // Реагируем на живое значение второго датчика
             if (e.PropertyName == nameof(ScalarVariableViewModel.CurrentValue))
             {
                 ProcessIncomingPoint(Signal2, StreamPoints2);
             }
         }
-
         /// <summary>
         /// Сишный асинхронный движок добавления точек с контролем переполнения времени экрана [1.14]
         /// </summary>
         private void ProcessIncomingPoint(ScalarVariableViewModel signal, Point3DCollection targetBuffer)
         {
-            if (signal == null) return;
+            if (signal == null || targetBuffer == null) return;
 
             var now = DateTime.Now;
             double elapsed = (now - _screenStartTime).TotalSeconds;
 
-            // БАБАХ: Если любой из датчиков перешагнул край экрана (10 сек) — тотальный сброс!
-            if (elapsed >= _maxDurationSeconds)
+            // 🎯 УМНЫЙ СБРОС: Стираем экран ТОЛЬКО по команде Канала 1, 
+            // чтобы асинхронный Канал 2 не сбивал общую точку отсчета времени!
+            if (signal == DataSource && elapsed >= _maxDurationSeconds)
             {
                 StreamPoints1.Clear();
                 StreamPoints2.Clear();
                 _screenStartTime = now;
                 elapsed = 0;
             }
-
-            // Нормализация физического значения (ScaleMin..ScaleMax) в проценты высоты (0..100)
             double min = signal.ScaleMin;
             double max = signal.ScaleMax;
             double normY = 0;
@@ -114,36 +146,23 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             if (max > min)
             {
                 double clamped = Math.Clamp(signal.CurrentValue, min, max);
-                normY = ((clamped - min) / (max - min)) * GraphHeight;
+                // Растягиваем проценты на 100 единиц высоты нашей сетки
+                normY = ((clamped - min) / (max - min)) * 100.0;
             }
-            //double scaledX = (elapsed / _maxDurationSeconds) * 200.0-100.0;
-
-            // Закидываем точку в конвейер Helix (атомарно для UI потока)
             System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
             {
-                // Твоя рабочая формула масштабирования Х:
-                double scaledX = (elapsed / _maxDurationSeconds) * 200.0 - 100.0;
+                // Точный масштаб Х: при elapsed=0 получим -95, при 10 сек получим +105
+                double scaledX = -95.0 + (elapsed / _maxDurationSeconds) * 200.0;
                 var newPoint = new Point3D(scaledX, normY, 0);
-
-                // 🎯 ИНЖЕНЕРНЫЙ ЦЕПОЧЕЧНЫЙ АЛГОРИТМ ДЛЯ LINESVISUAL3D
-                // Если в буфере уже есть точки, нам нужно связать прошлый конец с новым началом
                 if (targetBuffer.Count > 0)
                 {
-                    // Берем точную координату самой последней точки в стакане
                     var lastPoint = targetBuffer[targetBuffer.Count - 1];
-
-                    // Добавляем пару: сначала дублируем прошлую точку (конец отрезка),
-                    // а затем добавляем новую (начало следующего отрезка).
-                    // В итоге Helix нарисует сплошной сегмент от прошлой к новой!
-                    targetBuffer.Add(lastPoint);
-                    targetBuffer.Add(newPoint);
+                    targetBuffer.Add(lastPoint); // конец прошлого отрезка
+                    targetBuffer.Add(newPoint);  // начало нового
                 }
                 else
                 {
-                    // Если стакан пустой (самый старт или после сброса), 
-                    // добавляем две одинаковые точки в качестве невидимой стартовой точки,
-                    // чтобы не нарушать четность пар массива Helix
-                    targetBuffer.Add(newPoint);
+                    targetBuffer.Add(newPoint); // стартовый дубликат для четности
                     targetBuffer.Add(newPoint);
                 }
 

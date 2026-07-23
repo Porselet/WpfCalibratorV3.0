@@ -78,25 +78,28 @@
                 <!-- Стандартное освещение сцены -->
                 <helix:DefaultLights />
 
-                <!-- Плоская фоновая координатная сетка шкал (шаг 10с по Х и 100% по Y) -->
+                <!-- ИСПРАВЛЕНО: Задаем цвет сетки через стандартное свойство Fill -->
                 <helix:GridLinesVisual3D
                     Width="10"
                     Length="100"
                     Center="5,50,0"
-                    Normal="0,0,1"
-                    Fill="#2A2A2A" />
+                    Fill="#333333"
+                    Thickness="0.02" />
 
-                <!-- ЛИНИЯ СИГНАЛА 1 (Высокоскоростной рендеринг видеокарты) -->
+
+                <!-- 2. КАНАЛ 1: Живая сплошная линия (Синяя / DeepSkyBlue) -->
                 <helix:LinesVisual3D
                     Points="{Binding StreamPoints1}"
                     Color="DeepSkyBlue"
                     Thickness="2.5" />
 
-                <!-- ЛИНИЯ СИГНАЛА 2 (Отрисовывается только если есть точки) -->
+                <!-- 3. КАНАЛ 2: Живая сплошная линия (Красная / OrangeRed) -->
                 <helix:LinesVisual3D
                     Points="{Binding StreamPoints2}"
                     Color="OrangeRed"
                     Thickness="2.5" />
+
+
 
                 <!-- ДИНАМИЧЕСКИЙ КОНТЕЙНЕР ДЛЯ ЦИФР ШКАЛ Y1 и Y2 (Из нашего C# класса) -->
                 <ModelVisual3D
