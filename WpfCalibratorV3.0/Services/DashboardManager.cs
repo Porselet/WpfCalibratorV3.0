@@ -27,7 +27,7 @@ namespace WpfCalibrator.Services
         }
 
         /// <summary>
-        /// Конвертер «Туда»: Снимает слепок окон холста и пакует в структуры Гитхаба [1.14]
+        /// Конвертер «Туда»: Снимает слепок окон холста и пакует в структуры для JSON.
         /// </summary>
         public List<SavedWidgetInfo> PackActiveWidgets(IEnumerable<BaseWidgetViewModel> activeWidgets)
         {
@@ -48,86 +48,72 @@ namespace WpfCalibrator.Services
                     Height = widget.Height,
                     EnableVisualAlarm = (widget as BaseScalarWidgetViewModel)?.EnableVisualAlarm ?? false,
                     ModelId = widget.DataSource.ModelId,
-                    
                     IsVertical = widget.IsVertical,
                 };
 
+                // Для графиков сохраняем имена сигналов
                 if (widget is TimePlotWidgetViewModel tpw)
                 {
-                    // Сохраняем имена
                     info.Signal1Name = tpw.Signal1?.Name;
                     info.Signal2Name = tpw.Signal2?.Name;
                 }
+
+                // Для редактируемых виджетов сохраняем шаг
                 if (widget is EditableWidgetViewModel editableWidget)
                 {
-                    info.IncrementStep = editableWidget.IncrementStep; 
-                }
-                // Безопасно вытягиваем лимиты из скаляра через паттерн-матчинг [1.14]
-                if (widget.DataSource is ScalarVariableViewModel scalar)
-                {
-                    info.MinLimit = (float)scalar.AlarmMin;
-                    info.MaxLimit = (float)scalar.AlarmMax;
-                    info.ScaleMin = (float)scalar.ScaleMin;
-                    info.ScaleMax = (float)scalar.ScaleMax;
+                    info.IncrementStep = editableWidget.IncrementStep;
                 }
 
-                // Запись утренних флагов графики и связей Look-Up таблиц [1.14]
-                if (widget.DataSource is TableVariableViewModelBase tableVar)
+                // Для табличных виджетов сохраняем только флаги отображения (Radar и 3D)
+                if (widget is MatrixTableWidgetViewModel matrixWidget)
                 {
-                    info.TableBindings = new LutBindings
-                    {
-                        HasBindings = true,
-                        ShowRadarTracker = (widget as MatrixTableWidgetViewModel)?.ShowRadarTracker ?? false, // Наш утренний флаг [1.14]
-                        Show3DSurface = (widget as MatrixTableWidgetViewModel)?.Show3DSurface ?? false,       // Наш утренний флаг [1.14]
-                        AxisX_VarName = tableVar.BoundAxisX?.Name ?? "",
-                        InputX_VarName = tableVar.BoundInputX?.Name ?? ""
-                    };
-
-                    if (tableVar is Map3DVariableViewModel map3D)
-                    {
-                        info.TableBindings.AxisY_VarName = map3D.BoundAxisY?.Name ?? "";
-                        info.TableBindings.InputY_VarName = map3D.BoundInputY?.Name ?? "";
-                    }
+                    info.ShowRadarTracker = matrixWidget.ShowRadarTracker;
+                    info.Show3DSurface = matrixWidget.Show3DSurface;
                 }
+
+                // ❌ УДАЛЕНО:
+                // - Сохранение ScaleMin, ScaleMax, MinLimit, MaxLimit (переехали в VariableSettings)
+                // - Сохранение TableBindings (переехали в VariableSettings)
 
                 savedList.Add(info);
             }
 
             return savedList;
         }
+
+
         /// <summary>
-        /// Конвертер «Обратно»: Создает живые объекты виджетов из DTO-списка [1.14].
+        /// Конвертер «Обратно»: Создает живые объекты виджетов из DTO-списка.
         /// </summary>
-        public List<BaseWidgetViewModel> UnpackSavedWidgets(List<SavedWidgetInfo> savedWidgets, Func<string, VariableViewModelBase> findVariableSelector)
+        public List<BaseWidgetViewModel> UnpackSavedWidgets(
+            List<SavedWidgetInfo> savedWidgets,
+            Func<string, VariableViewModelBase> findVariableSelector,
+            UserViewConfig? userConfig = null) // Добавляем параметр для доступа к настройкам
         {
             var liveWidgets = new List<BaseWidgetViewModel>();
             if (savedWidgets == null || findVariableSelector == null) return liveWidgets;
 
             foreach (var info in savedWidgets)
             {
-                // Ищем переменную в ОЗУ реестра через переданный делегат [1.14]
                 var realVar = findVariableSelector(info.VarName);
                 if (realVar == null) continue;
-                BaseWidgetViewModel newWidget;
-                WidgetViewType viewType = WidgetViewType.SingleDigitalIndicator; // Дефолтное значение
 
+                WidgetViewType viewType = WidgetViewType.SingleDigitalIndicator;
                 if (Enum.TryParse<WidgetViewType>(info.ControlView, out var parsedType))
                 {
                     viewType = parsedType;
                 }
 
-                newWidget = WidgetFactory.Create(viewType, realVar);
-                // ... заполнение свойств ...
-                newWidget.ControlView = viewType; // Теперь безопасно!
+                var newWidget = WidgetFactory.Create(viewType, realVar);
+                newWidget.ControlView = viewType;
                 newWidget.Title = info.VarName;
                 newWidget.Left = info.Left;
                 newWidget.Top = info.Top;
                 newWidget.Width = info.Width;
                 newWidget.Height = info.Height;
-
-                
                 newWidget.IsVertical = info.IsVertical;
 
+                // Настройки, специфичные для виджета
                 if (newWidget is EditableWidgetViewModel ew)
                 {
                     ew.IncrementStep = info.IncrementStep;
@@ -137,59 +123,35 @@ namespace WpfCalibrator.Services
                 {
                     sw.EnableVisualAlarm = info.EnableVisualAlarm;
                 }
+
+                // Настройки для табличного виджета (флаги отображения)
                 if (newWidget is MatrixTableWidgetViewModel nw)
                 {
-                    nw.ShowRadarTracker = info.TableBindings?.ShowRadarTracker ?? true;
-                    nw.Show3DSurface = info.TableBindings?.Show3DSurface ?? false;
+                    nw.ShowRadarTracker = info.ShowRadarTracker;
+                    nw.Show3DSurface = info.Show3DSurface;
                 }
+
+                // Восстановление сигналов для графика
                 if (newWidget is TimePlotWidgetViewModel tpw)
                 {
-                    // Восстанавливаем по именам через делегат findVariableSelector
                     if (!string.IsNullOrEmpty(info.Signal1Name))
                         tpw.Signal1 = findVariableSelector(info.Signal1Name) as ScalarVariableViewModel;
                     if (!string.IsNullOrEmpty(info.Signal2Name))
-                    {
                         tpw.Signal2 = findVariableSelector(info.Signal2Name) as ScalarVariableViewModel;
-
-                    }
                 }
 
-
-                // Безопасно накатываем лимиты алармов только на скаляры-датчики [1.14]
-                if (realVar is ScalarVariableViewModel scalar)
-                {
-                    scalar.AlarmMin = info.MinLimit;
-                    scalar.AlarmMax = info.MaxLimit;
-                    scalar.ScaleMin = info.ScaleMin;
-                    scalar.ScaleMax = info.ScaleMax;
-                }
-
-                // Полиморфно линкуем оцифрованные оси шкал (только для табличной базы) [1.14]
-                if (realVar is TableVariableViewModelBase tableVar && info.TableBindings != null)
-                {
-                    if (!string.IsNullOrEmpty(info.TableBindings.AxisX_VarName))
-                        tableVar.BoundAxisX = findVariableSelector(info.TableBindings.AxisX_VarName) as CurveVariableViewModel;
-
-                    if (!string.IsNullOrEmpty(info.TableBindings.InputX_VarName))
-                        tableVar.BoundInputX = findVariableSelector(info.TableBindings.InputX_VarName) as ScalarVariableViewModel;
-
-                    // Эксклюзивная привязка вертикальной оси Y для 3D матриц [1.14]
-                    if (tableVar is Map3DVariableViewModel map3D)
-                    {
-                        if (!string.IsNullOrEmpty(info.TableBindings.AxisY_VarName))
-                            map3D.BoundAxisY = findVariableSelector(info.TableBindings.AxisY_VarName) as CurveVariableViewModel;
-
-                        if (!string.IsNullOrEmpty(info.TableBindings.InputY_VarName))
-                            map3D.BoundInputY = findVariableSelector(info.TableBindings.InputY_VarName) as ScalarVariableViewModel;
-                    }
-                }
+                // ❌ УДАЛЕНО:
+                // - Применение ScaleMin, ScaleMax, MinLimit, MaxLimit к скаляру
+                // - Применение TableBindings к таблицам
+                // (Теперь это делается в MainViewModel через ApplyUserSettings)
 
                 liveWidgets.Add(newWidget);
-                AddWidget(newWidget); // Регистрируем в локальном словаре менеджера
+                AddWidget(newWidget);
             }
 
             return liveWidgets;
         }
+
 
         // Также заглушим или поправим пустой метод из интерфейса
         public void RestoreSavedWidgets(UserViewConfig config, DeviceConfig device)

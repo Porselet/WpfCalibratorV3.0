@@ -133,8 +133,8 @@ public partial class MainViewModel
 
         // 3. Вызываем наш DashboardManager для воссоздания живых виджетов и линковки осей! [1.14]
         // Передаем делегат поиска переменных FindVariable из MainViewModel
-        var liveWidgets = _dashboardManager.UnpackSavedWidgets(savedWidgets, FindVariable);
-
+        
+        var liveWidgets = _dashboardManager.UnpackSavedWidgets(savedWidgets, FindVariable, currentConfig);
         // 4. Закидываем воссозданные приборы на холст WPF
         foreach (var widget in liveWidgets)
         {
@@ -251,71 +251,71 @@ public partial class MainViewModel
 
     private void OnDeviceChanged()
     {
-        // ======================================================================
-        // ЧАСТЬ 3: ПОЛИМОРФНАЯ ФАБРИКА ПАРСИНГА XML-ПРОШИВКИ (OnDeviceChanged) [1.14]
-        // ======================================================================
-        if (SelectedDevice != null)
+        if (SelectedDevice == null) return;
+
+        ParameterVariables.Clear();
+        TelemetryVariables.Clear();
+        LayoutNames.Clear();
+
+        // Загружаем конфиг один раз для всего метода
+        var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
+
+        foreach (var modelPair in SelectedDevice.Models)
         {
-            ParameterVariables.Clear();
-            TelemetryVariables.Clear();
-            LayoutNames.Clear();
+            byte currentModelId = modelPair.Key;
+            var modelConfig = modelPair.Value;
 
-            foreach (var modelPair in SelectedDevice.Models)
+            foreach (var variable in modelConfig.Variables)
             {
-                byte currentModelId = modelPair.Key;
-                var modelConfig = modelPair.Value;
+                VariableViewModelBase vm;
 
-                foreach (var variable in modelConfig.Variables)
+                if (variable.Rows == 1 && variable.Cols == 1)
                 {
-                    // 🔥 Внедряем фабрику: разделяем типы данных по их физической мерности в XML! [1.14]
-                    VariableViewModelBase vm;
-
-                    if (variable.Rows == 1 && variable.Cols == 1)
-                    {
-                        vm = new ScalarVariableViewModel(); // Одиночная константа / живой датчик [1.14]
-                    }
-                    else if (variable.Rows == 1 && variable.Cols > 1)
-                    {
-                        vm = new CurveVariableViewModel { Rows = variable.Rows, Cols = variable.Cols }; // 1D-Кривая оцифровки [1.14]
-                    }
-                    else
-                    {
-                        vm = new Map3DVariableViewModel { Rows = variable.Rows, Cols = variable.Cols }; // Тяжелая 3D-Матрица [1.14]
-                    }
-
-                    // Накатываем общие паспортные данные в абстрактный корень [1.14]
-                    vm.Id = (byte)variable.Id;
-                    vm.Name = variable.Name;
-                    vm.ModelId = currentModelId;
-                    vm.IsParam = variable.IsParam;
-                    vm.Type = variable.Type;
-                    vm.ElementSize = variable.ElementSize;
-
-                    // Распределяем по глобальным реестрам ОЗУ для навигатора
-                    if (vm.IsParam)
-                        ParameterVariables.Add(vm);
-                    else
-                        TelemetryVariables.Add(vm);
+                    vm = new ScalarVariableViewModel();
                 }
-            }
-
-            // Восстанавливаем вкладки макетов из JSON для этого блока
-            var currentConfig = _configManager.LoadUserConfigForDevice(SelectedDevice.DevicePath);
-            if (currentConfig != null)
-            {
-                foreach (var name in currentConfig.Layouts.Keys) LayoutNames.Add(name);
-
-                // Разворачиваем активный рабочий стол
-                string defaultLayout = currentConfig.ActiveLayoutName;
-                if (!string.IsNullOrEmpty(defaultLayout) && LayoutNames.Contains(defaultLayout))
-                    CurrentLayoutName = defaultLayout;
+                else if (variable.Rows == 1 && variable.Cols > 1)
+                {
+                    vm = new CurveVariableViewModel { Rows = variable.Rows, Cols = variable.Cols };
+                }
                 else
-                    CurrentLayoutName = LayoutNames.FirstOrDefault() ?? "";
+                {
+                    vm = new Map3DVariableViewModel { Rows = variable.Rows, Cols = variable.Cols };
+                }
+
+                vm.Id = (byte)variable.Id;
+                vm.Name = variable.Name;
+                vm.ModelId = currentModelId;
+                vm.IsParam = variable.IsParam;
+                vm.Type = variable.Type;
+                vm.ElementSize = variable.ElementSize;
+
+                // 🔥 ПРИМЕНЯЕМ НАСТРОЙКИ ИЗ VARIABLESETTINGS
+                if (currentConfig?.VariableSettings != null &&
+                    currentConfig.VariableSettings.TryGetValue(vm.Name, out var settings))
+                {
+                    vm.ApplyUserSettings(settings, FindVariable);
+                }
+
+                if (vm.IsParam)
+                    ParameterVariables.Add(vm);
+                else
+                    TelemetryVariables.Add(vm);
             }
         }
+
+        // Восстанавливаем вкладки макетов
+        if (currentConfig != null)
+        {
+            foreach (var name in currentConfig.Layouts.Keys)
+                LayoutNames.Add(name);
+
+            string defaultLayout = currentConfig.ActiveLayoutName;
+            if (!string.IsNullOrEmpty(defaultLayout) && LayoutNames.Contains(defaultLayout))
+                CurrentLayoutName = defaultLayout;
+            else
+                CurrentLayoutName = LayoutNames.FirstOrDefault() ?? "";
+        }
     }
-
-
 
 
 

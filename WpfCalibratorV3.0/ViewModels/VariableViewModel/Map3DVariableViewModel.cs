@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Data;
+using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels.WidgetViewModel;
 
 
@@ -283,6 +284,24 @@ namespace WpfCalibrator.ViewModels
                 }
             }
             delta = maxVal - minVal;
+        }
+
+        public override void ApplyUserSettings(VariableDisplaySettings settings, Func<string, VariableViewModelBase>? findVariableSelector = null)
+        {
+            // Сначала применяем привязки из базового класса (ось X)
+            base.ApplyUserSettings(settings, findVariableSelector);
+
+            if (settings == null || findVariableSelector == null) return;
+
+            var bindings = settings.TableBindings;
+            if (bindings == null) return;
+
+            // Применяем привязки для Y (уникальны для 3D-карты)
+            if (!string.IsNullOrEmpty(bindings.AxisY_VarName))
+                BoundAxisY = findVariableSelector(bindings.AxisY_VarName) as CurveVariableViewModel;
+
+            if (!string.IsNullOrEmpty(bindings.InputY_VarName))
+                BoundInputY = findVariableSelector(bindings.InputY_VarName) as ScalarVariableViewModel;
         }
 
 

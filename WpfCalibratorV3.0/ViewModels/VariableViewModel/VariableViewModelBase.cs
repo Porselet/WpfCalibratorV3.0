@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using WpfCalibrator.Models;
 
 namespace WpfCalibrator.ViewModels
 {
@@ -41,7 +42,17 @@ namespace WpfCalibrator.ViewModels
         /// </summary>
         public abstract void AdjustValue(double step);
 
+        // ...
 
+        /// <summary>
+        /// Применяет пользовательские настройки отображения к данной переменной.
+        /// </summary>
+        /// <param name="settings">Настройки переменной</param>
+        /// <param name="findVariableSelector">Делегат для поиска переменной по имени (нужен для привязок)</param>
+        public virtual void ApplyUserSettings(VariableDisplaySettings settings, Func<string, VariableViewModelBase>? findVariableSelector = null)
+        {
+            // Базовый класс ничего не делает
+        }
 
 
         // Глобальный механизм уведомления графики WPF об изменении параметров

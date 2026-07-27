@@ -1,4 +1,5 @@
 ﻿using System;
+using WpfCalibrator.Models;
 
 namespace WpfCalibrator.ViewModels
 {
@@ -61,11 +62,22 @@ namespace WpfCalibrator.ViewModels
         public double TargetMax { get; set; } = 5000;
 
 
-        /// <summary>
-        /// Форматированная строка для вывода в TextBox или цифровые индикаторы
-        /// </summary>
-        //public string ValueText => CurrentValue.ToString("F2");
+        public override void ApplyUserSettings(VariableDisplaySettings settings, Func<string, VariableViewModelBase>? findVariableSelector = null)
+        {
+            if (settings == null) return;
 
+            if (settings.ScaleMin.HasValue)
+                ScaleMin = settings.ScaleMin.Value;
+
+            if (settings.ScaleMax.HasValue)
+                ScaleMax = settings.ScaleMax.Value;
+
+            if (settings.AlarmMin.HasValue)
+                AlarmMin = settings.AlarmMin.Value;
+
+            if (settings.AlarmMax.HasValue)
+                AlarmMax = settings.AlarmMax.Value;
+        }
         /// <summary>
         /// Реализация нативного разбора бинарного пакета для скаляра
         /// </summary>

@@ -22,7 +22,13 @@ public interface IDashboardManager
     /// <summary>
     /// Конвертер «Обратно»: Пересоздает живые виджеты из DTO-списка [1.14]
     /// </summary>
-    List<BaseWidgetViewModel> UnpackSavedWidgets(List<SavedWidgetInfo> savedWidgets, Func<string, VariableViewModelBase> findVariableSelector);
+    /// <param name="savedWidgets">Список сохранённых виджетов</param>
+    /// <param name="findVariableSelector">Делегат для поиска переменной по имени</param>
+    /// <param name="userConfig">Пользовательская конфигурация (обязательный параметр)</param>
+    List<BaseWidgetViewModel> UnpackSavedWidgets(
+        List<SavedWidgetInfo> savedWidgets,
+        Func<string, VariableViewModelBase> findVariableSelector,
+        UserViewConfig userConfig); // <-- Обязательный параметр
 
     void RestoreSavedWidgets(UserViewConfig config, DeviceConfig device);
 }

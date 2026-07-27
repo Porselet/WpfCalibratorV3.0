@@ -109,24 +109,16 @@ public sealed class ConfigurationManager
     {
         return new JsonSerializerOptions
         {
-            // Включаем регистронезависимость вместо принудительного camelCase
-
-
-
             PropertyNameCaseInsensitive = true,
             AllowTrailingCommas = true,
-            WriteIndented = true, // Чтобы файл красиво разбивался по строкам
+            WriteIndented = true,
+            NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
 
-            // РАЗРЕШАЕМ БЕСКОНЕЧНОСТИ (Фикс ошибки System.ArgumentException):
-            // Строчку со Strict мы полностью удалили, чтобы она не ломала логику!
-            NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals,
-
-            // Позволяет сохранять русские комментарии и имена переменных в JSON в понятном текстовом виде, 
-            // а не превращать их в нечитаемые байт-коды вроде \u0410\u0431
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            // 👇 ЭТО ГЛАВНОЕ: Игнорировать null-поля при сериализации
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         };
     }
-
     // Добавляем свойство для хранения последнего порта
     public string? LastUsedComPort { get; set; }
     public string? IsDemoMode { get; set; }

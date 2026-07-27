@@ -1,4 +1,5 @@
 ﻿using System;
+using WpfCalibrator.Models;
 
 namespace WpfCalibrator.ViewModels
 {
@@ -219,6 +220,10 @@ namespace WpfCalibrator.ViewModels
 
         }
 
+
+
+
+
         /// <summary>
         /// Виртуальный триггер, срабатывающий при любом массовом изменении данных таблицы (например, после интерполяции).
         /// Наследники переопределяют его для обновления специфичной графики (1D-шкал или 3D-сеток Helix).
@@ -392,5 +397,20 @@ namespace WpfCalibrator.ViewModels
         /// </summary>
         public abstract void SyncDataFromCells();
 
+
+        public override void ApplyUserSettings(VariableDisplaySettings settings, Func<string, VariableViewModelBase>? findVariableSelector = null)
+        {
+            if (settings == null || findVariableSelector == null) return;
+
+            var bindings = settings.TableBindings;
+            if (bindings == null) return;
+
+            // Применяем привязки, если имена не пустые
+            if (!string.IsNullOrEmpty(bindings.AxisX_VarName))
+                BoundAxisX = findVariableSelector(bindings.AxisX_VarName) as CurveVariableViewModel;
+
+            if (!string.IsNullOrEmpty(bindings.InputX_VarName))
+                BoundInputX = findVariableSelector(bindings.InputX_VarName) as ScalarVariableViewModel;
+        }
     }
 }

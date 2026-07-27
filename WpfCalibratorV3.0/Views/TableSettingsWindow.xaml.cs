@@ -322,13 +322,12 @@ namespace WpfCalibrator.Views
         {
             if (_targetWidget == null) return;
 
-            // 1. Сохраняем строго типизированный идентификатор визуального типа прибора
+            // 1. Сохраняем настройки виджета (геометрия, флаги, сигналы)
             if (ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.SelectedValue is WidgetViewType selectedType)
             {
                 _targetWidget.ControlView = selectedType;
             }
 
-            // 2. Восстанавливаем общие флаги разметки и геометрии
             _targetWidget.IsVertical = RadioButton_WidgetLayout_VerticalOrientation.IsChecked == true;
 
             if (_targetWidget is BaseScalarWidgetViewModel scalarWidget)
@@ -336,57 +335,101 @@ namespace WpfCalibrator.Views
                 scalarWidget.EnableVisualAlarm = CheckBox_UiRenderOptions_EnableRedBackgroundEmergencyFlash.IsChecked == true;
             }
 
-            // 3. Записываем физические шаги, масштабы и алармы через наш хелпер-парсер
-            
-
-            if (_targetWidget.DataSource is ScalarVariableViewModel scalarVar)
-            {
-                scalarVar.ScaleMin = ParseInput(TextBox_GraphicScale_MinimumDisplayBoundary.Text, 0f);
-                scalarVar.ScaleMax = ParseInput(TextBox_GraphicScale_MaximumDisplayBoundary.Text, 100f);
-
-                // Если поля лимитов пустые — выставляем бесконечность
-                scalarVar.AlarmMin = ParseInput(TextBox_HardwareAlarm_CriticalMinimumThreshold.Text, float.NegativeInfinity);
-                scalarVar.AlarmMax = ParseInput(TextBox_HardwareAlarm_CriticalMaximumThreshold.Text, float.PositiveInfinity);
-            }
-
             if (_targetWidget is EditableWidgetViewModel editableWidget)
             {
                 editableWidget.IncrementStep = ParseInput(TextBox_CalibrationStep_KeyboardIncrementValue.Text, 1.0f);
             }
 
-            // 4. 🎯 ЕСЛИ ЭТО ОСЦИЛЛОГРАФ TIMEPLOT — ФИКСИРУЕМ КАНАЛ 1 И КАНАЛ 2!
             if (_targetWidget is TimePlotWidgetViewModel timePlot)
             {
                 timePlot.Signal1 = ComboBox_GraphPlot_TelemetrySignalChannel1Source.SelectedItem as ScalarVariableViewModel;
                 timePlot.Signal2 = ComboBox_GraphPlot_TelemetrySignalChannel2Source.SelectedItem as ScalarVariableViewModel;
             }
 
-            // 5. ДЛЯ МНОГОМЕРНЫХ ТАБЛИЦ — ФИКСИРУЕМ ПРИВЯЗКИ ОСЕЙ И ДАТЧИКОВ
-            if (_targetVariableViewModel is TableVariableViewModelBase tableVar)
+            if (_targetWidget is MatrixTableWidgetViewModel matrixWidget)
             {
-                tableVar.BoundInputX = ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.SelectedItem as ScalarVariableViewModel;
-                tableVar.BoundAxisX = ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.SelectedItem as CurveVariableViewModel;
+                matrixWidget.ShowRadarTracker = CheckBox_UiRenderOptions_EnableNeonRadarTrackerTarget.IsChecked == true;
+                matrixWidget.Show3DSurface = CheckBox_UiRenderOptions_EnableHelix3DPolygonSurface.IsChecked == true;
+            }
 
-                // Если это расширенная 3D-матрица — дописываем вертикальные свойства Y
-                if (tableVar is Map3DVariableViewModel map3D)
+            // ================================================================
+            // 🔥 НОВОЕ: СОХРАНЯЕМ НАСТРОЙКИ ПЕРЕМЕННОЙ В VARIABLESETTINGS
+            // ================================================================
+
+            // Получаем текущий конфиг устройства
+            var mainVm = System.Windows.Application.Current?.MainWindow?.DataContext as MainViewModel;
+            if (mainVm?.SelectedDevice != null)
+            {
+                var configManager = new ConfigurationManager(); // Или достаём из DI
+                var config = configManager.LoadUserConfigForDevice(mainVm.SelectedDevice.DevicePath);
+                if (config != null)
                 {
-                    map3D.BoundInputY = ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.SelectedItem as ScalarVariableViewModel;
-                    map3D.BoundAxisY = ComboBox_CalibrationTable_VerticalScaleBreakpointLut.SelectedItem as CurveVariableViewModel;
-
-                    if (_targetWidget is MatrixTableWidgetViewModel matrixWidget)
+                    // Получаем или создаём настройки для этой переменной
+                    if (!config.VariableSettings.TryGetValue(_targetVariableViewModel.Name, out var settings))
                     {
-                        matrixWidget.ShowRadarTracker = CheckBox_UiRenderOptions_EnableNeonRadarTrackerTarget.IsChecked == true;
-                        matrixWidget.Show3DSurface = CheckBox_UiRenderOptions_EnableHelix3DPolygonSurface.IsChecked == true;
+                        settings = new VariableDisplaySettings();
+                        config.VariableSettings[_targetVariableViewModel.Name] = settings;
                     }
+
+                    // 1. Шкалы и алармы (для скаляра)
+                    if (_targetVariableViewModel is ScalarVariableViewModel scalarVar)
+                    {
+                        settings.ScaleMin = ParseInput(TextBox_GraphicScale_MinimumDisplayBoundary.Text, 0f);
+                        settings.ScaleMax = ParseInput(TextBox_GraphicScale_MaximumDisplayBoundary.Text, 100f);
+                        settings.AlarmMin = ParseInput(TextBox_HardwareAlarm_CriticalMinimumThreshold.Text, float.NegativeInfinity);
+                        settings.AlarmMax = ParseInput(TextBox_HardwareAlarm_CriticalMaximumThreshold.Text, float.PositiveInfinity);
+                    }
+
+                    // 2. Привязки таблиц (для TableVariableViewModelBase и наследников)
+                    if (_targetVariableViewModel is TableVariableViewModelBase tableVar)
+                    {
+                        
+                        {
+                            // Создаём объект только если есть хотя бы одна привязка
+                            var bindings = new LutBindings();
+                            bool hasBindings = false;
+
+                            var axisX = ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.SelectedItem as CurveVariableViewModel;
+                            var inputX = ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.SelectedItem as ScalarVariableViewModel;
+
+                            if (axisX != null) { bindings.AxisX_VarName = axisX.Name; hasBindings = true; }
+                            if (inputX != null) { bindings.InputX_VarName = inputX.Name; hasBindings = true; }
+
+                            // Для 3D-карт — ещё и Y
+                            if (tableVar is Map3DVariableViewModel)
+                            {
+                                var axisY = ComboBox_CalibrationTable_VerticalScaleBreakpointLut.SelectedItem as CurveVariableViewModel;
+                                var inputY = ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.SelectedItem as ScalarVariableViewModel;
+
+                                if (axisY != null) { bindings.AxisY_VarName = axisY.Name; hasBindings = true; }
+                                if (inputY != null) { bindings.InputY_VarName = inputY.Name; hasBindings = true; }
+                            }
+
+                            // Сохраняем только если есть что сохранять
+                            if (hasBindings)
+                            {
+                                bindings.HasBindings = true;
+                                settings.TableBindings = bindings;
+                            }
+                            else
+                            {
+                                settings.TableBindings = null; // Не сохраняем пустой объект
+                            }
+                        }
+                    }
+
+                    // Сохраняем конфиг обратно на диск
+                    configManager.SaveUserConfig(config, mainVm.SelectedDevice.DevicePath);
+                    mainVm.SelectedDevice = mainVm.SelectedDevice; // Триггерим OnDeviceChanged
                 }
             }
-            // 🎯 ЗАПУСКАЕМ ОРКЕСТРАЦИЮ ДОП-ПАНЕЛЕЙ НА ХОЛСТУ
+
+            // Синхронизация дополнительных панелей (Radar, 3D)
             SynchronizeSecondaryLutPanelsOnWorkspace();
-            // Закрываем диалоговое окно со статусом успешного сохранения
+
             DialogResult = true;
             Close();
         }
-
 
         /// <summary>
         /// Синхронизирует состояние дополнительных панелей (Радара и 3D-поверхности Helix) на рабочем столе.
