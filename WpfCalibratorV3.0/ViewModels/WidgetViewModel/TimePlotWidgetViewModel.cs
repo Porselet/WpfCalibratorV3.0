@@ -1,8 +1,9 @@
-﻿using System;
+﻿using HelixToolkit.Wpf;
+using System;
 using System.ComponentModel;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
-using HelixToolkit.Wpf;
+using WpfCalibrator.Models;
 using WpfCalibrator.ViewModels;
 
 namespace WpfCalibrator.ViewModels.WidgetViewModel
@@ -25,7 +26,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
 
                 // 2. Уведомляем XAML-картинку на экране
                 OnPropertyChanged(nameof(Signal1));
-
+                BuildStaticAxesAndAlarms();
                 // 3. 🎯 КРИТИЧЕСКИЙ ПАЯЛЬНИК: Намертво припаиваем провод к живому потоку UART!
                 if (_signal1 != null) _signal1.PropertyChanged += OnSignal1PropertyChanged;
             }
@@ -54,6 +55,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
                 }
 
                 // 3. Уведомляем UI об изменении самого свойства Signal2
+                BuildStaticAxesAndAlarms();
                 OnPropertyChanged(nameof(Signal2));
             }
         }
@@ -84,12 +86,14 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             if (DataSource != null)
             {
                 DataSource.PropertyChanged += OnSignal1PropertyChanged;
+                Signal1 = (dataSource as ScalarVariableViewModel);
             }
             if (Signal2 != null)
             {
                 Signal2.PropertyChanged += OnSignal2PropertyChanged;
             }
-
+            // 👇 ВЫЗЫВАЕМ ПОСТРОЕНИЕ СТАТИЧЕСКОЙ РАЗМЕТКИ
+            BuildStaticAxesAndAlarms();
 
         }
 
@@ -112,7 +116,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
         /// <summary>
         /// Ловит пулеметные тики UART второго канала
         /// </summary>
-        private void OnSignal2PropertyChanged(object sender, PropertyChangedEventArgs e)
+        public void OnSignal2PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             // Реагируем на живое значение второго датчика
             if (e.PropertyName == nameof(ScalarVariableViewModel.CurrentValue))
@@ -172,10 +176,56 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
 
         }
 
+        private void BuildAlarmLines()
+        {
+            System.Diagnostics.Debug.WriteLine(">> BuildAlarmLines() called");
+
+            if (Signal1 == null)
+            {
+                System.Diagnostics.Debug.WriteLine("   Signal1 is NULL");
+                return;
+            }
+
+            double min = Signal1.ScaleMin;
+            double max = Signal1.ScaleMax;
+            double range = max - min;
+
+            System.Diagnostics.Debug.WriteLine($"   ScaleMin={min}, ScaleMax={max}, range={range}");
+
+            if (range <= 0)
+            {
+                System.Diagnostics.Debug.WriteLine("   Range <= 0, skipping");
+                return;
+            }
+
+            double normMin = (Signal1.AlarmMin - min) / range * 100.0;
+            double normMax = (Signal1.AlarmMax - min) / range * 100.0;
+
+            System.Diagnostics.Debug.WriteLine($"   normMin={normMin}, normMax={normMax}");
+
+            double xMin = -5.0;
+            double xMax = _maxDurationSeconds + 5.0;
+
+            AlarmMinPoints = new Point3DCollection
+    {
+        new Point3D(xMin, normMin, 0),
+        new Point3D(xMax, normMin, 0)
+    };
+
+            AlarmMaxPoints = new Point3DCollection
+    {
+        new Point3D(xMin, normMax, 0),
+        new Point3D(xMax, normMax, 0)
+    };
+
+            System.Diagnostics.Debug.WriteLine($"   AlarmMinPoints count = {AlarmMinPoints.Count}");
+            System.Diagnostics.Debug.WriteLine($"   AlarmMaxPoints count = {AlarmMaxPoints.Count}");
+        }
+
         /// <summary>
         /// Генератор динамических 3D-надписей шкал без XAML-верстки
         /// </summary>
-        public void RebuildGraphAxisLabels()
+        public void BuildAxisLabels()
         {
             var group = new Model3DGroup();
             double stepY = GraphHeight / 4.0;
@@ -222,5 +272,43 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             group.Freeze(); // Замораживаем для многопоточного рендеринга видеокарты
             AxisLabelsContainer = group;
         }
+
+        // 👇 НОВЫЕ КОЛЛЕКЦИИ ДЛЯ ЛИНИЙ АЛАРМОВ
+        private Point3DCollection _alarmMinPoints = new Point3DCollection();
+        public Point3DCollection AlarmMinPoints
+        {
+            get => _alarmMinPoints;
+            set { _alarmMinPoints = value; OnPropertyChanged(nameof(AlarmMinPoints)); }
+        }
+
+        private Point3DCollection _alarmMaxPoints = new Point3DCollection();
+        public Point3DCollection AlarmMaxPoints
+        {
+            get => _alarmMaxPoints;
+            set { _alarmMaxPoints = value; OnPropertyChanged(nameof(AlarmMaxPoints)); }
+        }
+
+        // Конструктор
+
+
+        /// <summary>
+        /// Строит статическую разметку графика: оси, шкалы, линии алармов.
+        /// Вызывается один раз в конструкторе.
+        /// </summary>
+        public void BuildStaticAxesAndAlarms()
+        {
+            // 1. Строим подписи шкал Y1 и Y2 (твой существующий метод)
+            BuildAxisLabels(); // Переименуем RebuildGraphAxisLabels в BuildAxisLabels
+
+            // 2. Строим линии алармов, если есть Signal1
+            if (Signal1 != null)
+            {
+                BuildAlarmLines();
+            }
+        }
+
+        
+
+
     }
 }

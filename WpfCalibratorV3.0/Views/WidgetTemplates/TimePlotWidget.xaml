@@ -99,6 +99,17 @@
                     Color="OrangeRed"
                     Thickness="2.5" />
 
+                <!-- Линии алармов (сплошные, но полупрозрачные) -->
+                <helix:LinesVisual3D
+                    Points="{Binding AlarmMinPoints}"
+                    Color="#66FF0000"
+                    Thickness="2" />
+
+                <helix:LinesVisual3D
+                    Points="{Binding AlarmMaxPoints}"
+                    Color="#66FF0000"
+                    Thickness="2" />
+
 
 
                 <!-- ДИНАМИЧЕСКИЙ КОНТЕЙНЕР ДЛЯ ЦИФР ШКАЛ Y1 и Y2 (Из нашего C# класса) -->

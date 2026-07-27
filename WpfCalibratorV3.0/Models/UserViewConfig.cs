@@ -47,8 +47,8 @@ namespace WpfCalibrator.Models
         public float MinLimit { get; set; } = float.NegativeInfinity;
         public float MaxLimit { get; set; } = float.PositiveInfinity;
 
-        public ScalarVariableViewModel Signal1 { get; set; }
-        public ScalarVariableViewModel Signal2 { get; set; }
+        public string? Signal1Name { get; set; }
+        public string? Signal2Name { get; set; }
 
     }
 

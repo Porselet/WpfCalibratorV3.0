@@ -54,8 +54,9 @@ namespace WpfCalibrator.Services
 
                 if (widget is TimePlotWidgetViewModel tpw)
                 {
-                    info.Signal1 = tpw.Signal1;
-                    info.Signal2 = tpw.Signal2;
+                    // Сохраняем имена
+                    info.Signal1Name = tpw.Signal1?.Name;
+                    info.Signal2Name = tpw.Signal2?.Name;
                 }
                 if (widget is EditableWidgetViewModel editableWidget)
                 {
@@ -143,8 +144,14 @@ namespace WpfCalibrator.Services
                 }
                 if (newWidget is TimePlotWidgetViewModel tpw)
                 {
-                    tpw.Signal1 = info.Signal1;
-                    tpw.Signal2 = info.Signal2;
+                    // Восстанавливаем по именам через делегат findVariableSelector
+                    if (!string.IsNullOrEmpty(info.Signal1Name))
+                        tpw.Signal1 = findVariableSelector(info.Signal1Name) as ScalarVariableViewModel;
+                    if (!string.IsNullOrEmpty(info.Signal2Name))
+                    {
+                        tpw.Signal2 = findVariableSelector(info.Signal2Name) as ScalarVariableViewModel;
+
+                    }
                 }
 
 
