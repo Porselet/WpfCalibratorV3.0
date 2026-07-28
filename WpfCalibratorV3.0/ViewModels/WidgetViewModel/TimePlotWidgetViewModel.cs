@@ -1,6 +1,7 @@
 ﻿using HelixToolkit.Wpf;
 using System;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
 using WpfCalibrator.Models;
@@ -13,24 +14,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
     /// </summary>
     public class TimePlotWidgetViewModel : BaseWidgetViewModel
     {
-        private ScalarVariableViewModel? _signal1;
-        public ScalarVariableViewModel? Signal1
-        {
-            get => _signal1;
-            set
-            {
-                // 1. Чистоплотно снимаем старый наушник, защищая ОЗУ от мусора
-                if (_signal1 != null) _signal1.PropertyChanged -= OnSignal1PropertyChanged;
 
-                _signal1 = value;
-
-                // 2. Уведомляем XAML-картинку на экране
-                OnPropertyChanged(nameof(Signal1));
-                BuildStaticAxesAndAlarms();
-                // 3. 🎯 КРИТИЧЕСКИЙ ПАЯЛЬНИК: Намертво припаиваем провод к живому потоку UART!
-                if (_signal1 != null) _signal1.PropertyChanged += OnSignal1PropertyChanged;
-            }
-        }
 
         private ScalarVariableViewModel? _signal2;
         public ScalarVariableViewModel? Signal2
@@ -39,23 +23,9 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             set
             {
                 if (_signal2 == value) return;
-
-                // 1. Отписываемся от старого объекта, чтобы избежать утечек памяти
-                if (_signal2 != null)
-                {
-                    _signal2.PropertyChanged -= OnSignal2PropertyChanged;
-                }
-
+                if (_signal2 != null) _signal2.PropertyChanged -= OnSignal2PropertyChanged;
                 _signal2 = value;
-
-                // 2. Подписываемся на новый объект, если он не null
-                if (_signal2 != null)
-                {
-                    _signal2.PropertyChanged += OnSignal2PropertyChanged;
-                }
-
-                // 3. Уведомляем UI об изменении самого свойства Signal2
-                BuildStaticAxesAndAlarms();
+                if (_signal2 != null) _signal2.PropertyChanged += OnSignal2PropertyChanged;
                 OnPropertyChanged(nameof(Signal2));
             }
         }
@@ -75,7 +45,23 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
 
         // 4. Системные переменные развертки "стакана"
         private DateTime _screenStartTime = DateTime.Now;
-        private double _maxDurationSeconds = 10.0; // Длина оси X в секундах
+        private double _durationSeconds = 10.0;
+        public double DurationSeconds
+        {
+            get => _durationSeconds;
+            set
+            {
+                if (Math.Abs(_durationSeconds - value) > 0.01)
+                {
+                    _durationSeconds = Math.Max(1.0, value); // Минимум 1 секунда
+                    OnPropertyChanged();
+                    // Сбрасываем экран при изменении развёртки
+                    _screenStartTime = DateTime.Now;
+                    StreamPoints1.Clear();
+                    StreamPoints2.Clear();
+                }
+            }
+        }
         private const double GraphHeight = 100.0;  // Визуальная высота шкалы 0..100%
 
         public TimePlotWidgetViewModel(VariableViewModelBase dataSource) : base(dataSource)
@@ -83,11 +69,6 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             // 1. Твоя базовая инициализация (буферы, таймеры и т.д.)
             _screenStartTime = DateTime.Now;
 
-            if (DataSource != null)
-            {
-                DataSource.PropertyChanged += OnSignal1PropertyChanged;
-                Signal1 = (dataSource as ScalarVariableViewModel);
-            }
             if (Signal2 != null)
             {
                 Signal2.PropertyChanged += OnSignal2PropertyChanged;
@@ -101,15 +82,12 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
 
 
 
-        /// <summary>
-        /// Ловит пулеметные тики UART первого канала
-        /// </summary>
-        private void OnSignal1PropertyChanged(object sender, PropertyChangedEventArgs e)
+        // Обработчик для DataSource (канал 1)
+        protected override void OnDataSourcePropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            // 🎯 ПРАВИЛЬНЫЙ ФИЛЬТР: Реагируем на изменение живого физического значения датчика!
             if (e.PropertyName == nameof(ScalarVariableViewModel.CurrentValue))
             {
-                ProcessIncomingPoint((DataSource as ScalarVariableViewModel), StreamPoints1);
+                ProcessIncomingPoint(DataSource as ScalarVariableViewModel, StreamPoints1);
             }
         }
 
@@ -134,15 +112,14 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             var now = DateTime.Now;
             double elapsed = (now - _screenStartTime).TotalSeconds;
 
-            // 🎯 УМНЫЙ СБРОС: Стираем экран ТОЛЬКО по команде Канала 1, 
-            // чтобы асинхронный Канал 2 не сбивал общую точку отсчета времени!
-            if (signal == DataSource && elapsed >= _maxDurationSeconds)
+            if (signal == DataSource && elapsed >= DurationSeconds)
             {
                 StreamPoints1.Clear();
                 StreamPoints2.Clear();
                 _screenStartTime = now;
                 elapsed = 0;
             }
+
             double min = signal.ScaleMin;
             double max = signal.ScaleMax;
             double normY = 0;
@@ -150,36 +127,34 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             if (max > min)
             {
                 double clamped = Math.Clamp(signal.CurrentValue, min, max);
-                // Растягиваем проценты на 100 единиц высоты нашей сетки
-                normY = ((clamped - min) / (max - min)) * 100.0;
+                normY = ((clamped - min) / (max - min)) * GraphHeight;
             }
-            System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+
+            Application.Current?.Dispatcher?.Invoke(() =>
             {
-                // Точный масштаб Х: при elapsed=0 получим -95, при 10 сек получим +105
-                double scaledX = -95.0 + (elapsed / _maxDurationSeconds) * 200.0;
+                double scaledX = -95.0 + (elapsed / DurationSeconds) * 200.0;
                 var newPoint = new Point3D(scaledX, normY, 0);
+
                 if (targetBuffer.Count > 0)
                 {
                     var lastPoint = targetBuffer[targetBuffer.Count - 1];
-                    targetBuffer.Add(lastPoint); // конец прошлого отрезка
-                    targetBuffer.Add(newPoint);  // начало нового
+                    targetBuffer.Add(lastPoint);
+                    targetBuffer.Add(newPoint);
                 }
                 else
                 {
-                    targetBuffer.Add(newPoint); // стартовый дубликат для четности
+                    targetBuffer.Add(newPoint);
                     targetBuffer.Add(newPoint);
                 }
 
                 if (targetBuffer == StreamPoints1) OnPropertyChanged(nameof(StreamPoints1));
                 if (targetBuffer == StreamPoints2) OnPropertyChanged(nameof(StreamPoints2));
             });
-
         }
-
         private void BuildAlarmLines()
         {
             System.Diagnostics.Debug.WriteLine(">> BuildAlarmLines() called");
-
+            var Signal1 = DataSource as ScalarVariableViewModel;
             if (Signal1 == null)
             {
                 System.Diagnostics.Debug.WriteLine("   Signal1 is NULL");
@@ -204,7 +179,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             System.Diagnostics.Debug.WriteLine($"   normMin={normMin}, normMax={normMax}");
 
             double xMin = -5.0;
-            double xMax = _maxDurationSeconds + 5.0;
+            double xMax = DurationSeconds + 5.0;
 
             AlarmMinPoints = new Point3DCollection
     {
@@ -229,7 +204,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
         {
             var group = new Model3DGroup();
             double stepY = GraphHeight / 4.0;
-
+            var Signal1 = DataSource as ScalarVariableViewModel;
             // Расчет шага для левой (Y1) и правой (Y2) шкал
             double min1 = Signal1?.ScaleMin ?? 0;
             double max1 = Signal1?.ScaleMax ?? 100;
@@ -261,7 +236,7 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
                     var labelRight = new BillboardTextVisual3D
                     {
                         Text = val2.ToString("F0"),
-                        Position = new Point3D(_maxDurationSeconds + 0.5, currentY, 0),
+                        Position = new Point3D(DurationSeconds + 0.5, currentY, 0),
                         Foreground = Brushes.OrangeRed,
                         HorizontalAlignment = System.Windows.HorizontalAlignment.Left
                     };
@@ -300,11 +275,8 @@ namespace WpfCalibrator.ViewModels.WidgetViewModel
             // 1. Строим подписи шкал Y1 и Y2 (твой существующий метод)
             BuildAxisLabels(); // Переименуем RebuildGraphAxisLabels в BuildAxisLabels
 
-            // 2. Строим линии алармов, если есть Signal1
-            if (Signal1 != null)
-            {
+
                 BuildAlarmLines();
-            }
         }
 
         

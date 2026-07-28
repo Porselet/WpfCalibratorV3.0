@@ -95,5 +95,7 @@ namespace WpfCalibrator.Models
         // Свойства для виджета таблицы
         public bool ShowRadarTracker { get; set; } = false;
         public bool Show3DSurface { get; set; } = false;
+
+        public double DurationSeconds { get; set; } = 10.0;
     }
 }

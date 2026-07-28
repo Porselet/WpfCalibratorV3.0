@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using WpfCalibrator.Models;
 using WpfCalibrator.Services;
 using WpfCalibrator.ViewModels;
@@ -13,9 +14,11 @@ namespace WpfCalibrator.Views
     {
         private readonly BaseWidgetViewModel _targetWidget;
         private readonly VariableViewModelBase _targetVariableViewModel;
+        private readonly List<VariableViewModelBase> _allVariables;
+
 
         private const string EMPTY_SELECTION = "—";
-
+        private bool _isInitializing = true;
         /// <summary>
         /// Структура локализации типа виджета для комбобокса. [1.14]
         /// </summary>
@@ -50,7 +53,10 @@ namespace WpfCalibrator.Views
         // ======================================================================
         public TableSettingsWindow(BaseWidgetViewModel targetWidget, List<VariableViewModelBase> allVariables)
         {
+           
+
             InitializeComponent();
+            _allVariables = allVariables; // Сохраняем
             _targetWidget = targetWidget;
             _targetVariableViewModel = targetWidget.DataSource;
 
@@ -66,6 +72,8 @@ namespace WpfCalibrator.Views
             //RestoreExistingBindings();
             LoadWidgetSettings(_targetWidget);
             //SetupWindowLayout();
+
+            _isInitializing = false;
         }
 
         /// <summary>
@@ -91,7 +99,7 @@ namespace WpfCalibrator.Views
 
 
             // 1. Указываем правила отображения имени переменной для всех списков
-            ComboBox_GraphPlot_TelemetrySignalChannel1Source.DisplayMemberPath = nameof(ScalarVariableViewModel.Name);
+            //ComboBox_GraphPlot_TelemetrySignalChannel1Source.DisplayMemberPath = nameof(ScalarVariableViewModel.Name);
             ComboBox_GraphPlot_TelemetrySignalChannel2Source.DisplayMemberPath = nameof(ScalarVariableViewModel.Name);
 
             ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.DisplayMemberPath = nameof(ScalarVariableViewModel.Name);
@@ -101,7 +109,7 @@ namespace WpfCalibrator.Views
             ComboBox_CalibrationTable_VerticalScaleBreakpointLut.DisplayMemberPath = nameof(CurveVariableViewModel.Name);
 
             // 2. Вливаем живые данные в элементы управления
-            ComboBox_GraphPlot_TelemetrySignalChannel1Source.ItemsSource = telemetryVariables;
+            //ComboBox_GraphPlot_TelemetrySignalChannel1Source.ItemsSource = telemetryVariables;
             ComboBox_GraphPlot_TelemetrySignalChannel2Source.ItemsSource = telemetryVariables;
 
             ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.ItemsSource = telemetryVariables;
@@ -136,6 +144,13 @@ namespace WpfCalibrator.Views
                 TextBox_HardwareAlarm_CriticalMaximumThreshold.Text = double.IsPositiveInfinity(scalarVar.AlarmMax)
                     ? string.Empty
                     : scalarVar.AlarmMax.ToString("F1", CultureInfo.InvariantCulture);
+            }
+
+            if (widget is TimePlotWidgetViewModel timePlot1)
+            {
+                // Информационное поле для канала 1
+                TextBlock_Channel1Name.Text = timePlot1.DataSource?.Name ?? "Не выбран";
+                TextBox_DurationSeconds.Text = timePlot1.DurationSeconds.ToString("F1", CultureInfo.InvariantCulture);
             }
             if (widget is EditableWidgetViewModel editableWidget)
             {
@@ -184,7 +199,7 @@ namespace WpfCalibrator.Views
             // 2. Для графиков (TimePlot) восстанавливаем два независимых скалярных канала
             if (_targetWidget is TimePlotWidgetViewModel timePlot)
             {
-                ComboBox_GraphPlot_TelemetrySignalChannel1Source.SelectedValue = timePlot.Signal1;
+                ///ComboBox_GraphPlot_TelemetrySignalChannel1Source.SelectedValue = timePlot.DataSource;
                 ComboBox_GraphPlot_TelemetrySignalChannel2Source.SelectedValue = timePlot.Signal2;
 
                 bool hasSignal2 = timePlot.Signal2 != null;
@@ -276,7 +291,8 @@ namespace WpfCalibrator.Views
             // 1. Сначала тушим абсолютно все строки настроек, делая экран чистым
             SetVisibility(Visibility.Collapsed,
                 Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType,
-                Row_ComboBox_GraphPlot_TelemetrySignalChannel1Source,
+                Row_DurationSeconds,
+
                 Row_ComboBox_GraphPlot_TelemetrySignalChannel2Source,
                 Row_ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource,
                 Row_ComboBox_CalibrationTable_HorizontalScaleBreakpointLut,
@@ -378,16 +394,33 @@ namespace WpfCalibrator.Views
                 // ============================================================
                 WidgetViewType.TimePlot => () =>
                 {
-                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Visible;
-                    Row_ComboBox_GraphPlot_TelemetrySignalChannel1Source.Visibility = Visibility.Visible;
-                    Row_ComboBox_GraphPlot_TelemetrySignalChannel2Source.Visibility = Visibility.Visible;
+                    // Показываем информационное поле для канала 1
+                    Row_Channel1Info.Visibility = Visibility.Visible;
+
+                    // Показываем настройки для канала 1
                     Row_ScaleRange.Visibility = Visibility.Visible;
-                    // Для второго канала показываем всегда, но управляем IsEnabled отдельно
+                    Row_AlarmRange.Visibility = Visibility.Visible;
+
+                    // Показываем комбобокс для канала 2
+                    Row_ComboBox_GraphPlot_TelemetrySignalChannel2Source.Visibility = Visibility.Visible;
+
+                    // Показываем настройки для канала 2
                     Row_ScaleRange2.Visibility = Visibility.Visible;
                     Row_AlarmRange2.Visibility = Visibility.Visible;
+
+                    Row_DurationSeconds.Visibility = Visibility.Visible;
+
+                    // Скрываем комбобокс для канала 1 (он больше не нужен)
+                    ///Row_ComboBox_GraphPlot_TelemetrySignalChannel1Source.Visibility = Visibility.Collapsed;
+
+                    // Скрываем шаг (не нужен для графиков)
                     Row_TextBox_CalibrationStep_KeyboardIncrementValue.Visibility = Visibility.Collapsed;
-                    // Алармы для графика не показываем (они на линиях)
-                    Row_AlarmRange.Visibility = Visibility.Collapsed;
+
+                    // Управляем активностью второго канала
+                    var timePlot = widget as TimePlotWidgetViewModel;
+                    bool hasSignal2 = timePlot?.Signal2 != null;
+                    SetEnabled(Row_ScaleRange2, hasSignal2);
+                    SetEnabled(Row_AlarmRange2, hasSignal2);
                 }
                 ,
 
@@ -543,7 +576,8 @@ namespace WpfCalibrator.Views
             // Сигналы для графика
             if (_targetWidget is TimePlotWidgetViewModel timePlot)
             {
-                timePlot.Signal1 = ComboBox_GraphPlot_TelemetrySignalChannel1Source.SelectedItem as ScalarVariableViewModel;
+                timePlot.DurationSeconds = ParseInput(TextBox_DurationSeconds.Text, 10.0f);
+                //timePlot.Signal1 = ComboBox_GraphPlot_TelemetrySignalChannel1Source.SelectedItem as ScalarVariableViewModel;
                 timePlot.Signal2 = ComboBox_GraphPlot_TelemetrySignalChannel2Source.SelectedItem as ScalarVariableViewModel;
             }
 
@@ -728,8 +762,29 @@ namespace WpfCalibrator.Views
             }
         }
 
+        private void ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_isInitializing) return;
 
+            if (ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.SelectedValue is WidgetViewType newType)
+            {
+                var owner = this.Owner;
+                var widget = _targetWidget;
+                var allVariables = _allVariables;
 
+                // Сохраняем новый тип в виджет (временно, до сохранения)
+                widget.ControlView = newType;
+
+                // Закрываем окно
+                this.DialogResult = true;
+                this.Close();
+
+                // Открываем новое окно синхронно (без Dispatcher)
+                var newWindow = new TableSettingsWindow(widget, allVariables);
+                newWindow.Owner = owner;
+                newWindow.ShowDialog();
+            }
+        }
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;

@@ -54,8 +54,9 @@ namespace WpfCalibrator.Services
                 // Для графиков сохраняем имена сигналов
                 if (widget is TimePlotWidgetViewModel tpw)
                 {
-                    info.Signal1Name = tpw.Signal1?.Name;
+                    //info.Signal1Name = tpw.Signal1?.Name;
                     info.Signal2Name = tpw.Signal2?.Name;
+                    info.DurationSeconds = tpw.DurationSeconds;
                 }
 
                 // Для редактируемых виджетов сохраняем шаг
@@ -134,8 +135,9 @@ namespace WpfCalibrator.Services
                 // Восстановление сигналов для графика
                 if (newWidget is TimePlotWidgetViewModel tpw)
                 {
-                    if (!string.IsNullOrEmpty(info.Signal1Name))
-                        tpw.Signal1 = findVariableSelector(info.Signal1Name) as ScalarVariableViewModel;
+                    tpw.DurationSeconds = info.DurationSeconds;
+                    // if (!string.IsNullOrEmpty(info.Signal1Name))
+                    //tpw.Signal1 = findVariableSelector(info.Signal1Name) as ScalarVariableViewModel;
                     if (!string.IsNullOrEmpty(info.Signal2Name))
                         tpw.Signal2 = findVariableSelector(info.Signal2Name) as ScalarVariableViewModel;
                 }

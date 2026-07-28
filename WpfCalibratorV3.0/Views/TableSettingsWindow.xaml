@@ -186,26 +186,40 @@
                     Style="{StaticResource RowLabelStyle}" />
                 <ComboBox
                     x:Name="ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType"
+                    SelectionChanged="ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType_SelectionChanged"
                     Width="250"
                     Style="{StaticResource DarkComboBoxStyle}"
                     DisplayMemberPath="DisplayName"
                     SelectedValuePath="Type" />
             </StackPanel>
-
-            <!-- 2. Сигнал Канала 1 для Графика -->
+            <!-- Длительность развёртки (для графика) -->
             <StackPanel
-                x:Name="Row_ComboBox_GraphPlot_TelemetrySignalChannel1Source"
+                x:Name="Row_DurationSeconds"
                 Style="{StaticResource RowContainerStyle}">
                 <TextBlock
-                    Text="Сигнал Канала 1:"
+                    Text="Длительность (сек):"
                     Style="{StaticResource RowLabelStyle}" />
-                <ComboBox
-                    x:Name="ComboBox_GraphPlot_TelemetrySignalChannel1Source"
-                    Width="250"
-                    Style="{StaticResource DarkComboBoxStyle}"
-                    DisplayMemberPath="Name" />
+                <TextBox
+                    x:Name="TextBox_DurationSeconds"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}" />
             </StackPanel>
-
+            <!-- Информационное поле для канала 1 (DataSource) -->
+            <StackPanel
+                x:Name="Row_Channel1Info"
+                Style="{StaticResource RowContainerStyle}">
+                <TextBlock
+                    Text="Канал 1:"
+                    Style="{StaticResource RowLabelStyle}" />
+                <TextBlock
+                    x:Name="TextBlock_Channel1Name"
+                    Text="{Binding DataSource.Name}"
+                    Foreground="White"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    FontFamily="Consolas" />
+            </StackPanel>
+            
             <!-- 3. Сигнал Канала 2 для Графика -->
             <StackPanel
                 x:Name="Row_ComboBox_GraphPlot_TelemetrySignalChannel2Source"
