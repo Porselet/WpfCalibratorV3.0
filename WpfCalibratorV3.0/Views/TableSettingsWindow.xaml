@@ -325,6 +325,42 @@
                     Style="{StaticResource DarkTextBoxStyle}" />
             </StackPanel>
 
+            <!-- 10b. Шкалы для канала 2 (всегда видны, но управляются IsEnabled) -->
+            <StackPanel
+                x:Name="Row_ScaleRange2"
+                Style="{StaticResource RowContainerStyle}">
+                <TextBlock
+                    Text="Шкала канала 2 (Мин/Макс):"
+                    Style="{StaticResource RowLabelStyle}" />
+                <TextBox
+                    x:Name="TextBox_GraphicScale_MinimumDisplayBoundary2"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}"
+                    Margin="0,0,10,0" />
+                <TextBox
+                    x:Name="TextBox_GraphicScale_MaximumDisplayBoundary2"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}" />
+            </StackPanel>
+
+            <!-- 10c. Алармы для канала 2 -->
+            <StackPanel
+                x:Name="Row_AlarmRange2"
+                Style="{StaticResource RowContainerStyle}">
+                <TextBlock
+                    Text="Алармы канала 2 (Мин/Макс):"
+                    Style="{StaticResource RowLabelStyle}" />
+                <TextBox
+                    x:Name="TextBox_HardwareAlarm_CriticalMinimumThreshold2"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}"
+                    Margin="0,0,10,0" />
+                <TextBox
+                    x:Name="TextBox_HardwareAlarm_CriticalMaximumThreshold2"
+                    Width="70"
+                    Style="{StaticResource DarkTextBoxStyle}" />
+            </StackPanel>
+
             <!-- 11. Направление прорисовки 1D слайдеров -->
             <StackPanel
                 x:Name="Row_Orientation"

@@ -14,7 +14,7 @@ namespace WpfCalibrator.Views
         private readonly BaseWidgetViewModel _targetWidget;
         private readonly VariableViewModelBase _targetVariableViewModel;
 
-
+        private const string EMPTY_SELECTION = "—";
 
         /// <summary>
         /// Структура локализации типа виджета для комбобокса. [1.14]
@@ -75,13 +75,20 @@ namespace WpfCalibrator.Views
         {
             if (allVariables == null) return;
 
-            // Фильтруем одномерные таблицы осей (оцифровки шкал)
-            var axisVariables = allVariables.OfType<CurveVariableViewModel>().ToList();
+            // --- 1. СОЗДАЁМ ПУСТЫЕ ОБЪЕКТЫ ---
+            var emptyScalar = new ScalarVariableViewModel { Name = EMPTY_SELECTION };
+            var emptyCurve = new CurveVariableViewModel { Name = EMPTY_SELECTION };
 
-            // Фильтруем чистые скалярные датчики телеметрии BlackPill
+            // --- 2. ФИЛЬТРУЕМ СПИСКИ ---
+            var axisVariables = allVariables.OfType<CurveVariableViewModel>().ToList();
+            axisVariables.Insert(0, emptyCurve); // Пустой пункт в начало
+
             var telemetryVariables = allVariables.OfType<ScalarVariableViewModel>()
                 .Where(v => !v.IsParam)
                 .ToList();
+            telemetryVariables.Insert(0, emptyScalar); // Пустой пункт в начало
+
+
 
             // 1. Указываем правила отображения имени переменной для всех списков
             ComboBox_GraphPlot_TelemetrySignalChannel1Source.DisplayMemberPath = nameof(ScalarVariableViewModel.Name);
@@ -134,6 +141,22 @@ namespace WpfCalibrator.Views
             {
                 TextBox_CalibrationStep_KeyboardIncrementValue.Text = editableWidget.IncrementStep.ToString("F3", CultureInfo.InvariantCulture);
             }
+            // Загрузка настроек для второго канала графика (если это TimePlot)
+            if (widget is TimePlotWidgetViewModel timePlot && timePlot.Signal2 != null)
+            {
+                var signal2 = timePlot.Signal2;
+                TextBox_GraphicScale_MinimumDisplayBoundary2.Text = signal2.ScaleMin.ToString("F1", CultureInfo.InvariantCulture);
+                TextBox_GraphicScale_MaximumDisplayBoundary2.Text = signal2.ScaleMax.ToString("F1", CultureInfo.InvariantCulture);
+
+                TextBox_HardwareAlarm_CriticalMinimumThreshold2.Text = double.IsNegativeInfinity(signal2.AlarmMin)
+                    ? string.Empty
+                    : signal2.AlarmMin.ToString("F1", CultureInfo.InvariantCulture);
+
+                TextBox_HardwareAlarm_CriticalMaximumThreshold2.Text = double.IsPositiveInfinity(signal2.AlarmMax)
+                    ? string.Empty
+                    : signal2.AlarmMax.ToString("F1", CultureInfo.InvariantCulture);
+            }
+
             // 3. Восстанавливаем состояние чекбоксов, осей и сигналов каналов из ОЗУ
             RestoreExistingBindings();
 
@@ -163,24 +186,81 @@ namespace WpfCalibrator.Views
             {
                 ComboBox_GraphPlot_TelemetrySignalChannel1Source.SelectedValue = timePlot.Signal1;
                 ComboBox_GraphPlot_TelemetrySignalChannel2Source.SelectedValue = timePlot.Signal2;
+
+                bool hasSignal2 = timePlot.Signal2 != null;
+                SetEnabled(Row_ScaleRange2, hasSignal2);
+                SetEnabled(Row_AlarmRange2, hasSignal2);
             }
 
             // 3. Для таблиц восстанавливаем привязки осей и их датчиков телеметрии
             if (_targetVariableViewModel is TableVariableViewModelBase tableVar)
             {
-                ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.SelectedValue = tableVar.BoundInputX;
-                ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.SelectedValue = tableVar.BoundAxisX;
+                // --- Восстанавливаем BoundInputX ---
+                if (tableVar.BoundInputX != null)
+                {
+                    var item = ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.ItemsSource
+                        .OfType<ScalarVariableViewModel>()
+                        .FirstOrDefault(v => v.Name == tableVar.BoundInputX.Name);
+                    ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.SelectedItem = item;
+                }
+                else
+                {
+                    // Выбираем пустой элемент
+                    ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.SelectedItem =
+                        ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.ItemsSource
+                            .OfType<ScalarVariableViewModel>()
+                            .FirstOrDefault(v => v.Name == EMPTY_SELECTION);
+                }
 
-                // Если это расширенная 3D-матрица — подтягиваем вертикальную ось Y
+                // --- Восстанавливаем BoundAxisX (аналогично) ---
+                if (tableVar.BoundAxisX != null)
+                {
+                    var item = ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.ItemsSource
+                        .OfType<CurveVariableViewModel>()
+                        .FirstOrDefault(v => v.Name == tableVar.BoundAxisX.Name);
+                    ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.SelectedItem = item;
+                }
+                else
+                {
+                    ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.SelectedItem =
+                        ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.ItemsSource
+                            .OfType<CurveVariableViewModel>()
+                            .FirstOrDefault(v => v.Name == EMPTY_SELECTION);
+                }
+
+                // --- Для 3D-карт: Y привязки ---
                 if (tableVar is Map3DVariableViewModel map3D)
                 {
-                    ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.SelectedValue = map3D.BoundInputY;
-                    ComboBox_CalibrationTable_VerticalScaleBreakpointLut.SelectedValue = map3D.BoundAxisY;
-
-                    if (_targetWidget is MatrixTableWidgetViewModel matrixWidget)
+                    // BoundInputY
+                    if (map3D.BoundInputY != null)
                     {
-                        CheckBox_UiRenderOptions_EnableNeonRadarTrackerTarget.IsChecked = matrixWidget.ShowRadarTracker;
-                        CheckBox_UiRenderOptions_EnableHelix3DPolygonSurface.IsChecked = matrixWidget.Show3DSurface;
+                        var item = ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.ItemsSource
+                            .OfType<ScalarVariableViewModel>()
+                            .FirstOrDefault(v => v.Name == map3D.BoundInputY.Name);
+                        ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.SelectedItem = item;
+                    }
+                    else
+                    {
+                        ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.SelectedItem =
+                            ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.ItemsSource
+                                .OfType<ScalarVariableViewModel>()
+                                .FirstOrDefault(v => v.Name == EMPTY_SELECTION);
+                    }
+
+                    // BoundAxisY
+                    if (map3D.BoundAxisY != null)
+                    {
+                        var item = ComboBox_CalibrationTable_VerticalScaleBreakpointLut.ItemsSource
+                            .OfType<CurveVariableViewModel>()
+                            .FirstOrDefault(v => v.Name == map3D.BoundAxisY.Name);
+                        ComboBox_CalibrationTable_VerticalScaleBreakpointLut.SelectedItem = item;
+                    }
+                    else
+                    {
+                        ComboBox_CalibrationTable_VerticalScaleBreakpointLut.SelectedItem =
+                            ComboBox_CalibrationTable_VerticalScaleBreakpointLut.ItemsSource
+                                .OfType<CurveVariableViewModel>()
+                                .FirstOrDefault(v => v.Name == EMPTY_SELECTION);
                     }
                 }
             }
@@ -205,53 +285,126 @@ namespace WpfCalibrator.Views
                 Row_TextBox_CalibrationStep_KeyboardIncrementValue,
                 Row_ScaleRange,
                 Row_AlarmRange,
+                Row_ScaleRange2,
+                Row_AlarmRange2,
                 Row_Orientation,
                 Row_TableOptions,
                 Row_VisualAlarm);
 
-            // 2. Свитч возвращает указатель на блок кода (Action), обходя ограничения void-типов [1.22]
+            // 2. Определяем, что у нас за данные (сигнал или параметр)
+            bool isParam = _targetVariableViewModel?.IsParam ?? false;
+
+            // 3. Свитч по типу виджета
             Action updateLayout = widget.ControlView switch
             {
-                // Одиночный настраиваемый параметр
+                // ============================================================
+                // ПАРАМЕТРЫ (Configurable)
+                // ============================================================
+
+                // Одиночный параметр
                 WidgetViewType.SingleParam => () =>
-                    SetVisibility(Visibility.Visible, 
-                        Row_TextBox_CalibrationStep_KeyboardIncrementValue,
-                        Row_ScaleRange),
+                {
+                    // Скрываем выбор типа виджета (он не нужен для параметров)
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Collapsed;
+                    // Шкалы для параметров не показываем
+                    Row_ScaleRange.Visibility = Visibility.Collapsed;
+                    // Алармы для параметров не показываем
+                    Row_AlarmRange.Visibility = Visibility.Collapsed;
+                    // Показываем шаг изменения
+                    Row_TextBox_CalibrationStep_KeyboardIncrementValue.Visibility = Visibility.Visible;
+                }
+                ,
 
-                // Чистый readonly цифровой индикатор логов
+                // ============================================================
+                // СИГНАЛЫ ТЕЛЕМЕТРИИ (Read-Only)
+                // ============================================================
+
+                // Цифровой индикатор
                 WidgetViewType.SingleDigitalIndicator => () =>
-                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_TextBox_CalibrationStep_KeyboardIncrementValue),
+                {
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Visible;
+                    Row_AlarmRange.Visibility = Visibility.Visible;
+                    // Шаг не нужен для сигналов
+                    Row_TextBox_CalibrationStep_KeyboardIncrementValue.Visibility = Visibility.Collapsed;
+                }
+                ,
 
-                // Горизонтальный линейный ползунок
+                // Слайдеры
                 WidgetViewType.SliderHorizontal => () =>
-                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_ScaleRange, Row_AlarmRange, Row_Orientation, Row_VisualAlarm),
+                {
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Visible;
+                    Row_ScaleRange.Visibility = Visibility.Visible;
+                    Row_AlarmRange.Visibility = Visibility.Visible;
+                    Row_Orientation.Visibility = Visibility.Visible;
+                    Row_VisualAlarm.Visibility = Visibility.Visible;
+                    Row_TextBox_CalibrationStep_KeyboardIncrementValue.Visibility = Visibility.Collapsed;
+                }
+                ,
 
-                // Вертикальный линейный ползунок
                 WidgetViewType.SliderVertical => () =>
-                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_ScaleRange, Row_AlarmRange, Row_Orientation, Row_VisualAlarm),
+                {
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Visible;
+                    Row_ScaleRange.Visibility = Visibility.Visible;
+                    Row_AlarmRange.Visibility = Visibility.Visible;
+                    Row_Orientation.Visibility = Visibility.Visible;
+                    Row_VisualAlarm.Visibility = Visibility.Visible;
+                    Row_TextBox_CalibrationStep_KeyboardIncrementValue.Visibility = Visibility.Collapsed;
+                }
+                ,
 
-                // Круглый стрелочный будильник 270 градусов
+                // Стрелочный прибор
                 WidgetViewType.GaugeCircular270 => () =>
-                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_ScaleRange, Row_AlarmRange),
+                {
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Visible;
+                    Row_ScaleRange.Visibility = Visibility.Visible;
+                    Row_AlarmRange.Visibility = Visibility.Visible;
+                    Row_TextBox_CalibrationStep_KeyboardIncrementValue.Visibility = Visibility.Collapsed;
+                }
+                ,
 
-                // Светодиодная шкала тахометра 120 градусов
+                // Светодиодная шкала
                 WidgetViewType.GaugeLED => () =>
-                    SetVisibility(Visibility.Visible, Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType, Row_ScaleRange),
+                {
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Visible;
+                    Row_ScaleRange.Visibility = Visibility.Visible;
+                    // Для LED алармы не показываем (по матрице)
+                    Row_AlarmRange.Visibility = Visibility.Collapsed;
+                    Row_TextBox_CalibrationStep_KeyboardIncrementValue.Visibility = Visibility.Collapsed;
+                }
+                ,
 
-                // 🎯 ВЫСОКОСКОРОСТНОЙ ОСЦИЛЛОГРАФ: Раскрываем Канал 1, Канал 2 и границы шкал времени!
+                // ============================================================
+                // ГРАФИК (всегда сигнал)
+                // ============================================================
                 WidgetViewType.TimePlot => () =>
-                    SetVisibility(Visibility.Visible,
-                        Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType,
-                        Row_ComboBox_GraphPlot_TelemetrySignalChannel1Source,
-                        Row_ComboBox_GraphPlot_TelemetrySignalChannel2Source,
-                        Row_ScaleRange),
+                {
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Visible;
+                    Row_ComboBox_GraphPlot_TelemetrySignalChannel1Source.Visibility = Visibility.Visible;
+                    Row_ComboBox_GraphPlot_TelemetrySignalChannel2Source.Visibility = Visibility.Visible;
+                    Row_ScaleRange.Visibility = Visibility.Visible;
+                    // Для второго канала показываем всегда, но управляем IsEnabled отдельно
+                    Row_ScaleRange2.Visibility = Visibility.Visible;
+                    Row_AlarmRange2.Visibility = Visibility.Visible;
+                    Row_TextBox_CalibrationStep_KeyboardIncrementValue.Visibility = Visibility.Collapsed;
+                    // Алармы для графика не показываем (они на линиях)
+                    Row_AlarmRange.Visibility = Visibility.Collapsed;
+                }
+                ,
 
-                // 🎯 УМНАЯ ТАБЛИЦА: Проверяем реальный класс данных в ОЗУ, отсекая мусорные оси [1.22]
+                // ============================================================
+                // ТАБЛИЦЫ (всегда параметры)
+                // ============================================================
+
+                // Умная таблица (1D и 2D)
                 WidgetViewType.MatrixTable => () =>
                 {
+                    // Скрываем выбор типа виджета для таблиц
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Collapsed;
+
+                    // Определяем, какая таблица (1D или 2D)
                     if (_targetVariableViewModel is Map3DVariableViewModel)
                     {
-                        // Тяжелая 3D-матрица (5х6): включаем полный набор осей X и Y
+                        // 3D-матрица: показываем все оси X и Y
                         SetVisibility(Visibility.Visible,
                             Row_ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource,
                             Row_ComboBox_CalibrationTable_HorizontalScaleBreakpointLut,
@@ -262,7 +415,7 @@ namespace WpfCalibrator.Views
                     }
                     else if (_targetVariableViewModel is CurveVariableViewModel)
                     {
-                        // Плоская 1D-кривая (1х10): ось Y намертво прячем, защищая привязки! [1.22]
+                        // 1D-кривая: только ось X
                         SetVisibility(Visibility.Visible,
                             Row_ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource,
                             Row_ComboBox_CalibrationTable_HorizontalScaleBreakpointLut,
@@ -272,25 +425,46 @@ namespace WpfCalibrator.Views
                 }
                 ,
 
-                // Тяжелая трехмерная Helix-сцена
+                // 3D-поверхность Helix
                 WidgetViewType.Matrix3DSurface => () =>
+                {
+                    // Скрываем выбор типа виджета
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Collapsed;
+
                     SetVisibility(Visibility.Visible,
                         Row_ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource,
                         Row_ComboBox_CalibrationTable_HorizontalScaleBreakpointLut,
                         Row_ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource,
                         Row_ComboBox_CalibrationTable_VerticalScaleBreakpointLut,
                         Row_TextBox_CalibrationStep_KeyboardIncrementValue,
-                        Row_TableOptions),
+                        Row_TableOptions);
+                }
+                ,
 
-                // Полярный радар-трекер траектории
+                // Радар-трекер
                 WidgetViewType.RadarTracker => () =>
-                    SetVisibility(Visibility.Visible, Row_TableOptions)
+                {
+                    // Скрываем выбор типа виджета
+                    Row_ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.Visibility = Visibility.Collapsed;
+                    Row_TableOptions.Visibility = Visibility.Visible;
+                }
+                ,
+
+                // Заглушка для неизвестных типов
+                _ => () => { }
             };
 
-            // 3. Выполняем выбранный блок кода — SizeToContent="Height" в XAML плавно сожмет окно! [1.22]
+            // 4. Выполняем выбранный блок
             updateLayout();
-        }
 
+            // 5. Дополнительно управляем активностью второго канала графика
+            if (widget is TimePlotWidgetViewModel timePlot)
+            {
+                bool hasSignal2 = timePlot.Signal2 != null;
+                SetEnabled(Row_ScaleRange2, hasSignal2);
+                SetEnabled(Row_AlarmRange2, hasSignal2);
+            }
+        }
         // Вспомогательный метод для сокращения кода:
         // void SetVisibility(Visibility visibility, params FrameworkElement[] elements) { ... }
         private void SetVisibility(Visibility visibility, params System.Windows.FrameworkElement[] elements)
@@ -298,7 +472,11 @@ namespace WpfCalibrator.Views
             foreach (var el in elements) if (el != null) el.Visibility = visibility;
         }
 
-
+        private void SetEnabled(System.Windows.FrameworkElement element, bool isEnabled)
+        {
+            if (element != null)
+                element.IsEnabled = isEnabled;
+        }
 
         /// <summary>
         /// Сишный хелпер-парсер: инвариантно переводит текст из инпута в число float.
@@ -323,6 +501,26 @@ namespace WpfCalibrator.Views
             if (_targetWidget == null) return;
 
             // 1. Сохраняем настройки виджета (геометрия, флаги, сигналы)
+            SaveWidgetSettings();
+
+            // 2. Сохраняем настройки переменной в VariableSettings
+            SaveVariableSettings();
+
+            // 3. Синхронизация дополнительных панелей (Radar, 3D)
+            SynchronizeSecondaryLutPanelsOnWorkspace();
+
+            DialogResult = true;
+            Close();
+        }
+
+        /// <summary>
+        /// Сохраняет настройки самого виджета (геометрия, флаги, сигналы)
+        /// </summary>
+        private void SaveWidgetSettings()
+        {
+            if (_targetWidget == null) return;
+
+            // Тип виджета
             if (ComboBox_WidgetGeometry_ScalarSignalVisualComponentStyleType.SelectedValue is WidgetViewType selectedType)
             {
                 _targetWidget.ControlView = selectedType;
@@ -330,106 +528,160 @@ namespace WpfCalibrator.Views
 
             _targetWidget.IsVertical = RadioButton_WidgetLayout_VerticalOrientation.IsChecked == true;
 
+            // Флаги для скалярных виджетов
             if (_targetWidget is BaseScalarWidgetViewModel scalarWidget)
             {
                 scalarWidget.EnableVisualAlarm = CheckBox_UiRenderOptions_EnableRedBackgroundEmergencyFlash.IsChecked == true;
             }
 
+            // Шаг для редактируемых виджетов (только параметры!)
             if (_targetWidget is EditableWidgetViewModel editableWidget)
             {
                 editableWidget.IncrementStep = ParseInput(TextBox_CalibrationStep_KeyboardIncrementValue.Text, 1.0f);
             }
 
+            // Сигналы для графика
             if (_targetWidget is TimePlotWidgetViewModel timePlot)
             {
                 timePlot.Signal1 = ComboBox_GraphPlot_TelemetrySignalChannel1Source.SelectedItem as ScalarVariableViewModel;
                 timePlot.Signal2 = ComboBox_GraphPlot_TelemetrySignalChannel2Source.SelectedItem as ScalarVariableViewModel;
             }
 
+            // Флаги для табличных виджетов
             if (_targetWidget is MatrixTableWidgetViewModel matrixWidget)
             {
                 matrixWidget.ShowRadarTracker = CheckBox_UiRenderOptions_EnableNeonRadarTrackerTarget.IsChecked == true;
                 matrixWidget.Show3DSurface = CheckBox_UiRenderOptions_EnableHelix3DPolygonSurface.IsChecked == true;
             }
+        }
 
-            // ================================================================
-            // 🔥 НОВОЕ: СОХРАНЯЕМ НАСТРОЙКИ ПЕРЕМЕННОЙ В VARIABLESETTINGS
-            // ================================================================
+        /// <summary>
+        /// Сохраняет настройки переменной в VariableSettings (шкалы, алармы, привязки)
+        /// </summary>
+        private void SaveVariableSettings()
+        {
+            var mainVm = Application.Current?.MainWindow?.DataContext as MainViewModel;
+            if (mainVm?.SelectedDevice == null) return;
 
-            // Получаем текущий конфиг устройства
-            var mainVm = System.Windows.Application.Current?.MainWindow?.DataContext as MainViewModel;
-            if (mainVm?.SelectedDevice != null)
+            var configManager = new ConfigurationManager();
+            var config = configManager.LoadUserConfigForDevice(mainVm.SelectedDevice.DevicePath);
+            if (config == null) return;
+
+            // Получаем или создаём настройки для целевой переменной
+            if (!config.VariableSettings.TryGetValue(_targetVariableViewModel.Name, out var settings))
             {
-                var configManager = new ConfigurationManager(); // Или достаём из DI
-                var config = configManager.LoadUserConfigForDevice(mainVm.SelectedDevice.DevicePath);
-                if (config != null)
+                settings = new VariableDisplaySettings();
+                config.VariableSettings[_targetVariableViewModel.Name] = settings;
+            }
+
+            // ---- 1. Для скаляров (сигналы телеметрии) ----
+            if (_targetVariableViewModel is ScalarVariableViewModel scalarVar)
+            {
+                // Сохраняем только если это сигнал (IsParam == false)
+                // Для параметров поля скрыты, но на всякий случай проверяем
+                if (!scalarVar.IsParam)
                 {
-                    // Получаем или создаём настройки для этой переменной
-                    if (!config.VariableSettings.TryGetValue(_targetVariableViewModel.Name, out var settings))
-                    {
-                        settings = new VariableDisplaySettings();
-                        config.VariableSettings[_targetVariableViewModel.Name] = settings;
-                    }
-
-                    // 1. Шкалы и алармы (для скаляра)
-                    if (_targetVariableViewModel is ScalarVariableViewModel scalarVar)
-                    {
-                        settings.ScaleMin = ParseInput(TextBox_GraphicScale_MinimumDisplayBoundary.Text, 0f);
-                        settings.ScaleMax = ParseInput(TextBox_GraphicScale_MaximumDisplayBoundary.Text, 100f);
-                        settings.AlarmMin = ParseInput(TextBox_HardwareAlarm_CriticalMinimumThreshold.Text, float.NegativeInfinity);
-                        settings.AlarmMax = ParseInput(TextBox_HardwareAlarm_CriticalMaximumThreshold.Text, float.PositiveInfinity);
-                    }
-
-                    // 2. Привязки таблиц (для TableVariableViewModelBase и наследников)
-                    if (_targetVariableViewModel is TableVariableViewModelBase tableVar)
-                    {
-                        
-                        {
-                            // Создаём объект только если есть хотя бы одна привязка
-                            var bindings = new LutBindings();
-                            bool hasBindings = false;
-
-                            var axisX = ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.SelectedItem as CurveVariableViewModel;
-                            var inputX = ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.SelectedItem as ScalarVariableViewModel;
-
-                            if (axisX != null) { bindings.AxisX_VarName = axisX.Name; hasBindings = true; }
-                            if (inputX != null) { bindings.InputX_VarName = inputX.Name; hasBindings = true; }
-
-                            // Для 3D-карт — ещё и Y
-                            if (tableVar is Map3DVariableViewModel)
-                            {
-                                var axisY = ComboBox_CalibrationTable_VerticalScaleBreakpointLut.SelectedItem as CurveVariableViewModel;
-                                var inputY = ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.SelectedItem as ScalarVariableViewModel;
-
-                                if (axisY != null) { bindings.AxisY_VarName = axisY.Name; hasBindings = true; }
-                                if (inputY != null) { bindings.InputY_VarName = inputY.Name; hasBindings = true; }
-                            }
-
-                            // Сохраняем только если есть что сохранять
-                            if (hasBindings)
-                            {
-                                bindings.HasBindings = true;
-                                settings.TableBindings = bindings;
-                            }
-                            else
-                            {
-                                settings.TableBindings = null; // Не сохраняем пустой объект
-                            }
-                        }
-                    }
-
-                    // Сохраняем конфиг обратно на диск
-                    configManager.SaveUserConfig(config, mainVm.SelectedDevice.DevicePath);
-                    mainVm.SelectedDevice = mainVm.SelectedDevice; // Триггерим OnDeviceChanged
+                    settings.ScaleMin = ParseInput(TextBox_GraphicScale_MinimumDisplayBoundary.Text, 0f);
+                    settings.ScaleMax = ParseInput(TextBox_GraphicScale_MaximumDisplayBoundary.Text, 100f);
+                    settings.AlarmMin = ParseInput(TextBox_HardwareAlarm_CriticalMinimumThreshold.Text, float.NegativeInfinity);
+                    settings.AlarmMax = ParseInput(TextBox_HardwareAlarm_CriticalMaximumThreshold.Text, float.PositiveInfinity);
                 }
             }
 
-            // Синхронизация дополнительных панелей (Radar, 3D)
-            SynchronizeSecondaryLutPanelsOnWorkspace();
+            // ---- 2. Для таблиц (параметры) ----
+            if (_targetVariableViewModel is TableVariableViewModelBase tableVar)
+            {
+                SaveTableBindings(settings);
+            }
 
-            DialogResult = true;
-            Close();
+            // ---- 3. Для второго канала графика ----
+            if (_targetWidget is TimePlotWidgetViewModel timePlot && timePlot.Signal2 != null)
+            {
+                SaveSecondChannelSettings(config, timePlot.Signal2);
+            }
+
+            // Сохраняем конфиг на диск
+            configManager.SaveUserConfig(config, mainVm.SelectedDevice.DevicePath);
+            // Костыль: перезагружаем устройство, чтобы применить настройки
+            mainVm.SelectedDevice = mainVm.SelectedDevice;
         }
+
+        /// <summary>
+        /// Сохраняет привязки таблицы (оси и входные сигналы)
+        /// </summary>
+        private void SaveTableBindings(VariableDisplaySettings settings)
+        {
+            if (_targetVariableViewModel is not TableVariableViewModelBase) return;
+
+            var bindings = new LutBindings();
+            bool hasBindings = false;
+
+            // --- Проверяем InputX ---
+            var inputX = ComboBox_CalibrationTable_TelemetrySignalHorizontalAxisXSource.SelectedItem as ScalarVariableViewModel;
+            if (inputX != null && inputX.Name != EMPTY_SELECTION)
+            {
+                bindings.InputX_VarName = inputX.Name;
+                hasBindings = true;
+            }
+
+            // --- Проверяем AxisX ---
+            var axisX = ComboBox_CalibrationTable_HorizontalScaleBreakpointLut.SelectedItem as CurveVariableViewModel;
+            if (axisX != null && axisX.Name != EMPTY_SELECTION)
+            {
+                bindings.AxisX_VarName = axisX.Name;
+                hasBindings = true;
+            }
+
+            // --- Для 3D-карт: проверяем Y ---
+            if (_targetVariableViewModel is Map3DVariableViewModel)
+            {
+                var inputY = ComboBox_CalibrationTable_TelemetrySignalVerticalAxisYSource.SelectedItem as ScalarVariableViewModel;
+                if (inputY != null && inputY.Name != EMPTY_SELECTION)
+                {
+                    bindings.InputY_VarName = inputY.Name;
+                    hasBindings = true;
+                }
+
+                var axisY = ComboBox_CalibrationTable_VerticalScaleBreakpointLut.SelectedItem as CurveVariableViewModel;
+                if (axisY != null && axisY.Name != EMPTY_SELECTION)
+                {
+                    bindings.AxisY_VarName = axisY.Name;
+                    hasBindings = true;
+                }
+            }
+
+            // Сохраняем только если есть хотя бы одна реальная привязка
+            if (hasBindings)
+            {
+                bindings.HasBindings = true;
+                settings.TableBindings = bindings;
+            }
+            else
+            {
+                settings.TableBindings = null;
+            }
+        }
+        /// <summary>
+        /// Сохраняет настройки для второго канала графика
+        /// </summary>
+        private void SaveSecondChannelSettings(UserViewConfig config, ScalarVariableViewModel signal2)
+        {
+            if (signal2 == null) return;
+
+            if (!config.VariableSettings.TryGetValue(signal2.Name, out var settings))
+            {
+                settings = new VariableDisplaySettings();
+                config.VariableSettings[signal2.Name] = settings;
+            }
+
+            settings.ScaleMin = ParseInput(TextBox_GraphicScale_MinimumDisplayBoundary2.Text, 0f);
+            settings.ScaleMax = ParseInput(TextBox_GraphicScale_MaximumDisplayBoundary2.Text, 100f);
+            settings.AlarmMin = ParseInput(TextBox_HardwareAlarm_CriticalMinimumThreshold2.Text, float.NegativeInfinity);
+            settings.AlarmMax = ParseInput(TextBox_HardwareAlarm_CriticalMaximumThreshold2.Text, float.PositiveInfinity);
+        }
+
+
+
 
         /// <summary>
         /// Синхронизирует состояние дополнительных панелей (Радара и 3D-поверхности Helix) на рабочем столе.
